@@ -12,6 +12,7 @@
   "dependencies": {
     "@ai-sdk/google": "^2.0.11",
     "@ai-sdk/mistral": "^2.0.12",
+    "@huggingface/transformers": "^3.7.2",
     "@langchain/community": "^0.3.53",
     "@langchain/core": "^0.3.72",
     "@langchain/mistralai": "^0.2.1",

@@ -1,19 +1,30 @@
 import { appendFileSync, mkdirSync } from "fs";
-import { RagMode } from "../types/rag";
+import { RagMode } from "../constants/rag";
+import * as readline from 'node:readline/promises';
 
-export const parseCliArgs = () => {
-    const llm = process.argv.find(arg => arg.startsWith('--llm='))?.split('=')[1];
-    const filesPath = process.argv.find(arg => arg.startsWith('--files='))?.split('=')[1];
+const terminal = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+});
 
-    if (!llm || !filesPath) {
-        console.error('Missing required CLI arguments: --llm and --files must be provided');
-        process.exit(1);
+export const getUserInput = async (prompt: string) => {
+    return await terminal.question(prompt)
+}
+
+export const parseCliArgs = (args: string[]) => {
+
+    const result: { [key: string]: string | undefined } = {};
+
+    for (const requiredArg of args) {
+        result[requiredArg] = process.argv.find(arg => arg.startsWith('--' + requiredArg + '='))?.split('=')[1];
+        if (!result[requiredArg]) {
+            console.error(`Missing required CLI argument: --${requiredArg}`);
+            process.exit(1);
+        }
     }
 
-    return {
-        llm,
-        filesPath: filesPath.split(',')
-    }
+
+    return result;
 }
 
 export class CliSessionRecording {
