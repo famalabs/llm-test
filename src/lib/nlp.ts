@@ -4,7 +4,7 @@ export const splitTextIntoSentences = (text: string, language: 'it'): string[] =
 };
 
 export const addLineNumbers = (text: string): string => {
-    return text.split('\n').map((line, idx) => `${idx}: ${line}`).join('\n');
+    return  text.split('\n').map((line, idx) => `${idx}: ${line}`).join('\n');
 };
 
 export const getCitationText = (document: string, startIndex: number, endIndex: number): string => {

@@ -1,11 +1,12 @@
 import { mistral } from "@ai-sdk/mistral";
 import { generateObject } from "ai";
-import { sleep } from '../../lib/utils';
+import { sleep } from '../lib/utils';
 import { writeFile, readFile } from "fs/promises";
 import 'dotenv/config';
-import { corpusInContext } from "../../lib/prompt/corpus-in-context";
-import { addLineNumbers, getCitationText } from "../../lib/nlp";
+import { corpusInContext } from "../lib/prompt/corpus-in-context";
+import { addLineNumbers, getCitationText } from "../lib/nlp";
 import z from "zod";
+import { mkdirSync } from "fs";
 
 const questions = [
     "Ho sentito che alcuni farmaci possono dare problemi allo stomaco anche senza sintomi. Devo preoccuparmi con Oki?",
@@ -49,7 +50,12 @@ const main = async () => {
             await sleep(2); 
         } 
     } 
-    await writeFile('output/stage-1/model-comparison.md', comparison); 
+
+    mkdirSync('output/model-comparison/', {
+        recursive: true,
+    });
+
+    await writeFile('output/model-comparison/stage-1.md', comparison); 
 }
 
 main().catch(console.error);
