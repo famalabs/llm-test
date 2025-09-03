@@ -1,14 +1,34 @@
 import { parseCliArgs } from '../lib/cli';
 import { VectorStore } from '../lib/vector-store';
 import { readFile } from 'fs/promises';
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { RecursiveCharacterTextSplitter, TextSplitter } from 'langchain/text_splitter';
 import { Document } from 'langchain/document';
+import { ChunkingStrategy } from '../constants/rag';
 
 async function main() {
-    const vectorStore = new VectorStore('vector_store_index');
-    await vectorStore.load();
-    const { files } = parseCliArgs(['files']);
+    const { files, chunking } = parseCliArgs(['files', 'chunking']);
     const filesPath = files!.split(',');
+    let splitter: TextSplitter;
+
+    if (chunking == ChunkingStrategy.FixedSize) {
+        splitter = new RecursiveCharacterTextSplitter({
+            chunkSize: 300,
+            chunkOverlap: 50,
+        });
+    }
+
+    else if (chunking == ChunkingStrategy.Agentic) {
+        // da vedere
+        throw new Error('Agentic chunking strategy not implemented yet');
+    }
+
+    else {
+        console.error('Invalid chunking strategy');
+        process.exit(1);
+    }
+
+    const vectorStore = new VectorStore(`vector_store_index_${chunking}`);
+    await vectorStore.load();
 
     const docs = await Promise.all(
         filesPath.map(async (path) => {
@@ -19,11 +39,7 @@ async function main() {
             });
         })
     );
- 
-    const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 300,
-        chunkOverlap: 50,
-    });
+
 
     const allSplits = await splitter.splitDocuments(docs);
     await vectorStore.add(allSplits);
