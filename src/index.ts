@@ -1,12 +1,12 @@
 import { CliSessionRecording, getUserInput, parseCliArgs } from "./lib/cli";
 import { VectorStore } from "./lib/vector-store";
 import { addLineNumbers, computeTokenNumber } from './lib/nlp';
-import { LargeLanguageModel, LargeLanguageModels } from "./constants/llms";
+import { LargeLanguageModels } from "./constants/llms";
 import { generateObject } from "ai";
 import { mistral } from "@ai-sdk/mistral";
 import { corpusInContext } from "./lib/prompt/corpus-in-context";
 import { resolveCitations } from "./lib/citations";
-import z, { object } from "zod";
+import z from "zod";
 import { Chunk, PromptDocument, RAGSystemConfig } from "./types";
 import { ChunkingStrategy, RagMode } from "./constants/rag";
 import { getParentPageAugmentedChunks } from "./lib/parent-retrieval";
@@ -24,7 +24,7 @@ const main = async () => {
         parentPageRetrievalOffset: 5, // number of lines before and after the chunk
         reranking: false,
         reasoning: false,
-        fewShots: false,
+        fewShots: true,
         llm: llm!,
         ragMode: RagMode.RetrievalBased,
         chunkingStrategy: chunking! as ChunkingStrategy, // this of course it's just for recording. Chunking is done offline.
@@ -34,12 +34,15 @@ const main = async () => {
 
     while (true) {
         const userQuery = await getUserInput('>> ');
+        session.print(`\n\n[=== User Query: ${userQuery} ===]\n`);
         let chunks: Chunk[] = await vectorStore.retrieveFromText(userQuery, 5);
 
-        // ordinati in base similarità con la q (distanza)
-
         if (CONFIG.reranking) {
+            const time = Date.now();
+            session.print('Before reranking:', chunks.map(c => c.pageContent.substring(0, 30) + ' -> ' + c.distance));  
             chunks = await rerankRetrievedChunks(chunks, userQuery, llm!, CONFIG.reasoning, CONFIG.fewShots);
+            session.print('After reranking:', (chunks).map(c => c.pageContent.substring(0, 30) + ' -> ' + c.distance));
+            session.print(`Reranking took ${Date.now() - time} ms`);
         }
 
         const textualChunks: string[] = chunks.map(c => c.pageContent);

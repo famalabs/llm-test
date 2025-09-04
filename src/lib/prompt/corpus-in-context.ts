@@ -26,19 +26,20 @@ ${userQuery}
 `;
 };
 
-const FEW_SHOTS = `
+
+const FEW_SHOTS_DEFAULT = `
 Here are some examples of how to answer based on the provided documents:
 
 ---
 Example 1: The information is clearly present in the chunks.
 
 CHUNKS: """
-====== CHUNK 0 [INDEX = 0] [extracted from document med_guide.pdf] ======
+====== CHUNK 0 ======
 1: Metformin is a medication primarily used to treat type 2 diabetes.
 2: It helps control blood sugar levels. Common side effects are
 3: primarily gastrointestinal and may include symptoms like diarrhea,
 4: nausea, and abdominal pain. These effects are often temporary.
-====== CHUNK 1 [INDEX = 1] [extracted from document patient_faq.html] ======
+====== CHUNK 1 ======
 1: Patients taking Metformin should have their kidney function monitored
 2: regularly, as the drug is cleared by the kidneys.
 """
@@ -55,10 +56,10 @@ According to the provided documents, common side effects of Metformin are primar
 Example 2: The information is not available in the chunks.
 
 CHUNKS: """
-====== CHUNK 0 [INDEX = 0] [extracted from document med_guide.pdf] ======
+====== CHUNK 0 ======
 1: Metformin is a medication primarily used to treat type 2 diabetes in adults.
 2: The typical starting dose for an adult is 500 mg once daily with the evening meal.
-====== CHUNK 1 [INDEX = 1] [extracted from document patient_faq.html] ======
+====== CHUNK 1 ======
 1: It is important to follow your doctor's instructions regarding dosage.
 2: Do not adjust the dose without medical consultation.
 """
@@ -72,3 +73,115 @@ I'm sorry, but the provided documents do not contain information about the recom
 """
 ---
 `;
+
+const FEW_SHOTS_1 = `
+Here are some examples of how to answer based on the provided documents:
+
+---
+Example 1:
+
+CHUNKS: """
+====== CHUNK 0 ======
+1: Ibuprofen is commonly used to reduce inflammation and pain.
+2: It should be avoided in patients with a history of stomach ulcers.
+"""
+
+QUERY: """
+Can a patient with stomach ulcers take Ibuprofen?
+"""
+
+ANSWER: """
+No
+"""
+---
+
+Example 2:
+
+CHUNKS: """
+====== CHUNK 0 ======
+1: Cetirizine is an antihistamine used to relieve allergy symptoms.
+"""
+
+QUERY: """
+Does Cetirizine cause drowsiness?
+"""
+
+ANSWER: """
+Non so
+"""
+---
+
+Example 3:
+
+CHUNKS: """
+====== CHUNK 0 ======
+1: Paracetamol is used to treat mild pain and fever.
+2: It is generally considered safe when taken at the correct dose.
+"""
+
+QUERY: """
+Is Paracetamol safe for most adults?
+"""
+
+ANSWER: """
+Si
+"""
+---
+`;
+
+const FEW_SHOTS_2 = `
+Here are some examples of how to answer based on the provided documents:
+
+---
+Example 1:
+
+CHUNKS: """
+====== CHUNK 0 ======
+1: Warfarin is an anticoagulant used to prevent blood clots.
+2: Patients taking Warfarin should have their INR monitored regularly.
+"""
+
+QUERY: """
+Does Warfarin require blood test monitoring?
+"""
+
+ANSWER: """
+In my document I have "Warfarin is an anticoagulant used to prevent blood clots.", thus, yes, Warfarin requires regular blood test monitoring (INR checks) to ensure it’s working safely and effectively. Would you like me to also explain what INR monitoring means and why it’s important? [Citations: CHUNK 0 (2, 2)]
+"""
+---
+
+Example 2:
+
+CHUNKS: """
+====== CHUNK 0 ======
+1: Omeprazole is used to reduce stomach acid production.
+"""
+
+QUERY: """
+Is Omeprazole safe for long-term daily use?
+"""
+
+ANSWER: """
+In my document I have "Omeprazole is used to reduce stomach acid production.", thus, the provided documents do not state whether Omeprazole is safe for long-term daily use. Since long-term medication can carry risks, I recommend asking your doctor for personalized guidance. Do you want me to also show you how to find official long-term use recommendations? [Citations: none]
+"""
+---
+
+Example 3:
+
+CHUNKS: """
+====== CHUNK 0 ======
+1: Albuterol is a bronchodilator used to relieve asthma symptoms.
+2: It is usually taken through an inhaler device.
+"""
+
+QUERY: """
+Can Albuterol be used during an asthma attack?
+"""
+
+ANSWER: """
+In my document I have "Albuterol is a bronchodilator used to relieve asthma symptoms." and "It is usually taken through an inhaler device.", thus, yes, Albuterol is commonly used through an inhaler to quickly relieve asthma symptoms during an attack. Do you want me to also explain how fast it usually works and how often it can be used safely? [Citations: CHUNK 0 (1, 2)]
+"""
+---
+`;
+
+const FEW_SHOTS = FEW_SHOTS_2;

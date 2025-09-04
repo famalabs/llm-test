@@ -4,11 +4,13 @@ import { readFile } from 'fs/promises';
 import { RecursiveCharacterTextSplitter, TextSplitter } from 'langchain/text_splitter';
 import { Document } from 'langchain/document';
 import { ChunkingStrategy } from '../constants/rag';
+import { AgenticChunker } from '../lib/experimental/agentic-chunker';
+import { MistralGenie } from '../lib/experimental/agentic-chunker/genie/mistral';
 
 async function main() {
     const { files, chunking } = parseCliArgs(['files', 'chunking']);
     const filesPath = files!.split(',');
-    let splitter: TextSplitter;
+    let splitter: TextSplitter | AgenticChunker;
 
     if (chunking == ChunkingStrategy.FixedSize) {
         splitter = new RecursiveCharacterTextSplitter({
@@ -19,7 +21,13 @@ async function main() {
 
     else if (chunking == ChunkingStrategy.Agentic) {
         // da vedere
-        throw new Error('Agentic chunking strategy not implemented yet');
+        splitter = new AgenticChunker(
+          {
+            genie : new MistralGenie('mistral-small-latest'),
+            verbose : true
+          }  
+        );
+
     }
 
     else {
@@ -41,8 +49,16 @@ async function main() {
     );
 
 
-    const allSplits = await splitter.splitDocuments(docs);
-    await vectorStore.add(allSplits);
+    const allSplits = splitter instanceof TextSplitter ? await splitter.splitDocuments(docs) : await splitter.chunkBatch(docs.map(d => d.pageContent)).then(results => { return results.map((chunks, idx) => {
+        return chunks.map(chunk => new Document({
+            pageContent: chunk.text,
+            metadata: { source: docs[idx].metadata.source, startIndex: chunk.startIndex, endIndex: chunk.endIndex }
+        }));
+    })}).then(arrays => arrays.flat());
+    
+    console.log(allSplits)
+    
+    // await vectorStore.add(allSplits);
 
     console.log(allSplits.length, 'document chunks embedded and stored');
 }
