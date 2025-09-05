@@ -1,3 +1,9 @@
+/*
+Lo tengo come file separato in modo da poterlo usare anche come tool per il chatbot, 
+in caso la rag fosse configurata dall'utente per non ritonare le citazioni.
+*/
+
+
 import { readDocument } from "./documents";
 import { Citation, Chunk } from "../types";
 export const resolveCitations = async (citations: Citation[], retrievedChunks: Chunk[]):Promise<string> => {

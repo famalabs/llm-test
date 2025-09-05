@@ -1,4 +1,4 @@
-import { unlink, readdir, stat } from "fs/promises";
+import { unlink, readdir } from "fs/promises";
 import { join } from "path";
 
 const getAllFiles = async (dir: string): Promise<string[]> => {
@@ -21,7 +21,7 @@ const main = async () => {
         console.log('No session files found.');
         return;
     }
-    // Sort by file name (lexicographically)
+    
     const latestFile = files.sort().pop();
     if (latestFile) {
         await unlink(latestFile);

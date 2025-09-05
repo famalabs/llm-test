@@ -1,37 +1,28 @@
 import { parseCliArgs } from '../lib/cli';
-import { VectorStore } from '../lib/vector-store';
+import { VectorStore } from '../vector-store';
 import { readFile } from 'fs/promises';
 import { RecursiveCharacterTextSplitter, TextSplitter } from 'langchain/text_splitter';
 import { Document } from 'langchain/document';
-import { ChunkingStrategy } from '../constants/rag';
-import { AgenticChunker } from '../lib/experimental/agentic-chunker';
-import { MistralGenie } from '../lib/experimental/agentic-chunker/genie/mistral';
 
 async function main() {
     const { files, chunking } = parseCliArgs(['files', 'chunking']);
     const filesPath = files!.split(',');
-    let splitter: TextSplitter | AgenticChunker;
+    let splitter: TextSplitter;
 
-    if (chunking == ChunkingStrategy.FixedSize) {
+    if (chunking == 'fixed-size') {
         splitter = new RecursiveCharacterTextSplitter({
             chunkSize: 300,
             chunkOverlap: 50,
         });
     }
 
-    else if (chunking == ChunkingStrategy.Agentic) {
+    else if (chunking == 'agentic') {
         // da vedere
-        splitter = new AgenticChunker(
-          {
-            genie : new MistralGenie('mistral-small-latest'),
-            verbose : true
-          }  
-        );
-
+        throw new Error('AgenticChunking not implemented yet!')
     }
 
     else {
-        console.error('Invalid chunking strategy');
+        console.error('Invalid chunking strategy. Available options: fixed-size, agentic');
         process.exit(1);
     }
 
@@ -49,13 +40,7 @@ async function main() {
     );
 
 
-    const allSplits = splitter instanceof TextSplitter ? await splitter.splitDocuments(docs) : await splitter.chunkBatch(docs.map(d => d.pageContent)).then(results => { return results.map((chunks, idx) => {
-        return chunks.map(chunk => new Document({
-            pageContent: chunk.text,
-            metadata: { source: docs[idx].metadata.source, startIndex: chunk.startIndex, endIndex: chunk.endIndex }
-        }));
-    })}).then(arrays => arrays.flat());
-    
+    const allSplits = await splitter.splitDocuments(docs);    
     console.log(allSplits)
     
     // await vectorStore.add(allSplits);

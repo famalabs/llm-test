@@ -1,4 +1,4 @@
-import { VectorStore } from '../lib/vector-store';
+import { VectorStore } from '../vector-store';
 import { Document } from 'langchain/document';
 import { readFile } from 'fs/promises';
 

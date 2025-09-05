@@ -9,6 +9,8 @@ export class VectorStore {
     private readonly saveDir: string;
     private readonly embeddings: MistralAIEmbeddings;
 
+    size: number; 
+
     constructor(saveDir: string) {
         this.saveDir = this.#normalizeStoreName(saveDir);
         this.embeddings = new MistralAIEmbeddings({
@@ -23,6 +25,7 @@ export class VectorStore {
     async load() {
         try {
             this.store = await FaissStore.load(this.saveDir, this.embeddings);
+            this.size = this.store.docstore._docs.size;
             console.log(`Vector store loaded from ${this.saveDir}`);
         } catch (err) {
             console.warn("No vector store found, creating a new one...");
