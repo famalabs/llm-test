@@ -1,4 +1,4 @@
-import { Chunk, Citation, PromptDocument } from "../types";
+import { Chunk, PromptDocument } from "../types";
 import { VectorStore } from "../vector-store/vector-store";
 import { getDocumentLines } from "../lib/documents";
 import { allPrompts } from "../lib/prompt";
@@ -6,8 +6,6 @@ import z from "zod";
 import { generateObject, tool } from "ai";
 import { mistral } from "@ai-sdk/mistral";
 import { RagConfig, ResolvedRagConfig } from "./interfaces";
-import {addLineNumbers} from "../lib/nlp";
-import { resolveCitations } from "../lib/citations";
 
 export class Rag {
     private readonly config: ResolvedRagConfig;
@@ -19,7 +17,7 @@ export class Rag {
         numResults: 10,
         output: {
             reasoningEnabled: false,
-            documentsOrAnswerFormat: 'documents',
+            chunksOrAnswerFormat: 'chunks',
             includeCitations: false,
             fewShotsEnabled: false,
         },
@@ -50,7 +48,7 @@ export class Rag {
             numResults: ragConfig.numResults ?? DEFAULT_CONFIG.numResults,
             output: {
                 reasoningEnabled: ragConfig?.output?.reasoningEnabled ?? DEFAULT_CONFIG.output.reasoningEnabled,
-                documentsOrAnswerFormat: (ragConfig?.output?.documentsOrAnswerFormat ?? DEFAULT_CONFIG.output.documentsOrAnswerFormat) as 'documents' | 'answer',
+                chunksOrAnswerFormat: (ragConfig?.output?.chunksOrAnswerFormat ?? DEFAULT_CONFIG.output.chunksOrAnswerFormat) as 'chunks' | 'answer',
                 includeCitations: ragConfig?.output?.includeCitations ?? DEFAULT_CONFIG.output.includeCitations,
                 fewShotsEnabled: ragConfig?.output?.fewShotsEnabled ?? DEFAULT_CONFIG.output.fewShotsEnabled,
             },
@@ -69,88 +67,12 @@ export class Rag {
         };
     }
 
-    public getLLM() {
-        return this.config.llm;
+    public getConfig () {
+        return this.config;
     }
 
-    public getAgentTool() {
-        if (!this.isInitialized) {
-            throw new Error("Rag instance is not initialized. Please call the init() method first.");
-        }
-
-        const agentToolFunction = async (question: string):Promise<string|Chunk[]> => {
-            const chunks = await this.search(question);
-
-            if (this.config.output.documentsOrAnswerFormat == 'documents') {
-                return chunks;
-            }
-
-            else if (this.config.output.documentsOrAnswerFormat == 'answer') {
-                // we have to generate an answer, using the retrieved documents as context and corpus-in-context prompt, 
-                // eventually, with reasoning and fewShots.
-
-                const {
-                    fewShotsEnabled, 
-                    includeCitations, 
-                    reasoningEnabled
-                } = this.config.output;
-
-                const responseSchema : any= {
-                    answer: z.string(),
-                }
-
-                if (includeCitations) {
-                    responseSchema.citations = z.array(
-                        z.object({
-                            chunkIndex: z.number(),
-                            startLine: z.number(),
-                            endLine: z.number()
-                        })
-                    )
-                }
-
-                if (reasoningEnabled) {
-                    responseSchema.reasoning = z.string();
-                }
-
-                const { object: result } = await generateObject({
-                    model: mistral(this.config.llm),
-                    prompt: allPrompts.ragCorpusInContext(
-                        chunks.map((document) => ({
-                            ...document,
-                            pageContent: addLineNumbers(document.pageContent)
-                        })),
-                        question,
-                        fewShotsEnabled,
-                        reasoningEnabled,
-                        includeCitations
-                    ),
-                    schema: z.object(responseSchema)
-                });
-
-                const answer = result.answer;
-                const citations = result?.citations;
-                const reasoning = result?.reasoning;
-
-                return (
-                    'TOOL ANSWER: ' + answer + '\n\n' +
-                    (citations ? 'CITATIONS: ' + await resolveCitations(citations as Citation[], chunks) : '') + '\n\n' +
-                    (reasoning ? 'REASONING: ' + reasoning : '')
-                )
-            }
-
-            else {
-                throw new Error(`Unsupported output format: ${this.config.output.documentsOrAnswerFormat}`);
-            }
-        }
-
-        return tool({
-            description: `Get informations from your knowledge base to answer questions.`,
-            inputSchema: z.object({
-                question: z.string().describe('the users question'),
-            }),
-            execute: async ({ question }) => await agentToolFunction(question),
-        })
+    public getIsInitialized() {
+        return this.isInitialized;
     }
 
     public printSummary() {
@@ -169,7 +91,7 @@ export class Rag {
         NUM RESULTS = ${numResults},
         RERANKING = ${reranking.enabled ? 'ENABLED' : 'DISABLED'} (LLM: ${reranking.llm}, FEW SHOTS: ${reranking.fewShotsEnabled}, BATCH SIZE: ${reranking.batchSize}, LLM EVAL WEIGHT: ${reranking.llmEvaluationWeight}, REASONING: ${reranking.reasoningEnabled}),
         PARENT PAGE RETRIEVAL = ${parentPageRetrieval.enabled ? 'ENABLED' : 'DISABLED'} (OFFSET: ${parentPageRetrieval.offset}),
-        OUTPUT = (FORMAT: ${output.documentsOrAnswerFormat}, REASONING: ${output.reasoningEnabled})\n\n==================================`;
+        OUTPUT = (FORMAT: ${output.chunksOrAnswerFormat}, REASONING: ${output.reasoningEnabled})\n\n==================================`;
 
         console.log(summary);
     }
@@ -210,20 +132,20 @@ export class Rag {
             throw new Error("Reasoning is enabled, but reranking is disabled. Reranking must be enabled to use reasoning.");
         }
 
-        if (output.reasoningEnabled && output.documentsOrAnswerFormat !== 'answer') {
+        if (output.reasoningEnabled && output.chunksOrAnswerFormat !== 'answer') {
             throw new Error("Output reasoning is enabled, but output format is not set to 'answer'. To use reasoning, set output format to 'answer'.");
         }
 
-        if (output.fewShotsEnabled && output.documentsOrAnswerFormat !== 'answer') {
+        if (output.fewShotsEnabled && output.chunksOrAnswerFormat !== 'answer') {
             throw new Error("Output few-shots is enabled, but output format is not set to 'answer'. To use few-shots, set output format to 'answer'.");
         }
 
-        if (output.includeCitations && output.documentsOrAnswerFormat !== 'answer') {
+        if (output.includeCitations && output.chunksOrAnswerFormat !== 'answer') {
             throw new Error("Output include citations is enabled, but output format is not set to 'answer'. To include citations, set output format to 'answer'.");
         }
     }
 
-    async search(query: string): Promise<Chunk[]> {
+    public async search(query: string): Promise<Chunk[]> {
         if (!this.isInitialized) {
             throw new Error("Rag instance is not initialized. Please call the init() method first.");
         }
@@ -241,7 +163,7 @@ export class Rag {
         return chunks;
     }
 
-    async rerankChunks(query: string, chunks: Chunk[]): Promise<Chunk[]> {
+    public async rerankChunks(query: string, chunks: Chunk[]): Promise<Chunk[]> {
         const {
             llm,
             batchSize,
@@ -301,7 +223,7 @@ export class Rag {
         return rerankedResults;
     }
 
-    async retrieveParentPage(chunks: Chunk[]): Promise<Chunk[]> {
+    public async retrieveParentPage(chunks: Chunk[]): Promise<Chunk[]> {
         const { offset } = this.config.parentPageRetrieval;
 
         const mergeLineIntervals = (chunks: Chunk[]): Chunk[] => {

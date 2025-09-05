@@ -1,8 +1,8 @@
 .env
 node_modules
-data
+data/*.txt
 output
 progress
 other
-vector_store_index*
+vector-stores
 src/lib/experimental

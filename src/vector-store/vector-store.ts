@@ -8,11 +8,12 @@ export class VectorStore {
     private store: FaissStore | null = null;
     private readonly saveDir: string;
     private readonly embeddings: MistralAIEmbeddings;
+    private static readonly BASE_DIR = 'vector-stores';
 
     size: number; 
 
     constructor(saveDir: string) {
-        this.saveDir = this.#normalizeStoreName(saveDir);
+        this.saveDir = `${VectorStore.BASE_DIR}/${this.#normalizeStoreName(saveDir)}`;
         this.embeddings = new MistralAIEmbeddings({
             model: "mistral-embed",
         });

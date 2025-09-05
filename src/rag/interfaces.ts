@@ -14,7 +14,7 @@ export interface ParentPageRetrievalConfig {
 
 export interface OutputConfig {
     reasoningEnabled?: boolean;
-    documentsOrAnswerFormat: 'documents' | 'answer';
+    chunksOrAnswerFormat: 'chunks' | 'answer';
     includeCitations?: boolean;
     fewShotsEnabled?: boolean;
 }
@@ -44,7 +44,7 @@ export interface ResolvedParentPageRetrievalConfig {
 
 export interface ResolvedOutputConfig {
     reasoningEnabled: boolean;
-    documentsOrAnswerFormat: 'documents' | 'answer';
+    chunksOrAnswerFormat: 'chunks' | 'answer';
     includeCitations: boolean;
     fewShotsEnabled: boolean;
 }
