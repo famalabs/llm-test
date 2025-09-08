@@ -6,3 +6,4 @@ progress
 other
 vector-stores
 src/lib/experimental
+*/**/__*.ts

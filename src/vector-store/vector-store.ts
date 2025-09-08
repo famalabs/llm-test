@@ -13,17 +13,17 @@ export class VectorStore {
     size: number; 
 
     constructor(saveDir: string) {
-        this.saveDir = `${VectorStore.BASE_DIR}/${this.#normalizeStoreName(saveDir)}`;
+        this.saveDir = `${VectorStore.BASE_DIR}/${this.normalizeStoreName(saveDir)}`;
         this.embeddings = new MistralAIEmbeddings({
             model: "mistral-embed",
         });
     }
 
-    #normalizeStoreName(name:string) : string {
+    private normalizeStoreName(name:string) : string {
         return name.replace(/[^a-zA-Z09]/g, "_").toLowerCase();
     }
 
-    async load() {
+    public async load() {
         try {
             this.store = await FaissStore.load(this.saveDir, this.embeddings);
             this.size = this.store.docstore._docs.size;
@@ -34,21 +34,21 @@ export class VectorStore {
         }
     }
 
-    async add(documents: Document[]) {
+    public async add(documents: Document[]) {
         if (!this.store) throw new Error("Store not initialized. Call load() first.");
 
         await this.store.addDocuments(documents);
         await this.store.save(this.saveDir);
     }
 
-    async retrieveFromText(text: string, numResults = 3): Promise<Chunk[]> {
+    public async retrieveFromText(text: string, numResults = 3): Promise<Chunk[]> {
         if (!this.store) throw new Error("Store not initialized. Call load() first.");
 
         const queryEmbedding = await this.embeddings.embedQuery(text);
         return this.retrieve(queryEmbedding, numResults);
     }
 
-    async retrieve(queryEmbedding: number[], numResults = 3): Promise<Chunk[]> {
+    public async retrieve(queryEmbedding: number[], numResults = 3): Promise<Chunk[]> {
         if (!this.store) throw new Error("Store not initialized. Call load() first.");
 
         const results = await this.store.similaritySearchVectorWithScore(queryEmbedding, numResults);

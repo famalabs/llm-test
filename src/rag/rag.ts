@@ -3,7 +3,7 @@ import { VectorStore } from "../vector-store/vector-store";
 import { getDocumentLines } from "../lib/documents";
 import { allPrompts } from "../lib/prompt";
 import z from "zod";
-import { generateObject, tool } from "ai";
+import { generateObject } from "ai";
 import { mistral } from "@ai-sdk/mistral";
 import { RagConfig, ResolvedRagConfig } from "./interfaces";
 
@@ -15,6 +15,10 @@ export class Rag {
     private static readonly DEFAULT_CONFIG = {
         llm: "mistral-small-latest",
         numResults: 10,
+        chunkFiltering: {
+            enabled: false,
+            thresholdMultiplier: 0.66,
+        },
         output: {
             reasoningEnabled: false,
             chunksOrAnswerFormat: 'chunks',
@@ -28,11 +32,16 @@ export class Rag {
             batchSize: 5,
             llmEvaluationWeight: 0.7,
             reasoningEnabled: false,
+            chunkFiltering: {
+                enabled: false,
+                thresholdMultiplier: 0.66,
+            }
         },
         parentPageRetrieval: {
             enabled: false,
             offset: 0,
-        }
+        },
+        verbose: false,
     };
 
     constructor(ragConfig: RagConfig) {
@@ -46,6 +55,10 @@ export class Rag {
             vectorStoreName: ragConfig.vectorStoreName,
             llm: ragConfig.llm ?? DEFAULT_CONFIG.llm,
             numResults: ragConfig.numResults ?? DEFAULT_CONFIG.numResults,
+            chunkFiltering : {
+                enabled: ragConfig.chunkFiltering?.enabled ?? DEFAULT_CONFIG.chunkFiltering.enabled,
+                thresholdMultiplier: ragConfig.chunkFiltering?.thresholdMultiplier ?? DEFAULT_CONFIG.chunkFiltering.thresholdMultiplier,
+            },
             output: {
                 reasoningEnabled: ragConfig?.output?.reasoningEnabled ?? DEFAULT_CONFIG.output.reasoningEnabled,
                 chunksOrAnswerFormat: (ragConfig?.output?.chunksOrAnswerFormat ?? DEFAULT_CONFIG.output.chunksOrAnswerFormat) as 'chunks' | 'answer',
@@ -59,20 +72,31 @@ export class Rag {
                 batchSize: ragConfig.reranking?.batchSize ?? DEFAULT_CONFIG.reranking.batchSize,
                 llmEvaluationWeight: ragConfig.reranking?.llmEvaluationWeight ?? DEFAULT_CONFIG.reranking.llmEvaluationWeight,
                 reasoningEnabled: ragConfig.reranking?.reasoningEnabled ?? DEFAULT_CONFIG.reranking.reasoningEnabled,
+                chunkFiltering: {
+                    enabled: ragConfig.reranking?.chunkFiltering?.enabled ?? DEFAULT_CONFIG.reranking.chunkFiltering.enabled,
+                    thresholdMultiplier: ragConfig.reranking?.chunkFiltering?.thresholdMultiplier ?? DEFAULT_CONFIG.reranking.chunkFiltering.thresholdMultiplier,
+                }
             },
             parentPageRetrieval: {
                 enabled: ragConfig.parentPageRetrieval?.enabled ?? DEFAULT_CONFIG.parentPageRetrieval.enabled,
                 offset: ragConfig.parentPageRetrieval?.offset ?? DEFAULT_CONFIG.parentPageRetrieval.offset,
             },
+            verbose: ragConfig.verbose ?? DEFAULT_CONFIG.verbose,
         };
     }
 
-    public getConfig () {
+    public getConfig() {
         return this.config;
     }
 
     public getIsInitialized() {
         return this.isInitialized;
+    }
+
+    private log(...args: any[]) {
+        if (this.config.verbose) {
+            console.log('[RAG]', ...args);
+        }
     }
 
     public printSummary() {
@@ -89,11 +113,13 @@ export class Rag {
         LLM = ${llm}, 
         VECTOR STORE = ${vectorStoreName},
         NUM RESULTS = ${numResults},
-        RERANKING = ${reranking.enabled ? 'ENABLED' : 'DISABLED'} (LLM: ${reranking.llm}, FEW SHOTS: ${reranking.fewShotsEnabled}, BATCH SIZE: ${reranking.batchSize}, LLM EVAL WEIGHT: ${reranking.llmEvaluationWeight}, REASONING: ${reranking.reasoningEnabled}),
+        CHUNK FILTERING = ${this.config.chunkFiltering.enabled ? 'ENABLED' : 'DISABLED'}${this.config.chunkFiltering.enabled ? ' (THRESHOLD MULTIPLIER: ' + this.config.chunkFiltering.thresholdMultiplier + ')' : ''},
+        RERANKING = ${reranking.enabled ? 'ENABLED' : 'DISABLED'} (LLM: ${reranking.llm}, FEW SHOTS: ${reranking.fewShotsEnabled}, BATCH SIZE: ${reranking.batchSize}, LLM EVAL WEIGHT: ${reranking.llmEvaluationWeight}, REASONING: ${reranking.reasoningEnabled}, CHUNK-FILTERING: ${reranking.chunkFiltering.enabled ? 'ENABLED' : 'DISABLED'}${reranking.chunkFiltering.enabled ? ', THRESHOLD MULTIPLIER: ' + reranking.chunkFiltering.thresholdMultiplier : ''}),
         PARENT PAGE RETRIEVAL = ${parentPageRetrieval.enabled ? 'ENABLED' : 'DISABLED'} (OFFSET: ${parentPageRetrieval.offset}),
         OUTPUT = (FORMAT: ${output.chunksOrAnswerFormat}, REASONING: ${output.reasoningEnabled})\n\n==================================`;
 
         console.log(summary);
+        return summary;
     }
 
     public async init(): Promise<void> {
@@ -143,6 +169,20 @@ export class Rag {
         if (output.includeCitations && output.chunksOrAnswerFormat !== 'answer') {
             throw new Error("Output include citations is enabled, but output format is not set to 'answer'. To include citations, set output format to 'answer'.");
         }
+
+        if (reranking.chunkFiltering.enabled && !reranking.enabled) {
+            throw new Error("Chunk filtering is enabled, but reranking is disabled. Reranking must be enabled to use chunk filtering.");
+        }
+
+        if (reranking.chunkFiltering.enabled && (reranking.chunkFiltering.thresholdMultiplier <= 0 || reranking.chunkFiltering.thresholdMultiplier >= 1)) {
+            throw new Error("Chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
+        }
+
+        if (this.config.chunkFiltering.enabled && (this.config.chunkFiltering.thresholdMultiplier <= 0 || this.config.chunkFiltering.thresholdMultiplier >= 1)) {
+            throw new Error("Chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
+        }
+
+        this.log("Preflight checks passed.");
     }
 
     public async search(query: string): Promise<Chunk[]> {
@@ -151,6 +191,13 @@ export class Rag {
         }
 
         let chunks = await this.vectorStore.retrieveFromText(query, this.config.numResults);
+
+        if (this.config.chunkFiltering.enabled) {
+            chunks = this.applyChunkFiltering(
+                chunks, 
+                this.config.chunkFiltering.thresholdMultiplier
+            );
+        }
 
         if (this.config.reranking.enabled) {
             chunks = await this.rerankChunks(query, chunks);
@@ -171,6 +218,8 @@ export class Rag {
             reasoningEnabled,
             fewShotsEnabled
         } = this.config.reranking;
+
+        this.log('Running reranking on', chunks.length, 'chunks...');
 
         const groupedChunks: Chunk[][] = [];
         for (let i = 0; i < chunks.length; i += batchSize) {
@@ -211,20 +260,35 @@ export class Rag {
                 const { index, score } = ranking;
                 // Since we're scoring distance, we invert the score (1 - score)
                 group[index].distance = (1 - llmEvaluationWeight) * group[index].distance + llmEvaluationWeight * (1 - score);
-
-                if (reasoningEnabled && ranking.reasoning) {
-                    console.log('Adding reasoning ->', ranking.reasoning);
-                }
             }
         }
 
-        const rerankedResults = [...groupedChunks.flat()].sort((a, b) => a.distance - b.distance);
+        let rerankedResults = [...groupedChunks.flat()].sort((a, b) => a.distance - b.distance);
+
+        if (this.config.reranking.chunkFiltering.enabled) {
+            rerankedResults = this.applyChunkFiltering(
+                rerankedResults,
+                this.config.reranking.chunkFiltering.thresholdMultiplier
+            );
+        }
 
         return rerankedResults;
     }
 
+    public applyChunkFiltering(chunks: Chunk[], thresholdMultiplier: number): Chunk[] {
+        const min = chunks.reduce((acc, chunk) => Math.min(acc, chunk.distance), Infinity);
+        const threshold = 1 - ((1 - min) * thresholdMultiplier);
+        chunks = chunks.filter(c => c.distance <= threshold);
+
+        this.log('Chunk filtering applied. Threshold:', threshold.toFixed(4), '->', chunks.length, 'chunks remain after filtering.');
+
+        return chunks;
+    }
+
     public async retrieveParentPage(chunks: Chunk[]): Promise<Chunk[]> {
         const { offset } = this.config.parentPageRetrieval;
+
+        this.log('Running parent page retrieval with offset', offset, 'on', chunks.length, 'chunks...');
 
         const mergeLineIntervals = (chunks: Chunk[]): Chunk[] => {
             const sorted = [...chunks].sort((a, b) => a.metadata.loc.lines.from - b.metadata.loc.lines.from);

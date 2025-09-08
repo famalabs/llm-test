@@ -5,6 +5,10 @@ export interface RerankingConfig {
     batchSize?: number;
     llmEvaluationWeight?: number;
     reasoningEnabled?: boolean;
+    chunkFiltering?: {
+        enabled?: boolean;
+        thresholdMultiplier?: number;
+    };
 }
 
 export interface ParentPageRetrievalConfig {
@@ -23,9 +27,14 @@ export interface RagConfig {
     vectorStoreName: string; // Required parameter
     llm?: string;
     numResults?: number;
+    chunkFiltering?: {
+        enabled?: boolean;
+        thresholdMultiplier?: number;
+    };
     reranking?: RerankingConfig;
     parentPageRetrieval?: ParentPageRetrievalConfig;
     output?: OutputConfig;
+    verbose?: boolean;
 }
 
 export interface ResolvedRerankingConfig {
@@ -35,6 +44,10 @@ export interface ResolvedRerankingConfig {
     batchSize: number;
     llmEvaluationWeight: number;
     reasoningEnabled: boolean;
+    chunkFiltering: {
+        enabled: boolean;
+        thresholdMultiplier: number;
+    }
 }
 
 export interface ResolvedParentPageRetrievalConfig {
@@ -53,7 +66,12 @@ export interface ResolvedRagConfig {
     vectorStoreName: string;
     llm: string;
     numResults: number;
+    chunkFiltering: {
+        enabled: boolean;
+        thresholdMultiplier: number;
+    };
     reranking: ResolvedRerankingConfig;
     parentPageRetrieval: ResolvedParentPageRetrievalConfig;
     output: ResolvedOutputConfig;
-}
+    verbose: boolean;
+};

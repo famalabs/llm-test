@@ -10,9 +10,13 @@ async function main() {
     let splitter: TextSplitter;
 
     if (chunking == 'fixed-size') {
+        const tokenLength = 300;
+        const tokenOverlap = 50;
+        const tokenToCharRatio = 4; // approx
+        
         splitter = new RecursiveCharacterTextSplitter({
-            chunkSize: 300,
-            chunkOverlap: 50,
+            chunkSize: tokenLength * tokenToCharRatio,
+            chunkOverlap: tokenOverlap * tokenToCharRatio,
         });
     }
 
@@ -41,9 +45,8 @@ async function main() {
 
 
     const allSplits = await splitter.splitDocuments(docs);    
-    console.log(allSplits)
     
-    // await vectorStore.add(allSplits);
+    await vectorStore.add(allSplits);
 
     console.log(allSplits.length, 'document chunks embedded and stored');
 }

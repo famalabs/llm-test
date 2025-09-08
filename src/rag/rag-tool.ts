@@ -7,6 +7,13 @@ import z from "zod";
 import { Chunk, Citation } from "../types";
 import { Rag } from "./rag";
 
+export interface AnswerFormatInterface {
+    answer: string;
+    chunks: Chunk[];
+    citations?: Citation[];
+    reasoning?: string;
+}
+
 export const getRagAgentToolFunction = (rag: Rag) => {
 
     const config = rag.getConfig();
@@ -16,7 +23,7 @@ export const getRagAgentToolFunction = (rag: Rag) => {
         throw new Error("Rag instance is not initialized. Please call the init() method first.");
     }
 
-    const agentToolFunction = async (question: string): Promise<string | Chunk[]> => {
+    const agentToolFunction = async (question: string): Promise<AnswerFormatInterface | Chunk[]> => {
         const chunks = await rag.search(question);
 
         if (config.output.chunksOrAnswerFormat == 'chunks') {
@@ -63,15 +70,11 @@ export const getRagAgentToolFunction = (rag: Rag) => {
                 schema: z.object(responseSchema)
             });
 
-            const answer = result.answer;
-            const citations = result?.citations;
-            const reasoning = result?.reasoning;
+            const answer: string = result.answer as string;
+            const citations: Citation[] = result?.citations as Citation[];
+            const reasoning: string = result?.reasoning as string;
 
-            return (
-                'TOOL ANSWER: ' + answer + '\n\n' +
-                (citations ? 'CITATIONS: ' + await resolveCitations(citations as Citation[], chunks) : '') + '\n\n' +
-                (reasoning ? 'REASONING: ' + reasoning : '')
-            )
+            return { answer, citations, reasoning, chunks };
         }
 
         else {
@@ -80,4 +83,21 @@ export const getRagAgentToolFunction = (rag: Rag) => {
     }
 
     return agentToolFunction;
+}
+
+export const ragAnswerToString = async (ragAnswer: AnswerFormatInterface | Chunk[], rag: Rag): Promise<string> => {
+
+    if (rag.getConfig().output.chunksOrAnswerFormat !== 'answer') {
+        const error = "The RAG instance is not configured to return answers in AnswerFormatInterface format.";
+        console.error(error);
+        throw new Error(error);
+    }
+
+    const { answer, citations, reasoning, chunks } = ragAnswer as AnswerFormatInterface;
+
+    return `
+    Answer: ${answer}\n\n
+    ${citations && citations.length > 0 ? 'Citations:\n' + await resolveCitations(citations, chunks) + '\n\n' : ''}
+    ${reasoning ? 'Reasoning:\n\n' + reasoning : ''}
+    `.trim();
 }

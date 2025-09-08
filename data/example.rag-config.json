@@ -1,0 +1,31 @@
+{
+    "vectorStoreName": "vector_store_index_fixed_size",
+    "llm": "mistral-large-latest",
+    "numResults": 20,
+    "chunkFiltering": {
+        "enabled": true,
+        "thresholdMultiplier": 0.66
+    },
+    "output": {
+        "reasoningEnabled": true,
+        "chunksOrAnswerFormat": "answer",
+        "includeCitations": false,
+        "fewShotsEnabled": true
+    },
+    "reranking": {
+        "enabled": true,
+        "llm": "mistral-small-latest",
+        "fewShotsEnabled": true,
+        "batchSize": 5,
+        "llmEvaluationWeight": 0.7,
+        "reasoningEnabled": true,
+        "chunkFiltering": {
+            "enabled": true,
+            "thresholdMultiplier": 0.66
+        }
+    },
+    "parentPageRetrieval": {
+        "enabled": true,
+        "offset": 3
+    }
+}

@@ -3,21 +3,38 @@ import { getUserInput } from './lib/cli';
 import { Rag } from './rag';
 import { mistral } from '@ai-sdk/mistral';
 import { allPrompts } from './lib/prompt';
-import { dummyTools } from './lib/utils';
+// import { getDummyTools, therapyTool } from './lib/utils';
 import { startChronometer, stopChronometer } from './lib/chonometer';
 import z from 'zod';
-import { getRagAgentToolFunction } from './rag/rag-tool';
+import { getRagAgentToolFunction, ragAnswerToString } from './rag/rag-tool';
 
 const rag = new Rag({
-    vectorStoreName: 'vector_store_index_agentic',
-    llm: 'mistral-small-latest',
-    numResults: 3,
-    output: {
-        chunksOrAnswerFormat: 'answer',
+    vectorStoreName: 'vector_store_index_fixed_size',
+    llm: 'mistral-medium-latest',
+    chunkFiltering: {
+        enabled: true,
+        thresholdMultiplier: 0.66,
+    },
+    output : {
         reasoningEnabled: true,
-        includeCitations: true,
+        chunksOrAnswerFormat: 'answer',
+        includeCitations: false,
         fewShotsEnabled: true,
-    }
+    },
+    numResults: 15,
+    reranking: {
+        enabled: true,
+        llm: 'mistral-small-latest',
+        fewShotsEnabled: true,
+        batchSize: 5,
+        llmEvaluationWeight: 0.7,
+        reasoningEnabled: true,
+        chunkFiltering: {
+            enabled: true,
+            thresholdMultiplier: 0.66,
+        }
+    }, 
+    verbose:true
 });
 
 const messages: ModelMessage[] = [];
@@ -33,20 +50,27 @@ const main = async () => {
 
         startChronometer();
 
-
         const result = streamText({
             model: mistral(rag.getConfig().llm),
             messages,
             system: allPrompts.ragChatbotSystemPrompt,
             tools: {
                 getInformation: tool({
-                    description: `Get informations from your knowledge base to answer questions.`,
+                    description: "This tool searches for information in drug package inserts. It accepts the medicine name and a textual query as input. It returns a response based on the content of the leaflet in clear language, optionally citing the section or page of reference.",
                     inputSchema: z.object({
-                        question: z.string().describe('the users question'),
+                        medicineName: z.string().describe('the name of the medicine, e.g., Aspirina'),
+                        textualQuery: z.string().describe('the information to search for, e.g., What are the side effects?'),
                     }),
-                    execute: async ({ question }) => await ragAgentToolFunction(question),
+                    execute: async ({ medicineName, textualQuery }) => {
+                        console.log(`\n[Searching for information about "${textualQuery}" in the leaflet of "${medicineName}"...]\n`);
+                        return await ragAnswerToString(
+                            await ragAgentToolFunction(`Informazioni sul farmaco ${medicineName}: ${textualQuery}`),
+                            rag
+                        );
+                    },
                 }),
-                // ...dummyTools
+                // therapyTool,
+                // ...getDummyTools(13)
             },
             stopWhen: stepCountIs(5),
             onStepFinish: async ({ toolResults }) => {
