@@ -1,5 +1,4 @@
 import { PreTrainedTokenizer } from "@huggingface/transformers";
-import { LargeLanguageModel } from "../constants/llms";
 
 export const splitTextIntoSentences = (text: string, language: 'it'): string[] => {
     const segmenter = new Intl.Segmenter(language, { granularity: 'sentence' });
@@ -14,7 +13,7 @@ export const getCitationText = (document: string, startIndex: number, endIndex: 
     return document.split('\n').slice(startIndex, endIndex + 1).join('\n') || '';
 };
 
-export const computeTokenNumber = async (document: string, model: LargeLanguageModel): Promise<number> => {
+export const computeTokenNumber = async (document: string, model: { hub : string }): Promise<number> => {
     const tokenizer = await PreTrainedTokenizer.from_pretrained(model.hub);
     const tokens = tokenizer.encode(document);
     return tokens.length;

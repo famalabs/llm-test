@@ -2,7 +2,7 @@ import { MistralAIEmbeddings } from "@langchain/mistralai";
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
 import { Document } from "langchain/document";
 import 'dotenv/config';
-import { Chunk } from "../types";
+import { Chunk } from "../lib/chunks/interfaces";
 
 export class VectorStore {
     private store: FaissStore | null = null;

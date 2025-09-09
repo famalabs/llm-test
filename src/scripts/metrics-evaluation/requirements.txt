@@ -1,0 +1,7 @@
+evaluate
+nltk
+absl-py
+rouge_score
+unbabel_comet
+torch
+git+https://github.com/google-research/bleurt.git

@@ -1,88 +1,21 @@
-import { Chunk, PromptDocument } from "../types";
+import { Chunk, PromptDocument } from "../lib/chunks/interfaces";
 import { VectorStore } from "../vector-store/vector-store";
-import { getDocumentLines } from "../lib/documents";
-import { allPrompts } from "../lib/prompt";
 import z from "zod";
 import { generateObject } from "ai";
 import { mistral } from "@ai-sdk/mistral";
 import { RagConfig, ResolvedRagConfig } from "./interfaces";
+import { retrieveParentPage } from "../lib/chunks/parent-page";
+import { applyChunkFiltering } from "../lib/chunks";
+import { resolveConfig } from "./rag.config";
+import { rerankingPrompt } from "../lib/prompt";
 
 export class Rag {
     private readonly config: ResolvedRagConfig;
     private vectorStore: VectorStore;
     private isInitialized: boolean = false;
-
-    private static readonly DEFAULT_CONFIG = {
-        llm: "mistral-small-latest",
-        numResults: 10,
-        chunkFiltering: {
-            enabled: false,
-            thresholdMultiplier: 0.66,
-        },
-        output: {
-            reasoningEnabled: false,
-            chunksOrAnswerFormat: 'chunks',
-            includeCitations: false,
-            fewShotsEnabled: false,
-        },
-        reranking: {
-            enabled: false,
-            llm: "mistral-small-latest",
-            fewShotsEnabled: false,
-            batchSize: 5,
-            llmEvaluationWeight: 0.7,
-            reasoningEnabled: false,
-            chunkFiltering: {
-                enabled: false,
-                thresholdMultiplier: 0.66,
-            }
-        },
-        parentPageRetrieval: {
-            enabled: false,
-            offset: 0,
-        },
-        verbose: false,
-    };
-
+    
     constructor(ragConfig: RagConfig) {
-        this.config = this.resolveConfig(ragConfig);
-    }
-
-    private resolveConfig(ragConfig: RagConfig): ResolvedRagConfig {
-        const { DEFAULT_CONFIG } = Rag;
-
-        return {
-            vectorStoreName: ragConfig.vectorStoreName,
-            llm: ragConfig.llm ?? DEFAULT_CONFIG.llm,
-            numResults: ragConfig.numResults ?? DEFAULT_CONFIG.numResults,
-            chunkFiltering : {
-                enabled: ragConfig.chunkFiltering?.enabled ?? DEFAULT_CONFIG.chunkFiltering.enabled,
-                thresholdMultiplier: ragConfig.chunkFiltering?.thresholdMultiplier ?? DEFAULT_CONFIG.chunkFiltering.thresholdMultiplier,
-            },
-            output: {
-                reasoningEnabled: ragConfig?.output?.reasoningEnabled ?? DEFAULT_CONFIG.output.reasoningEnabled,
-                chunksOrAnswerFormat: (ragConfig?.output?.chunksOrAnswerFormat ?? DEFAULT_CONFIG.output.chunksOrAnswerFormat) as 'chunks' | 'answer',
-                includeCitations: ragConfig?.output?.includeCitations ?? DEFAULT_CONFIG.output.includeCitations,
-                fewShotsEnabled: ragConfig?.output?.fewShotsEnabled ?? DEFAULT_CONFIG.output.fewShotsEnabled,
-            },
-            reranking: {
-                enabled: ragConfig.reranking?.enabled ?? DEFAULT_CONFIG.reranking.enabled,
-                llm: ragConfig.reranking?.llm ?? DEFAULT_CONFIG.reranking.llm,
-                fewShotsEnabled: ragConfig.reranking?.fewShotsEnabled ?? DEFAULT_CONFIG.reranking.fewShotsEnabled,
-                batchSize: ragConfig.reranking?.batchSize ?? DEFAULT_CONFIG.reranking.batchSize,
-                llmEvaluationWeight: ragConfig.reranking?.llmEvaluationWeight ?? DEFAULT_CONFIG.reranking.llmEvaluationWeight,
-                reasoningEnabled: ragConfig.reranking?.reasoningEnabled ?? DEFAULT_CONFIG.reranking.reasoningEnabled,
-                chunkFiltering: {
-                    enabled: ragConfig.reranking?.chunkFiltering?.enabled ?? DEFAULT_CONFIG.reranking.chunkFiltering.enabled,
-                    thresholdMultiplier: ragConfig.reranking?.chunkFiltering?.thresholdMultiplier ?? DEFAULT_CONFIG.reranking.chunkFiltering.thresholdMultiplier,
-                }
-            },
-            parentPageRetrieval: {
-                enabled: ragConfig.parentPageRetrieval?.enabled ?? DEFAULT_CONFIG.parentPageRetrieval.enabled,
-                offset: ragConfig.parentPageRetrieval?.offset ?? DEFAULT_CONFIG.parentPageRetrieval.offset,
-            },
-            verbose: ragConfig.verbose ?? DEFAULT_CONFIG.verbose,
-        };
+        this.config = resolveConfig(ragConfig);
     }
 
     public getConfig() {
@@ -193,7 +126,7 @@ export class Rag {
         let chunks = await this.vectorStore.retrieveFromText(query, this.config.numResults);
 
         if (this.config.chunkFiltering.enabled) {
-            chunks = this.applyChunkFiltering(
+            chunks = applyChunkFiltering(
                 chunks, 
                 this.config.chunkFiltering.thresholdMultiplier
             );
@@ -204,7 +137,7 @@ export class Rag {
         }
 
         if (this.config.parentPageRetrieval.enabled) {
-            chunks = await this.retrieveParentPage(chunks);
+            chunks = await retrieveParentPage(chunks, this.config.parentPageRetrieval.offset);
         }
 
         return chunks;
@@ -228,7 +161,7 @@ export class Rag {
 
         for (const group of groupedChunks) {
             const promptDocuments: PromptDocument[] = group.map(c => ({ content: c.pageContent, source: c.metadata.source }));
-            const prompt = allPrompts.reranking(
+            const prompt = rerankingPrompt(
                 promptDocuments,
                 query,
                 reasoningEnabled,
@@ -266,7 +199,7 @@ export class Rag {
         let rerankedResults = [...groupedChunks.flat()].sort((a, b) => a.distance - b.distance);
 
         if (this.config.reranking.chunkFiltering.enabled) {
-            rerankedResults = this.applyChunkFiltering(
+            rerankedResults = applyChunkFiltering(
                 rerankedResults,
                 this.config.reranking.chunkFiltering.thresholdMultiplier
             );
@@ -275,89 +208,4 @@ export class Rag {
         return rerankedResults;
     }
 
-    public applyChunkFiltering(chunks: Chunk[], thresholdMultiplier: number): Chunk[] {
-        const min = chunks.reduce((acc, chunk) => Math.min(acc, chunk.distance), Infinity);
-        const threshold = 1 - ((1 - min) * thresholdMultiplier);
-        chunks = chunks.filter(c => c.distance <= threshold);
-
-        this.log('Chunk filtering applied. Threshold:', threshold.toFixed(4), '->', chunks.length, 'chunks remain after filtering.');
-
-        return chunks;
-    }
-
-    public async retrieveParentPage(chunks: Chunk[]): Promise<Chunk[]> {
-        const { offset } = this.config.parentPageRetrieval;
-
-        this.log('Running parent page retrieval with offset', offset, 'on', chunks.length, 'chunks...');
-
-        const mergeLineIntervals = (chunks: Chunk[]): Chunk[] => {
-            const sorted = [...chunks].sort((a, b) => a.metadata.loc.lines.from - b.metadata.loc.lines.from);
-            const merged: Chunk[] = [];
-
-            for (const curr of sorted) {
-                if (merged.length === 0) {
-                    merged.push(curr);
-                    continue;
-                }
-
-                const prev = merged[merged.length - 1];
-                if (curr.metadata.loc.lines.from <= prev.metadata.loc.lines.to) {
-                    prev.metadata.loc.lines.to = Math.max(prev.metadata.loc.lines.to, curr.metadata.loc.lines.to);
-                } else {
-                    merged.push(curr);
-                }
-            }
-
-            return merged;
-        };
-
-        const extendChunkLines = (chunk: Chunk, offset: number, totalLines: number): Chunk => {
-            const from = Math.max(1, chunk.metadata.loc.lines.from - offset);
-            const to = Math.min(totalLines, chunk.metadata.loc.lines.to + offset);
-            return {
-                ...chunk,
-                metadata: {
-                    ...chunk.metadata,
-                    loc: {
-                        ...chunk.metadata.loc,
-                        lines: { from, to }
-                    }
-                }
-            };
-        };
-
-        const chunksBySource: Record<string, Chunk[]> = {};
-        for (const c of chunks) {
-            if (!chunksBySource[c.metadata.source]) {
-                chunksBySource[c.metadata.source] = [];
-            }
-            chunksBySource[c.metadata.source].push(c);
-        }
-
-        const result: Chunk[] = [];
-
-        for (const [source, sourceChunks] of Object.entries(chunksBySource)) {
-            const lines = await getDocumentLines(source);
-            const totalLines = lines.length;
-
-            const extended = sourceChunks.map(c => extendChunkLines(c, offset, totalLines));
-            const merged = mergeLineIntervals(extended);
-
-            // Restore order (distance based...smallest distance first)
-            merged.sort((a, b) => a.distance - b.distance);
-
-            for (const { metadata, distance } of merged) {
-                const { from, to } = metadata.loc.lines;
-                const content = lines.slice(from - 1, to).join("\n");
-
-                result.push({
-                    pageContent: content,
-                    metadata,
-                    distance
-                });
-            }
-        }
-
-        return result;
-    }
 }

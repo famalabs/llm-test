@@ -1,0 +1,1 @@
+HUGGINGFACE = 'huggingface' # placeholder per le metriche di HuggingFace

@@ -7,3 +7,6 @@ other
 vector-stores
 src/lib/experimental
 */**/__*.ts
+*/**/*__pycache__*
+*/**/*UniEval*
+.venv

@@ -1,4 +1,4 @@
-import { Chunk } from '../../types'
+import { Chunk } from '../chunks/interfaces'
 
 export const ragCorpusInContext = (promptDocuments: Chunk[], userQuery: string, fewShots: boolean = false, reasoning: boolean = false, includeCitations : boolean = false): string => {
  return `

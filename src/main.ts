@@ -2,44 +2,47 @@ import { ModelMessage, stepCountIs, streamText, tool } from 'ai';
 import { getUserInput } from './lib/cli';
 import { Rag } from './rag';
 import { mistral } from '@ai-sdk/mistral';
-import { allPrompts } from './lib/prompt';
-// import { getDummyTools, therapyTool } from './lib/utils';
-import { startChronometer, stopChronometer } from './lib/chonometer';
+import { sleep } from './lib/utils';
+import { startChronometer, stopChronometer } from './lib/chronometer';
 import z from 'zod';
 import { getRagAgentToolFunction, ragAnswerToString } from './rag/rag-tool';
+import { ragChatbotSystemPrompt } from './lib/prompt';
 
 const rag = new Rag({
-    vectorStoreName: 'vector_store_index_fixed_size',
+    vectorStoreName: 'vector_store_index_agentic',
     llm: 'mistral-medium-latest',
-    chunkFiltering: {
-        enabled: true,
-        thresholdMultiplier: 0.66,
-    },
-    output : {
+    numResults: 5,
+    output: {
         reasoningEnabled: true,
         chunksOrAnswerFormat: 'answer',
         includeCitations: false,
-        fewShotsEnabled: true,
+        fewShotsEnabled: false,
     },
-    numResults: 15,
+    parentPageRetrieval : {
+        enabled: true,
+        offset: 2,
+    },
+    chunkFiltering: {
+        enabled: true,
+        thresholdMultiplier: 0.5,
+    },
     reranking: {
         enabled: true,
-        llm: 'mistral-small-latest',
-        fewShotsEnabled: true,
-        batchSize: 5,
-        llmEvaluationWeight: 0.7,
-        reasoningEnabled: true,
-        chunkFiltering: {
+        llm: 'mistral-medium-latest',
+        chunkFiltering:  {
             enabled: true,
-            thresholdMultiplier: 0.66,
-        }
-    }, 
-    verbose:true
+            thresholdMultiplier: 0.5,
+        },
+        reasoningEnabled : true, 
+        fewShotsEnabled: true,
+    },
+    verbose: true
 });
 
 const messages: ModelMessage[] = [];
 
 const main = async () => {
+
     await rag.init();
     rag.printSummary();
     const ragAgentToolFunction = getRagAgentToolFunction(rag);
@@ -53,7 +56,8 @@ const main = async () => {
         const result = streamText({
             model: mistral(rag.getConfig().llm),
             messages,
-            system: allPrompts.ragChatbotSystemPrompt,
+            temperature: 0,
+            system: ragChatbotSystemPrompt,
             tools: {
                 getInformation: tool({
                     description: "This tool searches for information in drug package inserts. It accepts the medicine name and a textual query as input. It returns a response based on the content of the leaflet in clear language, optionally citing the section or page of reference.",
@@ -62,15 +66,12 @@ const main = async () => {
                         textualQuery: z.string().describe('the information to search for, e.g., What are the side effects?'),
                     }),
                     execute: async ({ medicineName, textualQuery }) => {
-                        console.log(`\n[Searching for information about "${textualQuery}" in the leaflet of "${medicineName}"...]\n`);
                         return await ragAnswerToString(
                             await ragAgentToolFunction(`Informazioni sul farmaco ${medicineName}: ${textualQuery}`),
                             rag
                         );
                     },
                 }),
-                // therapyTool,
-                // ...getDummyTools(13)
             },
             stopWhen: stepCountIs(5),
             onStepFinish: async ({ toolResults }) => {
@@ -91,6 +92,8 @@ const main = async () => {
         console.log(`\n\n=== Response completed in ${(elapsed / 1000).toFixed(2)} seconds.\n\n===`);
 
         messages.push({ role: 'assistant', content: fullResponse });
+
+        await sleep(2);
     }
 }
 

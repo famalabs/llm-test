@@ -1,4 +1,4 @@
-import { PromptDocument } from "../../types";
+import { PromptDocument } from "../chunks/interfaces";
 
 export const rerankingPrompt = (promptDocuments: PromptDocument[], userQuery: string, reasoning: boolean = false, fewShots: boolean = false): string =>  `
 You are an expert system specialized in ranking text passages for Retrieval-Augmented Generation (RAG).

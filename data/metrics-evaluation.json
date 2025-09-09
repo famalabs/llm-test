@@ -1,0 +1,340 @@
+{
+  "Aspirina": {
+    "Test": "Quali sono gli effetti collaterali dell'aspirina?",
+    "Reference": "Gli effetti collaterali più comuni dell’aspirina includono disturbi gastrointestinali come nausea, vomito, bruciore di stomaco e dolori addominali. Possono verificarsi anche sanguinamenti gastrointestinali, reazioni allergiche (rash cutaneo, prurito, gonfiore), vertigini e, raramente, problemi renali o epatici.",
+    "Keywords": [
+      "nausea",
+      "bruciore",
+      "dolor",
+      "gastrointestinal",
+      "vertigini",
+      "allergi"
+    ],
+    "Candidates": [
+      {
+        "Candidate": "Gli effetti collaterali più comuni dell’aspirina includono disturbi gastrointestinali come nausea, vomito, bruciore di stomaco e dolori addominali. Possono verificarsi anche sanguinamenti gastrointestinali, reazioni allergiche (rash cutaneo, prurito, gonfiore), vertigini e, raramente, problemi renali o epatici.",
+        "Expected": 1.0,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "L’aspirina può provocare nausea, vomito, bruciore di stomaco e dolori addominali, oltre a sanguinamenti gastrointestinali, reazioni allergiche come rash e prurito, vertigini e, raramente, danni renali o epatici.",
+        "Expected": 0.9,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Gli effetti collaterali principali dell’aspirina ci sono nausea, dolori allo stomaco, vertigini e reazioni allergiche.",
+        "Expected": 0.6,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "L’aspirina può dare disturbi allo stomaco e qualche reazione allergica.",
+        "Expected": 0.5,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina può causare problemi gastrointestinali e vertigini.",
+        "Expected": 0.4,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina può dare mal di stomaco.",
+        "Expected": 0.3,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina può avere effetti indesiderati.",
+        "Expected": 0.2,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina può non essere tollerata da tutti.",
+        "Expected": 0.1,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina è una compressa bianca.",
+        "Expected": 0.1,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Gli effetti collaterali più comuni dell’aspirina sono sonno profondo e aumento di appetito. Raramente può causare mal di testa e disturbi epilettici.",
+        "Expected": 0.0,
+        "Weight": null,
+        "Binary": 0
+      }
+    ]
+  },
+  "Battery": {
+    "Test": "Quanto tempo dura la batteria?",
+    "Reference": "La batteria dura 15 ore",
+    "Keywords": [
+      "batteria",
+      "15",
+      "ore"
+    ],
+    "Candidates": [
+      {
+        "Candidate": "La batteria dura 15 ore",
+        "Expected": 1.0,
+        "Weight": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "La batteria può durare fino a 15 ore",
+        "Expected": 0.9,
+        "Weight": 0.8,
+        "Binary": 1
+      },
+      {
+        "Candidate": "15 ore",
+        "Expected": 0.9,
+        "Weight": 0.8,
+        "Binary": 1
+      },
+      {
+        "Candidate": "La batteria dura 10 ore",
+        "Expected": 0.0,
+        "Weight": 1.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La batteria può durare fino a 10 ore",
+        "Expected": 0.0,
+        "Weight": 1.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "10 ore",
+        "Expected": 0.0,
+        "Weight": 1.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Non ho informazioni sulla batteria",
+        "Expected": 0.1,
+        "Weight": 0.5,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Non so dirti quante ore dura la batteria",
+        "Expected": 0.1,
+        "Weight": 0.5,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La batteria dura ore",
+        "Expected": 0.0,
+        "Weight": 1.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La batteria dura più di 15 ore",
+        "Expected": 0.0,
+        "Weight": 1.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La batteria dura circa 15 ore",
+        "Expected": 0.9,
+        "Weight": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "La batteria dura meno di 15 ore",
+        "Expected": 0.0,
+        "Weight": 1.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Quante ore dura la batteria",
+        "Expected": 0.0,
+        "Weight": 1.0,
+        "Binary": 0
+      }
+    ]
+  },
+  "Medicine": {
+    "Test": "Che medicine devo prendere oggi?",
+    "Reference": "Stamattina dovresti assumere una bustina di tachipirina 500, dopo pranzo una compressa di Clavulin e dopo cena un'altra compressa di Clavulin.",
+    "Keywords": [
+      "tachipirina",
+      "clavulin"
+    ],
+    "Candidates": [
+      {
+        "Candidate": "Stamattina dovresti assumere una bustina di tachipirina 500, dopo pranzo una compressa di Clavulin e dopo cena un'altra compressa di Clavulin.",
+        "Expected": 1.0,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Al mattino assumi una bustina di tachipirina 500, poi dopo pranzo una compressa di Clavulin e infine dopo cena un’altra compressa di Clavulin.",
+        "Expected": 0.9,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Stamattina prendi una bustina di tachipirina 500 e dopo pranzo una compressa di Clavulin.",
+        "Expected": 0.4,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Stamattina dovresti assumere una bustina di tachipirina 500, dopo pranzo una compressa di Clavulin e dopo cena una bustina di tachipirina 500.",
+        "Expected": 0.0,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Al mattino assumi tachipirina 500, dopo pranzo Clavulin e dopo cena ancora Clavulin.",
+        "Expected": 0.8,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Prendi tachipirina al mattino e Clavulin dopo pranzo e cena.",
+        "Expected": 0.6,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Stamattina tachipirina 500 e dopo pranzo Clavulin.",
+        "Expected": 0.4,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Prendi tachipirina 500 e Clavulin oggi.",
+        "Expected": 0.2,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Devi prendere farmaci oggi.",
+        "Expected": 0.1,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Stamattina prendi ibuprofene, dopo pranzo aspirina e dopo cena melatonina.",
+        "Expected": 0.0,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Alle 9 una tachipirina 500, alle 14 una pastiglia di Clavulin e alle 21 un'altra pastiglia di Clavulin.",
+        "Expected": 0.8,
+        "Weight": null,
+        "Binary": 1
+      }
+    ]
+  },
+  "Pizza": {
+    "Test": "Quali sono gli ingredienti della pizza?",
+    "Reference": "Gli ingredienti base della pizza sono quelli dell'impasto, ovvero farina, acqua, lievito (di birra o madre), sale e olio extravergine d'oliva. Per quanto riguarda i condimenti, i più comuni includono la mozzarella e il pomodoro, a cui si possono aggiungere ingredienti come basilico, origano, aglio, salumi, formaggi e funghi, variando in base al tipo di pizza.",
+    "Keywords": [
+      "farina",
+      "acqua",
+      "lievito",
+      "sale",
+      "olio",
+      "mozzarella",
+      "pomodoro"
+    ],
+    "Candidates": [
+      {
+        "Candidate": "Gli ingredienti base della pizza sono quelli dell'impasto, ovvero farina, acqua, lievito (di birra o madre), sale e olio extravergine d'oliva. Per quanto riguarda i condimenti, i più comuni includono la mozzarella e il pomodoro, a cui si possono aggiungere ingredienti come basilico, origano, aglio, salumi, formaggi e funghi, variando in base al tipo di pizza.",
+        "Expected": 1.0,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "L’impasto della pizza si prepara con farina, acqua, lievito (di birra o madre), sale e olio extravergine d’oliva; i condimenti più comuni sono pomodoro e mozzarella, con possibili aggiunte di basilico, origano, aglio, salumi, formaggi e funghi.",
+        "Expected": 0.9,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "La pizza si prepara con farina, acqua, lievito, sale e olio extravergine d’oliva. Di solito si condisce con pomodoro e mozzarella, e talvolta con basilico, origano, aglio, salumi, formaggi o funghi.",
+        "Expected": 0.9,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Per fare la pizza servono farina, acqua, lievito, sale e olio EVO; di solito si condisce con mozzarella e pomodoro, ma anche con basilico, origano, aglio, salumi, formaggi o funghi.",
+        "Expected": 0.8,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "L’impasto della pizza richiede farina, acqua, lievito e sale. Tra i condimenti più diffusi ci sono mozzarella, pomodoro, basilico e origano, ma anche salumi e formaggi.",
+        "Expected": 0.5,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Per fare la pizza servono farina, acqua e lievito. Si può condire con mozzarella, pomodoro e altri ingredienti a piacere.",
+        "Expected": 0.5,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’impasto della pizza richiede farina, acqua, lievito, sale e olio. I condimenti più diffusi includono mozzarella e pomodoro.",
+        "Expected": 0.6,
+        "Weight": null,
+        "Binary": 1
+      },
+      {
+        "Candidate": "La pizza si fa con un impasto a base di farina e si condisce con mozzarella e pomodoro.",
+        "Expected": 0.4,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza è fatta con farina e acqua, e spesso ha mozzarella sopra.",
+        "Expected": 0.3,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza è un piatto con un impasto e vari condimenti.",
+        "Expected": 0.2,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza è un cibo italiano molto famoso.",
+        "Expected": 0.1,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza si serve calda.",
+        "Expected": 0.1,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza si prepara con riso, latte e cioccolato.",
+        "Expected": 0.0,
+        "Weight": null,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Non so quali siano gli ingredienti della pizza.",
+        "Expected": 0.1,
+        "Weight": null,
+        "Binary": 0
+      }
+    ]
+  }
+}

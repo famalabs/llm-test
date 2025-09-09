@@ -1,11 +1,11 @@
 import { generateObject } from "ai";
-import { resolveCitations } from "../lib/citations";
+import { resolveCitations } from "../lib/chunks/citations";
 import { mistral } from "@ai-sdk/mistral";
-import { allPrompts } from "../lib/prompt";
 import { addLineNumbers } from "../lib/nlp";
 import z from "zod";
-import { Chunk, Citation } from "../types";
+import { Chunk, Citation } from "../lib/chunks/interfaces";
 import { Rag } from "./rag";
+import { ragCorpusInContext } from "../lib/prompt";
 
 export interface AnswerFormatInterface {
     answer: string;
@@ -57,7 +57,7 @@ export const getRagAgentToolFunction = (rag: Rag) => {
 
             const { object: result } = await generateObject({
                 model: mistral(config.llm),
-                prompt: allPrompts.ragCorpusInContext(
+                prompt: ragCorpusInContext(
                     chunks.map((document) => ({
                         ...document,
                         pageContent: addLineNumbers(document.pageContent)
