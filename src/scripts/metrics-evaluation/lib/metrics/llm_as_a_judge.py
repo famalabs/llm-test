@@ -127,8 +127,8 @@ METRICS = {
         "function": g_eval,
         "result_key": 'score'
     }, 
-    # 'llm_judge_custom': {
-    #     "function": llm_judge_custom,
-    #     "result_key": 'score'
-    # }
+    'llm_judge_custom': {
+        "function": llm_judge_custom,
+        "result_key": 'score'
+    }
 }
