@@ -8,18 +8,14 @@ from lib.metrics.utils import HUGGINGFACE
 from tqdm import tqdm
 import evaluate
 from collections import defaultdict
+from dotenv import load_dotenv
+load_dotenv('.env')
 
 def main():    
     metrics_tests = load_metrics_tests()
-    
-    total_iterations = sum(
-        len(tests['Candidates']) 
-        for tests in metrics_tests.values()
-    ) * len(METRICS)
-    
     metrics_results = defaultdict(list)
     
-    with tqdm(total=total_iterations, desc='Evaluating metrics') as pbar:
+    with tqdm(total=len(METRICS), desc='Evaluating metrics') as pbar:
         for metric_name, metric in METRICS.items():
             pbar.set_description(f"Evaluating metric: {metric_name}")
             
@@ -48,6 +44,7 @@ def main():
                 results = evaluate.load(metric_name).compute(
                     references=references, 
                     predictions=predictions,
+                    **({ "lang" : "it"} if metric_name == 'bertscore' else {}),
                     **({"sources": references} if metric_name == 'comet' else {})
                 )
                 
@@ -66,7 +63,8 @@ def main():
                     result = function(
                         references=[item['answer_reference']], 
                         predictions=[item['candidate']['Candidate']],
-                        **({"keywords_list": [item['keywords']]} if metric_name == 'keyword_based' else {})
+                        **({"keywords_list": [item['keywords']]} if metric_name == 'keyword_based' else {}),
+                        **({"query": item['question_test']} if metric_name in ['g_eval', 'llm_judge_custom'] else {})
                     )
                     scores.append(result[result_key])
             

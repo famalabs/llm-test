@@ -9,4 +9,7 @@ src/lib/experimental
 */**/__*.ts
 */**/*__pycache__*
 */**/*UniEval*
+*/**/*GPTScore*
+*/**/*.venv
 .venv
+.deepeval

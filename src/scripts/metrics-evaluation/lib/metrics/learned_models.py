@@ -14,10 +14,10 @@ def unieval(references, predictions):
         context_list=context_list
     )
     
-    evaluator = get_evaluator(task)
+    evaluator = get_evaluator(task, device='cpu')
     results = evaluator.evaluate(data, print_result=False)
     
-    return {"unieval": results}
+    return {"unieval": results[0]['overall']}
 
 METRIC = {
     "comet" : {

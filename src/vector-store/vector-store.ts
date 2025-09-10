@@ -20,7 +20,7 @@ export class VectorStore {
     }
 
     private normalizeStoreName(name:string) : string {
-        return name.replace(/[^a-zA-Z09]/g, "_").toLowerCase();
+        return name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
     }
 
     public async load() {
