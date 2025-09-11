@@ -13,7 +13,7 @@ import os
 import json
 load_dotenv('.env')
 
-LANG = 'en'
+LANG = 'it'
 TO_NORMALIZE = {'bleurt', 'unieval', 'bertscore', 'embedding_gemma'}
 USE_CACHE = True
 CACHE = {}
@@ -49,7 +49,6 @@ def load_cache():
         CACHE = {}
 
 def compute_best_threshold(scores, labels):
-    
     filtered = [(s, l) for s, l in zip(scores, labels) if l is not None]
     if not filtered:
         return 0.5, 0.0
@@ -145,7 +144,6 @@ def main():
                     )
                     raw_scores.append(result[result_key])
 
-            # Normalizza prima di calcolare la soglia (monotona -> ordine preservato)
             normalized_scores, norm_meta = normalize_scores(metric_name, raw_scores)
             scores_for_threshold = [s for s in normalized_scores]
             
@@ -175,7 +173,6 @@ def main():
                 
             add_to_cache(metric_name, metrics_meta[metric_name], metrics_results[metric_name])
 
-    # (Rimossa normalizzazione post-hoc: già applicata prima della soglia)
     os.makedirs('output/evaluations/metrics', exist_ok=True)
     with open(f'output/evaluations/metrics/results_{LANG}.json', 'w') as f:
         json.dump({"metrics": metrics_results, "meta": metrics_meta}, f, indent=4)
@@ -192,7 +189,6 @@ def main():
         total_binary = 0
         correct_binary = 0
         
-        # Recompute F1 based on stored binary predictions (should match best_f1)
         y_true = []
         y_pred = []
         for res in results:
