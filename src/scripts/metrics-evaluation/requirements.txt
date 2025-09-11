@@ -9,3 +9,5 @@ bert_score
 scikit-learn
 tf_keras
 openai
+instructor
+mistralai

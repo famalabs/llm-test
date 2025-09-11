@@ -1,12 +1,43 @@
 from deepeval.metrics import GEval
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
-from google import genai
-from google.genai import types
+from deepeval.models.base_model import DeepEvalBaseLLM
+from langchain_mistralai import ChatMistralAI
 from pydantic import BaseModel
-from pydantic import Field
 from time import sleep
+from mistralai import Mistral
+import instructor
 import os
-gemini_client = genai.Client(api_key=os.getenv("GOOGLE_GENERATIVE_AI_API_KEY"))
+
+mistral_client = Mistral(api_key=os.getenv("MISTRAL_API_KEY"))
+
+class CustomMistral(DeepEvalBaseLLM):
+    def __init__(self, llm):
+        self.model = Mistral(api_key=os.getenv("MISTRAL_API_KEY"))
+        self.llm = llm
+
+    def load_model(self):
+        return self.model
+
+    def generate(self, prompt: str, schema: BaseModel) -> str:
+        client = self.load_model()
+        instructor_client = instructor.from_mistral(
+            client=client,
+            mode=instructor.Mode.MISTRAL_STRUCTURED_OUTPUTS
+        )
+        respo = instructor_client.messages.create(
+            model=self.llm,
+            messages=[
+                { 'role' : 'user', 'content' : prompt }
+            ],
+            response_model=schema
+        )
+        return respo
+
+    async def a_generate(self, prompt: str, schema: BaseModel) -> BaseModel:
+        return self.generate(prompt, schema)
+
+    def get_model_name(self):
+        return "Custom Mistral Model"
 
 def evaluation_prompt(expected_answer=None, given_answer=None, query=None):
     
@@ -62,12 +93,12 @@ GIVEN ANSWER:
 """.strip()
     return prompt
 
-def g_eval(references, predictions, query):
-    
+def g_eval(references, predictions, query, llm):
+    model = CustomMistral(llm)
     metric = GEval(
         name="Correctness",
         criteria=evaluation_prompt(),
-        model="gpt-4o-mini",
+        model=model,
         evaluation_params=[
             LLMTestCaseParams.ACTUAL_OUTPUT,
             LLMTestCaseParams.EXPECTED_OUTPUT
@@ -86,13 +117,13 @@ def g_eval(references, predictions, query):
 
     return {"score": sum(scores) / len(scores)}
 
-def llm_judge_custom(references, predictions, query):
+def llm_judge_custom(references, predictions, query, llm):
     
     scores = []
     
     class EvalResult(BaseModel):
-        score: float = Field(..., ge=0, le=1, description="Punteggio da 0 a 1")
-        explanation: str = Field(..., description="Breve spiegazione del punteggio")
+        score: float
+        explanation: str
     
     for expected_answer, given_answer in zip(references, predictions):    
         
@@ -100,35 +131,68 @@ def llm_judge_custom(references, predictions, query):
         prompt = evaluation_prompt(expected_answer, given_answer, query)
         
         def get_response():
-            response = gemini_client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-                config={
-                    'response_mime_type': 'application/json',
-                    'response_schema': EvalResult
-                }
+            response = mistral_client.chat.parse(
+                model=llm,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                response_format=EvalResult
             )
+
             return response
         
         try:
             response = get_response()
-        except Exception as e:
+        except Exception:
             sleep(10)
             response = get_response()
 
-        evaluation = response.parsed
+        evaluation = response.choices[0].message.parsed
         scores.append(evaluation.score)
 
     return {"score": sum(scores) / len(scores)}
 
+def llm_judge_custom_small(references, predictions, query):
+    return llm_judge_custom(references, predictions, query, llm="mistral-small-latest")
+
+def llm_judge_custom_medium(references, predictions, query):
+    return llm_judge_custom(references, predictions, query, llm="mistral-medium-latest")
+
+def llm_judge_custom_large(references, predictions, query):
+    return llm_judge_custom(references, predictions, query, llm="mistral-large-latest")
+
+def g_eval_small(references, predictions, query):
+    return g_eval(references, predictions, query, llm="mistral-small-latest")
+
+def g_eval_medium(references, predictions, query):
+    return g_eval(references, predictions, query, llm="mistral-medium-latest")
+
+def g_eval_large(references, predictions, query):
+    return g_eval(references, predictions, query, llm="mistral-large-latest")
 
 METRICS = {
-    'g_eval': {
-        "function": g_eval,
+    'g_eval_small': {
+        "function": g_eval_small,
         "result_key": 'score'
-    }, 
-    'llm_judge_custom': {
-        "function": llm_judge_custom,
+    },
+    'g_eval_medium': {
+        "function": g_eval_medium,
         "result_key": 'score'
-    }
+    },
+    'g_eval_large': {
+        "function": g_eval_large,
+        "result_key": 'score'
+    },
+    'llm_judge_custom_small': {
+        "function": llm_judge_custom_small,
+        "result_key": 'score'
+    },
+    'llm_judge_custom_medium': {
+        "function": llm_judge_custom_medium,
+        "result_key": 'score'
+    },
+    'llm_judge_custom_large': {
+        "function": llm_judge_custom_large,
+        "result_key": 'score'
+    },
 }

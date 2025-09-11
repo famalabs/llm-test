@@ -2,6 +2,10 @@ from .utils import HUGGINGFACE
 from .UniEval.utils import convert_to_json
 from .UniEval.metric.evaluator import get_evaluator
 
+# https://huggingface.co/spaces/evaluate-metric/comet -> 0/1 with the model "Unbabel/wmt22-comet-da"
+# BLEURT’s output is always a number between 0 and (approximately 1). This value indicates how similar the generated text is to the reference texts, with values closer to 1 representing more similar texts.
+
+
 def unieval(references, predictions):
     task = 'dialogue'
     

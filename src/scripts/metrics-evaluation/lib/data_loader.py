@@ -3,10 +3,18 @@ import pandas as pd
 import json
 
 SOURCE_CSV = "data/Metriche LM - Groups.csv"
-DESTINATION_JSON = "data/metrics-evaluation.json"
+DESTINATION_JSON_IT = "data/metrics-evaluation-it.json"
+DESTINATION_JSON_EN = "data/metrics-evaluation-en.json"
 
-def load_metrics_tests():
+def load_metrics_tests(lang):
     
+    if lang == "it":
+        DESTINATION_JSON = DESTINATION_JSON_IT
+    elif lang == "en":
+        DESTINATION_JSON = DESTINATION_JSON_EN
+    else:
+        raise ValueError(f"Unsupported language: {lang}. Supported languages are 'it' and 'en'.")
+
     # se esiste il json e non c'è il csv, ritorna il json
     if os.path.exists(DESTINATION_JSON) and not os.path.exists(SOURCE_CSV):
         with open(DESTINATION_JSON, "r", encoding="utf-8") as f:
