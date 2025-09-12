@@ -1,7 +1,6 @@
 from deepeval.metrics import GEval
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 from deepeval.models.base_model import DeepEvalBaseLLM
-from langchain_mistralai import ChatMistralAI
 from pydantic import BaseModel
 from time import sleep
 from mistralai import Mistral
@@ -117,7 +116,7 @@ def g_eval(references, predictions, query, llm):
 
     return {"score": sum(scores) / len(scores)}
 
-def llm_judge_custom(references, predictions, query, llm):
+def llm_judge_custom(references, predictions, query, llm, prompt_funct=evaluation_prompt):
     
     scores = []
     
@@ -128,10 +127,11 @@ def llm_judge_custom(references, predictions, query, llm):
     for expected_answer, given_answer in zip(references, predictions):    
         
         print('Evaluating...')
-        prompt = evaluation_prompt(expected_answer, given_answer, query)
+        prompt = prompt_funct(expected_answer, given_answer, query)
         
         def get_response():
             response = mistral_client.chat.parse(
+                temperature=0, 
                 model=llm,
                 messages=[
                     {"role": "user", "content": prompt}

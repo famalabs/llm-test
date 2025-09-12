@@ -1,8 +1,8 @@
 import { readFile, writeFile } from "fs/promises"
-import { parseCliArgs } from "../lib/cli"
-import { Rag } from "../rag";
-import ragTestSuiteQuestions from '../../data/rag-test-suite.json';
-import { AnswerFormatInterface, getRagAgentToolFunction } from "../rag/rag-tool";
+import { parseCliArgs } from "../../lib/cli"
+import { Rag } from "../../rag";
+import ragTestSuiteQuestions from '../../../data/rag-test-suite.json';
+import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag/rag-tool";
 import { existsSync, mkdirSync } from "fs";
 
 
@@ -35,7 +35,7 @@ const main = async () => {
 
     console.log('-----------------------------------\n');
 
-    const fileName = `${createOutputFolderIfNeeded()}/rag-test-suite-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+    const fileName = `${createOutputFolderIfNeeded()}/qualitative-evaluation-${Date.now()}.txt`;
     await writeFile(fileName, reportFile);
     console.log('Report written to', fileName);
 }

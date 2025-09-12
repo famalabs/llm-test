@@ -1,15 +1,10 @@
 {
     "vectorStoreName": "vector_store_index_fixed_size",
-    "llm": "mistral-large-latest",
-    "numResults": 20,
-    "chunkFiltering": {
-        "enabled": true,
-        "thresholdMultiplier": 0.66
-    },
+    "llm": "mistral-medium-latest",
+    "numResults": 30,
     "output": {
         "reasoningEnabled": true,
         "chunksOrAnswerFormat": "answer",
-        "includeCitations": false,
         "fewShotsEnabled": true
     },
     "reranking": {

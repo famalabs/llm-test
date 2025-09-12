@@ -22,9 +22,13 @@
     "dotenv": "^17.2.1",
     "faiss": "link:@types/langchain/vectorstores/faiss",
     "faiss-node": "^0.5.1",
+    "keyword-extractor": "^0.0.28",
     "langchain": "^0.3.31",
+    "mammoth": "^1.10.0",
+    "node-console-progress-bar-tqdm": "^1.0.4",
     "node-gyp": "^11.4.2",
     "openai": "^5.16.0",
+    "tqdm": "^2.0.3",
     "tsx": "^4.20.5",
     "zod": "^4.1.5"
   }

@@ -1,12 +1,13 @@
 .env
 node_modules
 data/*.txt
+data/*.doc*
 output
 progress
 other
 vector-stores
 src/lib/experimental
-*/**/__*.ts
+*/**/__*
 */**/*__pycache__*
 */**/*UniEval*
 */**/*GPTScore*

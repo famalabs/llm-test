@@ -16,6 +16,7 @@ export class Rag {
     
     constructor(ragConfig: RagConfig) {
         this.config = resolveConfig(ragConfig);
+        this.vectorStore = new VectorStore(this.config.vectorStoreName);
     }
 
     public getConfig() {
@@ -61,7 +62,6 @@ export class Rag {
             return;
         }
 
-        this.vectorStore = new VectorStore(this.config.vectorStoreName);
         await this.vectorStore.load();
 
         this.runPreflightChecks();
