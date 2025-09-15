@@ -84,12 +84,10 @@ def main():
             prompt_name = prompt_structure['label']
             prompt = prompt_structure['content']
 
-            # Use cache only for single-trial runs for backward compatibility
             if NUM_TRIALS == 1 and prompt_name in CACHE:
                 print(f'Using cached results for prompt: {prompt_name}')
                 cached_meta = CACHE[prompt_name]['meta']
                 cached_results = CACHE[prompt_name]['results']
-                # Wrap cached single-trial results to fit the new structure
                 metrics_meta[prompt_name] = {"trials": [cached_meta]}
                 metrics_results[prompt_name] = [cached_results]
                 pbar.update(1)
@@ -222,7 +220,7 @@ GIVEN ANSWER:
             f1_scores.append(f1)
             acc_scores.append(binary_accuracy)
 
-        # Compute mean/std (std = 0.0 when <2 trials)
+        # Compute mean/std (std = 0.0 when trials = 1)
         def _mean(xs):
             return statistics.mean(xs) if xs else 0.0
         def _std(xs):
@@ -232,7 +230,7 @@ GIVEN ANSWER:
         f1_mean, f1_std = _mean(f1_scores), _std(f1_scores)
         acc_mean, acc_std = _mean(acc_scores), _std(acc_scores)
 
-        # Optional: include last trial threshold or mean threshold if available
+        # ad ora consideriamo mean threshold
         trial_metas = metrics_meta.get(prompt_name, {}).get('trials', [])
         th_values = [m.get('threshold', 0.5) for m in trial_metas]
         th_mean = _mean(th_values)
