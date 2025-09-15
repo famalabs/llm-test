@@ -234,11 +234,12 @@ GIVEN ANSWER:
         trial_metas = metrics_meta.get(prompt_name, {}).get('trials', [])
         th_values = [m.get('threshold', 0.5) for m in trial_metas]
         th_mean = _mean(th_values)
+        th_std = _std(th_values)
 
         output = (
             f"Prompt: {prompt_name:<25} | Continuous: {cont_mean:.4f} ± {cont_std:.4f} | "
             f"Binary F1: {f1_mean:.4f} ± {f1_std:.4f} | Accuracy: {acc_mean:.4f} ± {acc_std:.4f} | "
-            f"Trials: {len(trials)} | Th(mean): {th_mean:.4f}"
+            f"Trials: {len(trials)} | Th(mean): {th_mean:.4f} ± {th_std:.4f}"
         )
         print(output)
         result_str += output + '\n'

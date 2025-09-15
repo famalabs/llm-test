@@ -1,13 +1,9 @@
+tqdm
+dotenv
 evaluate
-nltk
-absl-py
 rouge_score
-unbabel_comet
-torch
-git+https://github.com/google-research/bleurt.git
 bert_score
 scikit-learn
-tf_keras
-openai
-instructor
+unbabel-comet
+git+https://github.com/google-research/bleurt.git
 mistralai

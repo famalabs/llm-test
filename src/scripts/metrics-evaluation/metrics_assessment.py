@@ -8,14 +8,12 @@ from lib.metrics.utils import HUGGINGFACE
 from tqdm import tqdm
 import evaluate
 from collections import defaultdict
-from dotenv import load_dotenv
 import os
 import json
-load_dotenv('.env')
 
 LANG = 'it'
 TO_NORMALIZE = {'bleurt', 'unieval', 'bertscore', 'embedding_gemma'}
-USE_CACHE = True
+USE_CACHE = False
 CACHE = {}
 
 def normalize_scores(metric_name, raw_scores):
@@ -113,6 +111,7 @@ def main():
                     })
             
             if metric['function'] == HUGGINGFACE:
+                print(f"Metric {metric_name} is a HuggingFace metric, BATCH PROCESSING IT...")
                 # Batch processing for HF metrics
                 references = [item['answer_reference'] for item in batch_data]
                 predictions = [item['candidate']['Candidate'] for item in batch_data]
@@ -127,11 +126,12 @@ def main():
                 result_key = metric['result_key']
                 
                 if isinstance(results[result_key], (int, float)):
-                    raw_scores = [results[result_key]] * len(batch_data)
+                    raise ValueError(f"Metric {metric_name} returned a single score for the entire batch, which is unexpected.")
                 else:
                     raw_scores = results[result_key]
                     
             else:
+                print(f"Metric {metric_name} is a custom function, PROCESSING ITEM BY ITEM...")
                 raw_scores = []
                 result_key = metric['result_key']
                 function = metric['function']
@@ -142,6 +142,7 @@ def main():
                         **({"keywords_list": [item['keywords']]} if metric_name == 'keyword_based' else {}),
                         **({"query": item['question_test']} if metric_name.startswith('g_eval') or metric_name.startswith('llm_judge_custom') else {})
                     )
+
                     raw_scores.append(result[result_key])
 
             normalized_scores, norm_meta = normalize_scores(metric_name, raw_scores)

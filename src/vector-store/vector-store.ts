@@ -1,57 +1,82 @@
 import { MistralAIEmbeddings } from "@langchain/mistralai";
-import { FaissStore } from "@langchain/community/vectorstores/faiss";
+import { RedisVectorStore, RedisVectorStoreFilterType } from "@langchain/redis";
 import { Document } from "langchain/document";
-import 'dotenv/config';
+import { createClient, RedisClientType } from "redis";
+import "dotenv/config";
 import { Chunk } from "../lib/chunks/interfaces";
 
 export class VectorStore {
-    private store: FaissStore | null = null;
-    private readonly saveDir: string;
+    private store: RedisVectorStore | null = null;
+    private client: RedisClientType | null = null;
     private readonly embeddings: MistralAIEmbeddings;
-    private static readonly BASE_DIR = 'vector-stores';
+    private readonly indexName: string;
 
-    size: number; 
-
-    constructor(saveDir: string) {
-        this.saveDir = `${VectorStore.BASE_DIR}/${this.normalizeStoreName(saveDir)}`;
+    constructor(indexName: string) {
+        this.indexName = this.normalizeIndexName(indexName);
         this.embeddings = new MistralAIEmbeddings({
             model: "mistral-embed",
         });
     }
 
-    private normalizeStoreName(name:string) : string {
+    private normalizeIndexName(name: string): string {
         return name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
     }
 
     public async load() {
-        try {
-            this.store = await FaissStore.load(this.saveDir, this.embeddings);
-            this.size = this.store.docstore._docs.size;
-            console.log(`Vector store loaded from ${this.saveDir}`);
-        } catch (err) {
-            console.warn("No vector store found, creating a new one...");
-            this.store = await FaissStore.fromTexts([], [], this.embeddings);
+        if (!process.env.REDIS_URL) {
+            throw new Error("Missing REDIS_URL in environment variables.");
         }
+
+        this.client = createClient({ url: process.env.REDIS_URL });
+        await this.client.connect();
+
+        console.log('redis client: ', this.client);
+
+        this.store = new RedisVectorStore(this.embeddings, {
+            redisClient: this.client as any,
+            indexName: this.indexName,
+        });
+
+        console.log(`Redis vector store ready. Index: ${this.indexName}`);
     }
 
     public async add(documents: Document[]) {
         if (!this.store) throw new Error("Store not initialized. Call load() first.");
-
         await this.store.addDocuments(documents);
-        await this.store.save(this.saveDir);
+        console.log(`Added ${documents.length} documents to index "${this.indexName}"`);
     }
 
-    public async retrieveFromText(text: string, numResults = 3): Promise<Chunk[]> {
+    public async retrieveFromText(
+        text: string,
+        numResults = 3,
+        filter?: Record<string, any>
+    ): Promise<Chunk[]> {
         if (!this.store) throw new Error("Store not initialized. Call load() first.");
-
         const queryEmbedding = await this.embeddings.embedQuery(text);
-        return this.retrieve(queryEmbedding, numResults);
+        return this.retrieve(queryEmbedding, numResults, filter);
     }
 
-    public async retrieve(queryEmbedding: number[], numResults = 3): Promise<Chunk[]> {
+    public async retrieve(
+        queryEmbedding: number[],
+        numResults = 3,
+        filter?: Record<string, any>
+    ): Promise<Chunk[]> {
         if (!this.store) throw new Error("Store not initialized. Call load() first.");
 
-        const results = await this.store.similaritySearchVectorWithScore(queryEmbedding, numResults);
-        return results.map(([doc, distance]) => ({...doc, distance}));
+        const results = await this.store.similaritySearchVectorWithScore(
+            queryEmbedding,
+            numResults,
+            filter as RedisVectorStoreFilterType
+        );
+
+        return results.map(([doc, distance]) => ({ ...doc, distance }));
+    }
+
+    public async close() {
+        if (this.client) {
+            await this.client.quit();
+            this.client = null;
+            console.log("Redis connection closed.");
+        }
     }
 }

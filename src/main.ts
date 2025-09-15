@@ -9,7 +9,7 @@ import { getRagAgentToolFunction, ragAnswerToString } from './rag/rag-tool';
 import { ragChatbotSystemPrompt } from './lib/prompt';
 
 const rag = new Rag({
-    vectorStoreName: 'vector_store_index_agentic',
+    vectorStoreName: 'vector_store_index_fixed_size',
     llm: 'mistral-medium-latest',
     numResults: 5,
     output: {

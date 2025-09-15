@@ -4,6 +4,8 @@ import { readFile } from 'fs/promises';
 import { RecursiveCharacterTextSplitter, TextSplitter } from 'langchain/text_splitter';
 import { Document } from 'langchain/document';
 
+console.log('Running index documents script.')
+
 async function main() {
     const { files, chunking } = parseCliArgs(['files', 'chunking']);
     const filesPath = files!.split(',');
@@ -30,7 +32,9 @@ async function main() {
         process.exit(1);
     }
 
+    console.log('Will istantiate now')
     const vectorStore = new VectorStore(`vector_store_index_${chunking}`);
+    console.log('Will load now')
     await vectorStore.load();
 
     const docs = await Promise.all(

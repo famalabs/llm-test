@@ -3,14 +3,6 @@ import { Document } from 'langchain/document';
 import { readFile } from 'fs/promises';
 
 const sources = {
-    neural: [
-        { chunkFile: 'other/oki_full_chunks[neural].json', source: 'data/oki_full.txt' },
-        { chunkFile: 'other/aspirina_full_chunks[neural].json', source: 'data/aspirina_full.txt' },
-    ],
-    semantic: [
-        { chunkFile: 'other/oki_full_chunks[semantic].json', source: 'data/oki_full.txt' },
-        { chunkFile: 'other/aspirina_full_chunks[semantic].json', source: 'data/aspirina_full.txt' },
-    ],
     agentic: [
         { chunkFile: 'other/oki_full_chunks[agentic].json', source: 'data/oki_full.txt' },
         { chunkFile: 'other/aspirina_full_chunks[agentic].json', source: 'data/aspirina_full.txt' },
