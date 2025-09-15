@@ -11,6 +11,7 @@ import { startChronometer, stopChronometer } from "../../lib/chronometer";
 import { softmax } from "@huggingface/transformers";
 
 const allMetrics = { customLLMAsAJudge, testSpecific };
+const TRIALS = 3;
 
 const createOutputFolderIfNeeded = () => {
     const outputFolder = 'output/evaluations/quantitative';
