@@ -164,7 +164,6 @@ def main():
                     "candidate": candidate['Candidate'],
                     "expected_continuous": candidate['Expected'],
                     "expected_binary": candidate['Binary'],
-                    "weight": candidate['Weight'],
                     "result_continuous_raw": raw_score,
                     "result_continuous": norm_score,
                     "result_binary": binary_pred,

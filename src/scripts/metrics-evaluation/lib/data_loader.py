@@ -39,7 +39,6 @@ def load_metrics_tests(lang):
             candidates.append({
                 "Candidate": row["Candidate"],
                 "Expected": row["Expected"] if pd.notna(row["Expected"]) else None,
-                "Weight": row["Weight"] if pd.notna(row["Weight"]) else None,
                 "Binary": int(row["Binary"]) if pd.notna(row["Binary"]) else None
             })
 
