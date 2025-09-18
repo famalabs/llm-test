@@ -47,7 +47,6 @@ async function main() {
         })
     );
 
-
     const allSplits = await splitter.splitDocuments(docs);    
     
     await vectorStore.add(allSplits);

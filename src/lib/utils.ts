@@ -1,3 +1,5 @@
+import csv from 'csv-parser';
+
 export const sleep = (seconds: number) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
 
 export const getFileExtension = (fileName: string) => fileName.split('.').pop();
@@ -43,4 +45,14 @@ export const mean = (values: number[]) => {
 export const stddev = (values: number[]) => {
   const m = mean(values);
   return Math.sqrt(values.reduce((acc, v) => acc + (v - m) ** 2, 0) / values.length);
+}
+
+export const parseCSV = (csvContent: string) => {
+  return new Promise<any[]>((resolve, _) => {
+    const results: any[] = [];
+    const parser = csv();
+    parser.on('data', (data) => results.push(data));
+    parser.on('end', () => resolve(results));
+    parser.end(csvContent);
+  });
 }
