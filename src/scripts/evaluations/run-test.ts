@@ -4,7 +4,7 @@ import { Rag } from "../../rag";
 import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag/rag-tool";
 import { tqdm } from "node-console-progress-bar-tqdm";
 import { PATH_NORMALIZATION_MARK } from "../../lib/nlp";
-import { createOutputFolderIfNeeded } from "../../lib/utils";
+import { createOutputFolderIfNeeded } from "../../utils";
 import { hideBin } from "yargs/helpers";
 
 const main = async () => {

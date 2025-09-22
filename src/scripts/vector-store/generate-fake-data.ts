@@ -1,10 +1,8 @@
 import { faker } from '@faker-js/faker';
-import { existsSync, mkdirSync } from 'fs';
 import yargs from 'yargs';
 import { writeFile } from 'fs/promises';
-import { createOutputFolderIfNeeded } from '../../lib/utils';
+import { createOutputFolderIfNeeded } from '../../utils';
 import { hideBin } from 'yargs/helpers';
-
 
 const docTypes = ['therapy_plan', 'log', 'faq', 'instruction', 'chat_summary'];
 const version = [1,2,3];

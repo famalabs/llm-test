@@ -2,7 +2,7 @@ import { readFile, writeFile } from "fs/promises"
 import { tqdm } from "node-console-progress-bar-tqdm";
 import yargs from "yargs";
 import { customLLMAsAJudge, meteor, rouge1 } from "../scripts/evaluations/metrics";
-import { createOutputFolderIfNeeded, mean } from '../lib/utils';
+import { createOutputFolderIfNeeded, mean } from '../utils';
 import { hideBin } from "yargs/helpers";
 const allMetrics = { customLLMAsAJudge, meteor, rouge1 };
 

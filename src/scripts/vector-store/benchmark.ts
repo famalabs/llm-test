@@ -2,7 +2,7 @@ import { createClient } from "redis";
 import yargs from "yargs";
 import { readFile } from "fs/promises";
 import { writeFile } from "fs/promises";
-import { mean, stddev, percentile, randomUnitVector } from "../../lib/utils";
+import { mean, stddev, percentile, randomUnitVector } from "../../utils";
 import { hideBin } from "yargs/helpers";
 
 const EMBEDDING_DIMENSION = 1024;

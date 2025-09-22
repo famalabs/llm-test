@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises';
 import yargs from 'yargs';
 import { createClient, RedisClientType, SCHEMA_FIELD_TYPE, SCHEMA_VECTOR_FIELD_ALGORITHM } from "redis";
 import "dotenv/config";
-import { randomUnitVector } from '../../lib/utils';
+import { randomUnitVector } from '../../utils';
 import { hideBin } from 'yargs/helpers';
 
 const EMBEDDING_DIMENSION = 1024;

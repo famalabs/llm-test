@@ -4,7 +4,7 @@ in caso la rag fosse configurata dall'utente per non ritonare le citazioni.
 */
 
 
-import { readDocument } from "../documents";
+import { readDocument } from "../../utils/documents";
 import { Citation, Chunk } from "./interfaces";
 export const resolveCitations = async (citations: Citation[], retrievedChunks: Chunk[]):Promise<string> => {
     let output = '\n[=== Citations ===]\n';
@@ -17,7 +17,7 @@ export const resolveCitations = async (citations: Citation[], retrievedChunks: C
         const startLineInParentPage = offset+startLine;
         const endLineInParentPage = offset+endLine;
 
-        const fileLines = (await readDocument(parentPage)).split('\n')
+        const fileLines = (await readDocument(parentPage)).split('\n');
         const citedText = fileLines.slice(startLineInParentPage - 1, endLineInParentPage).join('\n');
 
         output += `\n[Source: ${parentPage} | Lines: ${startLineInParentPage}-${endLineInParentPage}]\n`;

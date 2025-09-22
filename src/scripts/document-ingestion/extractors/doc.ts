@@ -1,5 +1,5 @@
 import WordExtractor from "word-extractor";
-import { getFileExtension } from '../../../lib/utils';
+import { getFileExtension } from "../../../utils";
 import { writeFile } from 'fs/promises';
 import { ExtractionOptions } from "./interfaces";
 

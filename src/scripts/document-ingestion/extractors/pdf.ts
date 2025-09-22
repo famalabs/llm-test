@@ -12,7 +12,7 @@ podman run -p 5001:5001 -e DOCLING_SERVE_ENABLE_UI=1 quay.io/docling-project/doc
 import { Docling, OutputFormat } from "docling-sdk";
 import { ExtractionOptions } from "./interfaces";
 import { readFile, writeFile } from "fs/promises";
-import { getFileExtension } from "../../../lib/utils";
+import { getFileExtension } from "../../../utils";
 
 const baseUrl = process.env.DOCLING_URL || "http://localhost:5001";
 

@@ -2,8 +2,7 @@ import { ModelMessage, stepCountIs, streamText, tool } from 'ai';
 import { getUserInput } from './lib/cli';
 import { Rag } from './rag';
 import { mistral } from '@ai-sdk/mistral';
-import { sleep } from './lib/utils';
-import { startChronometer, stopChronometer } from './lib/chronometer';
+import { sleep } from './utils';
 import z from 'zod';
 import { getRagAgentToolFunction, ragAnswerToString } from './rag/rag-tool';
 import { ragChatbotSystemPrompt } from './lib/prompt';
@@ -51,7 +50,7 @@ const main = async () => {
         const userQuery = await getUserInput('>> ');
         messages.push({ role: 'user', content: userQuery });
 
-        startChronometer();
+        const start = performance.now();
 
         const result = streamText({
             model: mistral(rag.getConfig().llm),
@@ -88,7 +87,7 @@ const main = async () => {
         }
         process.stdout.write('\n\n');
 
-        const elapsed = stopChronometer();
+        const elapsed = performance.now() - start;
         console.log(`\n\n=== Response completed in ${(elapsed / 1000).toFixed(2)} seconds.\n\n===`);
 
         messages.push({ role: 'assistant', content: fullResponse });

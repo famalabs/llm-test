@@ -1,5 +1,5 @@
 import { hideBin } from "yargs/helpers";
-import { getFileExtension } from "../../lib/utils";
+import { getFileExtension } from '../../utils';
 import { parseDoc, parsePDF, parseDocx } from "./extractors";
 import yargs from "yargs";
 

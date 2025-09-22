@@ -3,7 +3,7 @@ import yargs from "yargs"
 import { Rag } from "../../rag";
 import ragTestSuiteQuestions from '../../../data/rag-test-suite.json';
 import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag/rag-tool";
-import { createOutputFolderIfNeeded } from "../../lib/utils";
+import { createOutputFolderIfNeeded } from "../../utils";
 import { hideBin } from "yargs/helpers";
 
 

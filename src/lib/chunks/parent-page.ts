@@ -1,4 +1,4 @@
-import { getDocumentLines } from "../documents";
+import { readDocument } from "../../utils/documents";
 import { Chunk } from "./interfaces";
 
 const mergeLineIntervals = (chunks: Chunk[]): Chunk[] => {
@@ -51,7 +51,7 @@ export const retrieveParentPage = async (chunks: Chunk[], offset: number): Promi
     const result: Chunk[] = [];
 
     for (const [source, sourceChunks] of Object.entries(chunksBySource)) {
-        const lines = await getDocumentLines(source);
+        const lines = (await readDocument(source)).split("\n");
         const totalLines = lines.length;
 
         const extended = sourceChunks.map(c => extendChunkLines(c, offset, totalLines));

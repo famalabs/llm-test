@@ -6,8 +6,7 @@ import ragTestSuiteQuestions from '../../../data/rag-test-suite.json';
 import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag/rag-tool";
 import { customLLMAsAJudge, Metric } from "./metrics";
 import { extractKeywords } from "../../lib/nlp";
-import { startChronometer, stopChronometer } from "../../lib/chronometer";
-import { createOutputFolderIfNeeded } from "../../lib/utils";
+import { createOutputFolderIfNeeded } from "../../utils";
 import { hideBin } from "yargs/helpers";
 
 const allMetrics = { customLLMAsAJudge };
@@ -17,14 +16,14 @@ const main = async () => {
         .option('json', { alias: 'j', type: 'string', demandOption: true, description: 'Path to RAG config JSON' })
         .help()
         .parse();
-        
+
     const fileContent = await readFile(json!, 'utf-8');
     const config = JSON.parse(fileContent);
     const rag = new Rag(config);
 
     await rag.init();
     const summary = rag.printSummary();
-    startChronometer();
+    const start = performance.now();
     const getRagAnswer = getRagAgentToolFunction(rag);
 
 
@@ -91,7 +90,7 @@ const main = async () => {
     const fileName = `${createOutputFolderIfNeeded('output/evaluations/quantitative')}/quantitative-evaluation-${Date.now()}.txt`;
     await writeFile(fileName, reportFile, 'utf-8');
 
-    const elapsed = stopChronometer();
+    const elapsed = performance.now() - start;
 
     console.log('Report written to', fileName);
     console.log('Elapsed time:', elapsed, 'ms');

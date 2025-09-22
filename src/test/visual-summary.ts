@@ -1,6 +1,6 @@
 import { readdir, readFile, writeFile } from "fs/promises";
 import yargs from "yargs";
-import { createOutputFolderIfNeeded, parseCSV } from "../lib/utils";
+import { createOutputFolderIfNeeded, parseCSV } from "../utils";
 import { PATH_NORMALIZATION_MARK } from "../lib/nlp";
 import { hideBin } from "yargs/helpers";
 
