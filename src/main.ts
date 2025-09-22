@@ -1,5 +1,5 @@
 import { ModelMessage, stepCountIs, streamText, tool } from 'ai';
-import { getUserInput } from './lib/cli';
+import { getUserInput } from './utils';
 import { Rag } from './rag';
 import { mistral } from '@ai-sdk/mistral';
 import { sleep } from './utils';
@@ -8,33 +8,14 @@ import { getRagAgentToolFunction, ragAnswerToString } from './rag/rag-tool';
 import { ragChatbotSystemPrompt } from './lib/prompt';
 
 const rag = new Rag({
+    provider: 'mistral',
     vectorStoreName: 'vector_store_index_fixed_size',
     llm: 'mistral-medium-latest',
     numResults: 5,
-    output: {
-        reasoningEnabled: true,
-        chunksOrAnswerFormat: 'answer',
-        includeCitations: false,
-        fewShotsEnabled: false,
-    },
-    parentPageRetrieval : {
-        enabled: true,
-        offset: 2,
-    },
-    chunkFiltering: {
-        enabled: true,
-        thresholdMultiplier: 0.5,
-    },
-    reranking: {
-        enabled: true,
-        llm: 'mistral-medium-latest',
-        chunkFiltering:  {
-            enabled: true,
-            thresholdMultiplier: 0.5,
-        },
-        reasoningEnabled : true, 
-        fewShotsEnabled: true,
-    },
+    reasoningEnabled: true,
+    chunksOrAnswerFormat: 'answer',
+    includeCitations: false,
+    fewShotsEnabled: false,
     verbose: true
 });
 
@@ -53,7 +34,7 @@ const main = async () => {
         const start = performance.now();
 
         const result = streamText({
-            model: mistral(rag.getConfig().llm),
+            model: mistral(rag.getConfig().llm!),
             messages,
             temperature: 0,
             system: ragChatbotSystemPrompt,
@@ -65,10 +46,22 @@ const main = async () => {
                         textualQuery: z.string().describe('the information to search for, e.g., What are the side effects?'),
                     }),
                     execute: async ({ medicineName, textualQuery }) => {
-                        return await ragAnswerToString(
-                            await ragAgentToolFunction(`Informazioni sul farmaco ${medicineName}: ${textualQuery}`),
-                            rag
-                        );
+                        let out = 'No answer could be found.';
+                        try {
+
+                            const ragAgentToolFunctionOutput =await ragAgentToolFunction(`Informazioni sul farmaco ${medicineName}: ${textualQuery}`);
+                            console.log(ragAgentToolFunctionOutput);
+
+                            out = await ragAnswerToString(
+                                ragAgentToolFunctionOutput,
+                                rag
+                            );
+                            console.log(out)
+                        }
+                        catch (error) {
+                            console.error('Error during RAG processing:', error);
+                        }
+                        return out;
                     },
                 }),
             },

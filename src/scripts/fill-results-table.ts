@@ -12,7 +12,7 @@ function printTable() {
     const candidates: Record<string, Record<string, string>> = {}
 
     // collect candidates.
-    const allResults = Object.keys(data).map(llm => (data as any)[llm].results.map((test : any) => ({...test, llm}))).flat();
+    const allResults = Object.keys(data).map((llm) => (data)[llm as keyof typeof data].results.map((test) => ({...test, llm}))).flat();
     for (const result of allResults) {
        if (!candidates[result.candidate]) candidates[result.candidate] = {};
        candidates[result.candidate][result.llm] = result.result_continuous.toFixed(2);

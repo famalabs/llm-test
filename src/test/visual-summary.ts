@@ -20,7 +20,7 @@ const getTextColor = (value: number) => {
   return yiq >= 140 ? "#111827" : "#FFFFFF";
 };
 
-const escapeText = (s: any) =>
+const escapeText = (s: string) =>
   String(s ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -46,7 +46,7 @@ const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
     return escapeText(value);
   };
 
-  const renderConfigObject = (obj: any): string =>
+  const renderConfigObject = (obj: Record<string, any>): string =>
     Object.entries(obj)
       .map(([key, value]) => `
         <div class="flex justify-between items-start space-x-4 py-1">
@@ -73,7 +73,7 @@ const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
   for(const [sectionTitle, sectionObject] of Object.entries(topLevelObjects)) {
     html += `<div class="bg-gray-700 p-2 rounded-md">
       <div class="font-semibold text-sm mb-1 text-gray-200 capitalize">${escapeText(sectionTitle)}</div>
-      <div class="text-xs">${renderConfigObject(sectionObject)}</div>
+      <div class="text-xs">${renderConfigObject(sectionObject as Record<string, any>)}</div>
     </div>`;
   }
 
@@ -102,7 +102,7 @@ const buildCandidateTooltipHTML = (candidate: string) => `
 
 const main = async () => {
   const { input } = await yargs(hideBin(process.argv))
-    .option('input', { alias: 'i', type: 'string', demandOption: true, description: 'Input base name used to filter results' })
+    .option('input', { alias: 'i', type: 'string', demandOption: true, description: 'Path to evaluation test JSON.' })
     .help()
     .parse();
 

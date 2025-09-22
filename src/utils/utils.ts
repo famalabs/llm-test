@@ -1,5 +1,11 @@
 import csv from 'csv-parser';
 import { existsSync, mkdirSync } from 'fs';
+import * as readline from 'node:readline/promises';
+
+const terminal = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
 export const sleep = (seconds: number) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
 
@@ -61,4 +67,13 @@ export const parseCSV = (csvContent: string) => {
 export const createOutputFolderIfNeeded = (outputFolder: string) => {
   if (!existsSync(outputFolder)) mkdirSync(outputFolder, { recursive: true });
   return outputFolder;
+}
+
+export const getObjectLength = (obj: Record<string, any> | null | undefined) => {
+  if (!obj) return 0;
+  return Object.keys(obj).length;
+}
+
+export const getUserInput = async (prompt: string) => {
+  return await terminal.question(prompt)
 }

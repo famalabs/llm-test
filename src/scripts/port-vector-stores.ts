@@ -1,6 +1,7 @@
 import { VectorStore } from '../vector-store';
 import { Document } from 'langchain/document';
 import { readFile } from 'fs/promises';
+import { Chunk } from '../lib/chunks';
 
 const sources = {
     agentic: [
@@ -14,7 +15,7 @@ async function main() {
         const vectorStore = new VectorStore(`vector_store_index_${chunkType}`);
         await vectorStore.load();
 
-        const docs: Document[] = [];
+        const docs: Chunk[] = [];
         let globalLineOffset = 0;
 
         for (const { source, chunkFile } of files) {
@@ -28,8 +29,8 @@ async function main() {
                 const fromLine = globalLineOffset;
                 const toLine = globalLineOffset + lineCount - 1;
 
-                docs.push(
-                    new Document({
+                docs.push({
+                    ... new Document({
                         pageContent: chunkText,
                         metadata: {
                             source,
@@ -41,8 +42,9 @@ async function main() {
                                 }
                             }
                         },
-                    })
-                );
+                    }),
+                    distance: 0
+                });
 
                 globalLineOffset += lineCount;
             }

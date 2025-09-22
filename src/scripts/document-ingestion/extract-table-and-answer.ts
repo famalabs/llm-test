@@ -11,6 +11,7 @@ import { writeFile } from "fs/promises";
 import { tableQAPrompt } from '../../lib/prompt';
 import questions from '../../../data/rag-table-tests.json';
 import 'dotenv/config';
+import { hideBin } from 'yargs/helpers';
 
 const answerQuestion = async (table: string, format: string, question: string, llm: string) => {
 
@@ -31,11 +32,13 @@ const answerQuestion = async (table: string, format: string, question: string, l
 };
 
 const main = async () => {
-    const argv = await yargs(process.argv.slice(2))
+    const argv = await yargs(hideBin(process.argv))
         .option('source', { alias: 's', type: 'string', demandOption: true, description: 'Path to the source .docx file' })
         .option('llm', { alias: 'l', type: 'string', demandOption: true, description: 'LLM model id, e.g., mistral-small-latest' })
-        .option('format', { alias: 'f', choices: ['html', 'md', 'text'] as const, type: 'string', demandOption: true, description: 'Output table format' })
-        .help().alias('help', 'h').argv as unknown as { source: string; llm: string; format: 'html' | 'md' | 'text' };
+        .option('format', { alias: 'f', choices: ['html', 'md', 'text'], type: 'string', demandOption: true, description: 'Output table format' })
+        .help()
+        .parse();
+
     const { source, llm, format } = argv;
 
     const sourceExtension = getFileExtension(source!);

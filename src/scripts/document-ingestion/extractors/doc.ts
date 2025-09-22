@@ -21,5 +21,6 @@ export const parseDoc = async ({ source, dest } : ExtractionOptions) => {
         await writeFile(dest!, value);
         console.log('Result written in file:', dest!);
     }
+    
     return value;
 }

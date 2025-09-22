@@ -1,5 +1,9 @@
+/**
+ * To execute Redis:
+ * sudo docker run -it --rm --name redis-search    -p 6379:6379    redislabs/redisearch
+ */
+
 import { MistralAIEmbeddings } from "@langchain/mistralai";
-import { Document } from "langchain/document";
 import {
     createClient,
     RedisClientType,
@@ -38,10 +42,12 @@ export class VectorStore {
         if (!this.client) throw new Error("Client not connected");
         try {
             await this.client.ft.info(this.indexName);
-            console.log(`Index "${this.indexName}" already exists.`);
+            console.log(`Index "${this.indexName}" exists.`);
             return;
         } catch (e: any) {
+            // questo viene rilanciato se l'errore non è dovuto all'assenza dell'indice (ad esempio problemi di connessione o permessi)
             if (!e?.message?.includes("Unknown Index name")) throw e;
+
             console.log(`Index "${this.indexName}" not found. Creating (FLAT, HASH)...`);
         }
 
@@ -83,6 +89,7 @@ export class VectorStore {
             await this.client.ft.dropIndex(this.indexName);
             console.log(`Index "${this.indexName}" dropped.`);
         } catch (e: any) {
+            // questo viene rilanciato se l'errore non è dovuto all'assenza dell'indice (ad esempio problemi di connessione o permessi)
             if (e?.message?.includes("Unknown Index name")) {
                 console.log(`Index "${this.indexName}" does not exist. Nothing to drop.`);
             } else {
@@ -92,7 +99,7 @@ export class VectorStore {
         await this.ensureIndex();
     }
 
-    public async add(documents: Document[]) {
+    public async add(documents: Chunk[]) {
         if (!this.client) throw new Error("Store not initialized. Call load() first.");
         const contents = documents.map((d) => d.pageContent ?? "");
         const vectors = await this.embeddings.embedDocuments(contents);
@@ -101,14 +108,14 @@ export class VectorStore {
         for (let i = 0; i < documents.length; i++) {
             const doc = documents[i];
             const key = `${this.indexName}:${randomUUID()}`;
-            const source = (doc.metadata as any)?.source ?? "unknown";
+            const source = doc.metadata.source;
             const value = {
-                pageContent: doc.pageContent ?? "",
+                pageContent: doc.pageContent,
                 embedding: float32Buffer(vectors[i]),
                 source: String(source),
 
-                metadata: JSON.stringify(doc.metadata ?? {})
-            } as any;
+                metadata: JSON.stringify(doc.metadata)
+            };
             multi.hSet(key, value);
         }
         await multi.exec();
@@ -149,20 +156,21 @@ export class VectorStore {
             SORTBY: "vector_score",
             DIALECT: 2,
             RETURN: ["vector_score", "pageContent", "source", "metadata"],
-        } as any);
+        });
 
-        const docs = (res?.documents ?? []).map((d: any) => {
+        const docs = (res?.documents ?? []).map((d) => {
             const pageContent = d.value?.pageContent ?? "";
             const source = d.value?.source ?? "";
-            const distance = parseFloat(d.value?.vector_score ?? "NaN");
+            const distance = Number(d.value?.vector_score ?? 0);
             let metadata: Record<string, any> = {};
             try {
-                metadata = d.value?.metadata ? JSON.parse(d.value.metadata) : {};
+                metadata = d.value?.metadata ? JSON.parse(String(d.value.metadata)) : {};
             } catch {
                 metadata = {};
             }
-            const doc = new Document({ pageContent, metadata: { source, ...metadata } });
-            return { ...(doc as any), distance } as Chunk;
+
+            const doc = { pageContent, metadata: { source, ...metadata } };
+            return { ...doc, distance } as Chunk;
         });
 
         return docs;

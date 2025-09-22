@@ -27,7 +27,7 @@ const getRandomChunk = () => {
 
 const main = async () => {
     const { scale } = await yargs(hideBin(process.argv))
-        .option('scale', { alias: 's', choices: ['xs', 's', 'm', 'l'], demandOption: true, type: 'string', description: 'Data size: xs|s|m|l' })
+        .option('scale', { alias: 's', choices: ['xs', 's', 'm', 'l'], demandOption: true, type: 'string', description: 'Dataset scale: xs|s|m|l' })
         .help()
         .parse();
 

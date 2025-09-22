@@ -4,6 +4,7 @@ import { readFile } from 'fs/promises';
 import { RecursiveCharacterTextSplitter, TextSplitter } from 'langchain/text_splitter';
 import { Document } from 'langchain/document';
 import { hideBin } from 'yargs/helpers';
+import { Chunk } from '../lib/chunks';
 
 async function main() {
     const argv = await yargs(hideBin(process.argv))
@@ -37,9 +38,7 @@ async function main() {
         process.exit(1);
     }
 
-    console.log('Will istantiate now')
     const vectorStore = new VectorStore(`vector_store_index_${chunking}`);
-    console.log('Will load now')
     await vectorStore.load();
 
     const docs = await Promise.all(
@@ -54,7 +53,7 @@ async function main() {
 
     const allSplits = await splitter.splitDocuments(docs);    
     
-    await vectorStore.add(allSplits);
+    await vectorStore.add(allSplits as Chunk[]);
 
     console.log(allSplits.length, 'document chunks embedded and stored');
 }

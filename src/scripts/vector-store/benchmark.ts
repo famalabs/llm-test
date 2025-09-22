@@ -39,7 +39,7 @@ const main = async () => {
   const argv = await yargs(hideBin(process.argv))
     .option('scale', { alias: 's', choices: ['xs', 's', 'm', 'l'], demandOption: true, type: 'string', description: 'Dataset scale: xs|s|m|l' })
     .option('algorithm', { alias: 'a', choices: ['FLAT', 'HNSW'], demandOption: true, type: 'string', description: 'Redis vector index algorithm' })
-    .option('k', { type: 'number', demandOption: true, description: 'K for KNN' })
+    .option('k', { type: 'number', demandOption: true, description: 'K for KNN retrieval' })
     .help()
     .parse();
 
@@ -62,16 +62,16 @@ const main = async () => {
   const indexName = `patients_${scaleName[scale!]}`.replace(/-/g, "_");
   const filePath = `output/vector-store/fake-data/fake-patients-data-${scaleName[scale!]}.json`;
   const raw = await readFile(filePath, "utf-8");
-  const fakeData: any[] = JSON.parse(raw);
+  const fakeData = JSON.parse(raw);
 
   // selezione valori più frequenti
-  const countBy = (key: string) => fakeData.reduce((acc, d) => {
-      const val = d.metadata[key];
-      acc[val] = (acc[val] ?? 0) + 1;
-      return acc;
-    }, 
+  const countBy = (key: string) => fakeData.reduce((acc: Record<string, number>, d: { metadata: Record<string, number> }) => {
+    const val = d.metadata[key];
+    acc[val] = (acc[val] ?? 0) + 1;
+    return acc;
+  },
     {} as Record<string, number>
-);
+  );
   const pickMostFrequent = (obj: Record<string, number>) => Object.entries(obj).sort((a, b) => b[1] - a[1])[0][0];
 
   const sampleDocType = pickMostFrequent(countBy("doc_type"));
@@ -86,7 +86,7 @@ const main = async () => {
   try {
     console.log(`\nChecking index "${indexName}" status...`);
     const info = await client.ft.info(indexName);
-    const numDocs = Number((info as { num_docs: any }).num_docs);
+    const numDocs = Number((info as { num_docs: number }).num_docs);
     if (numDocs === 0) {
       throw new Error(`Index "${indexName}" is empty.`);
     }
@@ -107,24 +107,24 @@ const main = async () => {
   const results = [];
   results.push(
     await runBenchmark(
-      client, 
-      indexName, 
+      client,
+      indexName,
       `*=>[KNN ${K} @embedding $BLOB AS vector_score]`, "No filter"));
   console.log("Running benchmark with no filter...");
-      results.push(
+  results.push(
     await runBenchmark(
-      client, 
-      indexName, 
+      client,
+      indexName,
       `(@doc_type:{${sampleDocType}})=>[KNN ${K} @embedding $BLOB AS vector_score]`, "doc_type"));
   results.push(
     await runBenchmark(
-      client, 
-      indexName, 
+      client,
+      indexName,
       `(@doc_type:{${sampleDocType}} @source:{${sampleSource}})=>[KNN ${K} @embedding $BLOB AS vector_score]`, "doc_type + source"));
   results.push(
     await runBenchmark(
-      client, 
-      indexName, 
+      client,
+      indexName,
       `(@doc_type:{${sampleDocType}} @source:{${sampleSource}} @version:[${sampleVersion} ${sampleVersion}])=>[KNN ${K} @embedding $BLOB AS vector_score]`, "doc_type + source + version"));
 
   await client.quit();

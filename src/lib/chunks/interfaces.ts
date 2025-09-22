@@ -1,4 +1,4 @@
-import { Document } from "langchain/document";
+import { Document } from 'langchain/document';
 
 export interface Citation {
     chunkIndex: number;
@@ -6,7 +6,14 @@ export interface Citation {
     endLine: number;
 }
 
-export declare type Chunk = Document & { distance: number };
+export declare type Chunk = Document & { 
+    pageContent: string;
+    metadata: { 
+        source: string;
+        [key: string]: any;
+    };
+    distance: number;
+};
 
 export interface PromptDocument {
     content: string;

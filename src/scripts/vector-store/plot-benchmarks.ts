@@ -6,8 +6,8 @@ import { hideBin } from "yargs/helpers";
 
 const main = async () => {
     const argv = await yargs(hideBin(process.argv))
-        .option('algorithm', { alias: 'a', choices: ['FLAT', 'HNSW'], type: 'string', demandOption: true, description: 'Algorithm used for benchmarks' })
-        .option('k', { type: 'number', demandOption: true, description: 'K used in benchmarks' })
+        .option('algorithm', { alias: 'a', choices: ['FLAT', 'HNSW'], type: 'string', demandOption: true, description: 'Redis algrithm used for previous benchmarks' })
+        .option('k', { type: 'number', demandOption: true, description: 'K used in previous benchmarks' })
         .strict()   
         .help()
         .parse();

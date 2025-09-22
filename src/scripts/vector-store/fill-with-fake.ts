@@ -6,7 +6,7 @@ import { randomUnitVector } from '../../utils';
 import { hideBin } from 'yargs/helpers';
 
 const EMBEDDING_DIMENSION = 1024;
-let ALGORITHM : 'FLAT' | 'HNSW' | null = null;
+let ALGORITHM: 'FLAT' | 'HNSW' | null = null;
 
 // Serve per convertire un array di numeri in un Buffer Float32, necessario per Redis
 function float32Buffer(arr: number[]) {
@@ -74,10 +74,10 @@ const main = async () => {
   const indexName = `patients_${scaleName[scale!]}`.replace(/-/g, '_');
   if (!process.env.REDIS_URL) throw new Error("Missing REDIS_URL in environment variables.");
 
-  const client = createClient({ url: process.env.REDIS_URL });
+  const client: RedisClientType = createClient({ url: process.env.REDIS_URL });
   await client.connect();
 
-  await createIndex(client as RedisClientType, indexName);
+  await createIndex(client, indexName);
 
   console.log(`Inserting ${fakeData.length} documents into Redis...`);
   const t0 = performance.now();
@@ -103,8 +103,7 @@ const main = async () => {
   }
 
   const replies = await multi.exec();
-
-  const errors = replies.filter(reply => reply instanceof Error);
+  const errors = replies.filter((reply) => reply instanceof Error);
 
   if (errors.length > 0) {
     console.error(`Encountered ${errors.length} errors during Redis pipeline execution.`);

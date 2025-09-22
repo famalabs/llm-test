@@ -1,11 +1,11 @@
 import { generateObject } from "ai";
 import { resolveCitations } from "../lib/chunks/citations";
-import { mistral } from "@ai-sdk/mistral";
 import { addLineNumbers } from "../lib/nlp";
-import z from "zod";
+import z, {  ZodType } from "zod";
 import { Chunk, Citation } from "../lib/chunks/interfaces";
 import { Rag } from "./rag";
 import { ragCorpusInContext } from "../lib/prompt";
+import { getLLMProvider } from "./factory";
 
 export interface AnswerFormatInterface {
     answer: string;
@@ -26,37 +26,41 @@ export const getRagAgentToolFunction = (rag: Rag) => {
     const agentToolFunction = async (question: string): Promise<AnswerFormatInterface | Chunk[]> => {
         const chunks = await rag.search(question);
 
-        if (config.output.chunksOrAnswerFormat == 'chunks') {
+        const {
+            chunksOrAnswerFormat,
+            fewShotsEnabled,
+            includeCitations,
+            reasoningEnabled
+        } = config;
+
+        if (chunksOrAnswerFormat == 'chunks') {
             return chunks;
         }
 
-        else if (config.output.chunksOrAnswerFormat == 'answer') {
-            const {
-                fewShotsEnabled,
-                includeCitations,
-                reasoningEnabled
-            } = config.output;
+        else if (chunksOrAnswerFormat == 'answer') {
 
-            const responseSchema: any = {
+            const responseSchema: Record<string, ZodType> = {
                 answer: z.string(),
-            }
-
-            if (includeCitations) {
-                responseSchema.citations = z.array(
+                citations: z.array(
                     z.object({
                         chunkIndex: z.number(),
                         startLine: z.number(),
                         endLine: z.number()
                     })
-                )
+                ),
+                reasoning: z.string()
             }
 
-            if (reasoningEnabled) {
-                responseSchema.reasoning = z.string();
+            if (!includeCitations) {
+                delete responseSchema.citations;
+            }
+
+            if (!reasoningEnabled) {
+                delete responseSchema.reasoning;
             }
 
             const { object: result } = await generateObject({
-                model: mistral(config.llm),
+                model: (await getLLMProvider(config.provider!))(config.llm!),
                 prompt: ragCorpusInContext(
                     chunks.map((document) => ({
                         ...document,
@@ -68,17 +72,23 @@ export const getRagAgentToolFunction = (rag: Rag) => {
                     includeCitations
                 ),
                 schema: z.object(responseSchema)
-            });
+            }) as {
+                object: {
+                    answer: string;
+                    citations?: Citation[];
+                    reasoning?: string;
+                };
+            };
 
-            const answer: string = result.answer as string;
-            const citations: Citation[] = result?.citations as Citation[];
-            const reasoning: string = result?.reasoning as string;
+            const answer: string = result.answer;
+            const citations: Citation[] | undefined = result?.citations;
+            const reasoning: string | undefined = result?.reasoning;
 
             return { answer, citations, reasoning, chunks };
         }
 
         else {
-            throw new Error(`Unsupported output format: ${config.output.chunksOrAnswerFormat}`);
+            throw new Error(`Unsupported output format: ${config.chunksOrAnswerFormat}`);
         }
     }
 
@@ -87,7 +97,7 @@ export const getRagAgentToolFunction = (rag: Rag) => {
 
 export const ragAnswerToString = async (ragAnswer: AnswerFormatInterface | Chunk[], rag: Rag): Promise<string> => {
 
-    if (rag.getConfig().output.chunksOrAnswerFormat !== 'answer') {
+    if (rag.getConfig().chunksOrAnswerFormat !== 'answer') {
         const error = "The RAG instance is not configured to return answers in AnswerFormatInterface format.";
         console.error(error);
         throw new Error(error);

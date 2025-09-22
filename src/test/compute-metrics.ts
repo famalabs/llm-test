@@ -18,14 +18,14 @@ const main = async () => {
     const evaluations : Record<string, number[]> = {};
 
     for (const metric of tqdm(Object.keys(allMetrics))) {
-        const { name, execute } = (allMetrics as any)[metric];
+        const { name, execute } = (allMetrics)[metric as keyof typeof allMetrics];
         const scores: number[] = [];
         for (const { reference, candidate } of resultsContent.results) {
-            const args = { reference, prediction: candidate };
+            const args: { reference: string; prediction: string; query?: string; llm?: string } = { reference, prediction: candidate };
 
             if (name === 'llm-as-a-judge') {
-                (args as any).query = resultsContent.results[0].question;
-                (args as any).llm = 'mistral-small-latest';
+                args.query = resultsContent.results[0].question;
+                args.llm = 'mistral-small-latest';
             }
 
             const { score }= await execute(args);

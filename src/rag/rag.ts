@@ -1,17 +1,18 @@
 import { applyChunkFiltering, retrieveParentPage, Chunk, PromptDocument } from "../lib/chunks";
 import { VectorStore } from "../vector-store/vector-store";
 import { generateObject } from "ai";
-import { mistral } from "@ai-sdk/mistral";
-import { RagConfig, ResolvedRagConfig } from "./interfaces";
+import { RagConfig } from "./interfaces";
 import { resolveConfig } from "./rag.config";
 import { rerankingPrompt } from "../lib/prompt";
+import { getObjectLength } from "../utils";
 import z from "zod";
+import { getLLMProvider } from "./factory";
 
 export class Rag {
-    private readonly config: ResolvedRagConfig;
+    private readonly config: RagConfig;
     private vectorStore: VectorStore;
     private isInitialized: boolean = false;
-    
+
     constructor(ragConfig: RagConfig) {
         this.config = resolveConfig(ragConfig);
         this.vectorStore = new VectorStore(this.config.vectorStoreName);
@@ -32,23 +33,23 @@ export class Rag {
     }
 
     public printSummary() {
-        const {
-            llm,
-            vectorStoreName,
-            numResults,
-            reranking,
-            parentPageRetrieval,
-            output
-        } = this.config;
+        let summary = `====== RAG SYSTEM CONFIGURATION =====\n`;
 
-        const summary = `====== RAG SYSTEM CONFIGURATION =====\n
-        LLM = ${llm}, 
-        VECTOR STORE = ${vectorStoreName},
-        NUM RESULTS = ${numResults},
-        CHUNK FILTERING = ${this.config.chunkFiltering.enabled ? 'ENABLED' : 'DISABLED'}${this.config.chunkFiltering.enabled ? ' (THRESHOLD MULTIPLIER: ' + this.config.chunkFiltering.thresholdMultiplier + ')' : ''},
-        RERANKING = ${reranking.enabled ? 'ENABLED' : 'DISABLED'} (LLM: ${reranking.llm}, FEW SHOTS: ${reranking.fewShotsEnabled}, BATCH SIZE: ${reranking.batchSize}, LLM EVAL WEIGHT: ${reranking.llmEvaluationWeight}, REASONING: ${reranking.reasoningEnabled}, CHUNK-FILTERING: ${reranking.chunkFiltering.enabled ? 'ENABLED' : 'DISABLED'}${reranking.chunkFiltering.enabled ? ', THRESHOLD MULTIPLIER: ' + reranking.chunkFiltering.thresholdMultiplier : ''}),
-        PARENT PAGE RETRIEVAL = ${parentPageRetrieval.enabled ? 'ENABLED' : 'DISABLED'} (OFFSET: ${parentPageRetrieval.offset}),
-        OUTPUT = (FORMAT: ${output.chunksOrAnswerFormat}, REASONING: ${output.reasoningEnabled})\n\n==================================`;
+        for (const key in this.config) {
+            const typedKey = key as keyof RagConfig;
+            const value = this.config[typedKey];
+            if (typeof value === 'object' && value !== null) {
+                summary += `${key.toUpperCase()}:\n`;
+                for (const subKey in value) {
+                    const typedSubKey = subKey as keyof typeof value;
+                    summary += `\t${subKey.toUpperCase()}: ${(value)[typedSubKey]}\n`;
+                }
+            } else {
+                summary += `${key.toUpperCase()}: ${value}\n`;
+            }
+        }
+
+        summary += `=====================================\n`;
 
         console.log(summary);
         return summary;
@@ -59,7 +60,6 @@ export class Rag {
             console.warn("Rag instance is already initialized.");
             return;
         }
-
         await this.vectorStore.load();
 
         this.runPreflightChecks();
@@ -67,50 +67,70 @@ export class Rag {
     }
 
     private runPreflightChecks(): void {
-        const { numResults, reranking, parentPageRetrieval, output } = this.config;
+        const {
+            numResults,
+            reranking,
+            parentPageRetrieval,
+            reasoningEnabled,
+            fewShotsEnabled,
+            chunkFiltering,
+            includeCitations,
+            chunksOrAnswerFormat,
+        } = this.config;
 
-        if (numResults < 1) {
+        if (numResults !== undefined && numResults < 1) {
             throw new Error(`Invalid numResults value: ${numResults}. It must be at least 1.`);
         }
 
-        if (parentPageRetrieval.offset < 0) {
-            throw new Error(`Invalid parent page retrieval offset: ${parentPageRetrieval.offset}. It cannot be negative.`);
+        if (getObjectLength(parentPageRetrieval) > 0) {
+            if (parentPageRetrieval?.offset !== undefined && parentPageRetrieval?.offset < 0) {
+                throw new Error(`Invalid parent page retrieval offset: ${parentPageRetrieval.offset}. It cannot be negative.`);
+            }
         }
 
-        if (parentPageRetrieval.offset > 0 && !parentPageRetrieval.enabled) {
-            throw new Error("Parent page retrieval offset is provided, but the feature is disabled.");
+        if (getObjectLength(reranking) > 0) {
+
+            if (reranking?.reasoningEnabled && !reranking?.llm) {
+                throw new Error("Reasoning is enabled, but reranking LLM is not configured.");
+            }
+
+            if (reranking?.chunkFiltering?.thresholdMultiplier !== undefined) {
+                const val = reranking?.chunkFiltering.thresholdMultiplier;
+                if (val <= 0 || val >= 1) {
+                    throw new Error("Reranking chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
+                }
+            }
+
+            if (!reranking?.llm) {
+                throw new Error("Reranking LLM is not configured.");
+            }
+
+            if (!reranking?.batchSize || reranking.batchSize < 1) {
+                throw new Error("Reranking batch size must be at least 1.");
+            }
+
+            if (reranking.llmEvaluationWeight === undefined ||
+                reranking.llmEvaluationWeight < 0 ||
+                reranking.llmEvaluationWeight > 1) {
+                throw new Error("Reranking LLM evaluation weight must be between 0 and 1.");
+            }
         }
 
-        if (reranking.reasoningEnabled && !reranking.enabled) {
-            throw new Error("Reasoning is enabled, but reranking is disabled. Reranking must be enabled to use reasoning.");
+        if (chunkFiltering?.thresholdMultiplier !== undefined) {
+            if (chunkFiltering.thresholdMultiplier <= 0 || chunkFiltering.thresholdMultiplier >= 1) {
+                throw new Error("Chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
+            }
         }
 
-        if (output.reasoningEnabled && output.chunksOrAnswerFormat !== 'answer') {
-            throw new Error("Output reasoning is enabled, but output format is not set to 'answer'. To use reasoning, set output format to 'answer'.");
-        }
-
-        if (output.fewShotsEnabled && output.chunksOrAnswerFormat !== 'answer') {
-            throw new Error("Output few-shots is enabled, but output format is not set to 'answer'. To use few-shots, set output format to 'answer'.");
-        }
-
-        if (output.includeCitations && output.chunksOrAnswerFormat !== 'answer') {
-            throw new Error("Output include citations is enabled, but output format is not set to 'answer'. To include citations, set output format to 'answer'.");
-        }
-
-        if (reranking.chunkFiltering.enabled && !reranking.enabled) {
-            throw new Error("Chunk filtering is enabled, but reranking is disabled. Reranking must be enabled to use chunk filtering.");
-        }
-
-        if (reranking.chunkFiltering.enabled && (reranking.chunkFiltering.thresholdMultiplier <= 0 || reranking.chunkFiltering.thresholdMultiplier >= 1)) {
-            throw new Error("Chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
-        }
-
-        if (this.config.chunkFiltering.enabled && (this.config.chunkFiltering.thresholdMultiplier <= 0 || this.config.chunkFiltering.thresholdMultiplier >= 1)) {
-            throw new Error("Chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
+        if ((reasoningEnabled || fewShotsEnabled || includeCitations) && chunksOrAnswerFormat !== 'answer') {
+            throw new Error(
+                `Output format must be 'answer' when using reasoning, few-shots, or citations (currently '${chunksOrAnswerFormat}').`
+            );
         }
 
         this.log("Preflight checks passed.");
     }
+
 
     public async search(query: string): Promise<Chunk[]> {
         if (!this.isInitialized) {
@@ -119,18 +139,18 @@ export class Rag {
 
         let chunks = await this.vectorStore.retrieveFromText(query, this.config.numResults);
 
-        if (this.config.chunkFiltering.enabled) {
+        if (getObjectLength(this.config.chunkFiltering) > 0 && this.config?.chunkFiltering?.thresholdMultiplier) {
             chunks = applyChunkFiltering(
-                chunks, 
+                chunks,
                 this.config.chunkFiltering.thresholdMultiplier
             );
         }
 
-        if (this.config.reranking.enabled) {
+        if (getObjectLength(this.config.reranking) > 0) {
             chunks = await this.rerankChunks(query, chunks);
         }
 
-        if (this.config.parentPageRetrieval.enabled) {
+        if (getObjectLength(this.config.parentPageRetrieval) > 0 && this.config.parentPageRetrieval?.offset) {
             chunks = await retrieveParentPage(chunks, this.config.parentPageRetrieval.offset);
         }
 
@@ -138,6 +158,11 @@ export class Rag {
     }
 
     public async rerankChunks(query: string, chunks: Chunk[]): Promise<Chunk[]> {
+
+        if (!this.config.reranking) {
+            throw new Error("Reranking configuration is missing.");
+        }
+
         const {
             llm,
             batchSize,
@@ -149,8 +174,8 @@ export class Rag {
         this.log('Running reranking on', chunks.length, 'chunks...');
 
         const groupedChunks: Chunk[][] = [];
-        for (let i = 0; i < chunks.length; i += batchSize) {
-            groupedChunks.push(chunks.slice(i, i + batchSize));
+        for (let i = 0; i < chunks.length; i += batchSize!) {
+            groupedChunks.push(chunks.slice(i, i + batchSize!));
         }
 
         for (const group of groupedChunks) {
@@ -172,27 +197,29 @@ export class Rag {
             }
 
             const { object: result } = await generateObject({
-                model: mistral(llm),
+                model: (await getLLMProvider('mistral'))(llm!),
                 prompt,
                 schema: z.object({
                     rankings: z.array(
                         z.object(rankingSchema)
                     ),
                 })
-            });
+            }) as {
+                object: { rankings: Array<{ index: number; score: number; reasoning?: string }> }
+            };
 
             const { rankings } = result;
 
-            for (const ranking of rankings as ({ index: number, score: number, reasoning?: string })[]) {
+            for (const ranking of rankings) {
                 const { index, score } = ranking;
                 // Since we're scoring distance, we invert the score (1 - score)
-                group[index].distance = (1 - llmEvaluationWeight) * group[index].distance + llmEvaluationWeight * (1 - score);
+                group[index].distance = (1 - llmEvaluationWeight!) * group[index].distance + llmEvaluationWeight! * (1 - score);
             }
         }
 
         let rerankedResults = [...groupedChunks.flat()].sort((a, b) => a.distance - b.distance);
 
-        if (this.config.reranking.chunkFiltering.enabled) {
+        if (getObjectLength(this.config.reranking.chunkFiltering) > 0 && this.config.reranking.chunkFiltering?.thresholdMultiplier) {
             rerankedResults = applyChunkFiltering(
                 rerankedResults,
                 this.config.reranking.chunkFiltering.thresholdMultiplier

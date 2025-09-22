@@ -35,6 +35,7 @@ const main = async () => {
         .option('source', { alias: 's', type: 'string', demandOption: true, description: 'Path to the source file (.doc or .docx)' })
         .help()
         .parse();
+        
     const { source } = argv;
 
     const sourceExtension = getFileExtension(source!);

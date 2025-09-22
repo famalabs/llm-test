@@ -4,7 +4,7 @@ import yargs from "yargs"
 import { Rag } from "../../rag";
 import ragTestSuiteQuestions from '../../../data/rag-test-suite.json';
 import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag/rag-tool";
-import { customLLMAsAJudge, Metric } from "./metrics";
+import { customLLMAsAJudge, Metric, MetricArguments } from "./metrics";
 import { extractKeywords } from "../../lib/nlp";
 import { createOutputFolderIfNeeded } from "../../utils";
 import { hideBin } from "yargs/helpers";
@@ -38,23 +38,19 @@ const main = async () => {
     console.log('Evaluating metrics...');
     const evaluationResults: Record<string, { score: number }[]> = {};
     for (const metricName of tqdm(Object.keys(allMetrics))) {
-        const metric: Metric = (allMetrics as any)[metricName];
-        for (const { question, answer, expectedAnswer, keywords } of evaluationSamples) {
-            const args: Record<string, any> = {
+        const metric: Metric = (allMetrics)[metricName as keyof typeof allMetrics];
+        for (const { question, answer, expectedAnswer } of evaluationSamples) {
+            const args: MetricArguments = {
                 reference: expectedAnswer,
                 prediction: answer,
                 query: question
-            }
-
-            if (metricName == 'testSpecific') {
-                args.keywords = keywords;
             }
 
             if (metricName == 'customLLMAsAJudge') {
                 args.llm = 'mistral-small-latest';
             }
 
-            const { score } = await metric.execute(args as any);
+            const { score } = await metric.execute(args);
 
             if (!evaluationResults[metricName]) evaluationResults[metricName] = [];
             evaluationResults[metricName].push({ score });
