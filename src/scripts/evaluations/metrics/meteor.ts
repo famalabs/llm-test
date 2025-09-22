@@ -94,7 +94,7 @@ const execute = async ({ reference, prediction }: MetricArguments): Promise<{sco
 
   const matches = await align(ref, cand);
   const m = matches.length;
-  if (m === 0) return { score: 0 };
+  if (m == 0) return { score: 0 };
 
   const P = m / cand.length;
   const R = m / ref.length;

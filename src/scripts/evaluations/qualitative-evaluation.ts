@@ -1,19 +1,18 @@
 import { readFile, writeFile } from "fs/promises"
-import { parseCliArgs } from "../../lib/cli"
+import yargs from "yargs"
 import { Rag } from "../../rag";
 import ragTestSuiteQuestions from '../../../data/rag-test-suite.json';
 import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag/rag-tool";
-import { existsSync, mkdirSync } from "fs";
+import { createOutputFolderIfNeeded } from "../../lib/utils";
+import { hideBin } from "yargs/helpers";
 
-
-const createOutputFolderIfNeeded = () => {
-    const outputFolder = 'output/evaluations/qualitative';
-    if (!existsSync(outputFolder)) mkdirSync(outputFolder, { recursive: true });
-    return outputFolder;
-}
 
 const main = async () => {
-    const { json } = parseCliArgs(['json']);
+    const { json } = await yargs(hideBin(process.argv))
+        .option('json', { alias: 'j', type: 'string', demandOption: true, description: 'Path to RAG config JSON' })
+        .help()
+        .parse();
+
     const fileContent = await readFile(json!, 'utf-8');
     const config = JSON.parse(fileContent);
     const rag = new Rag(config);
@@ -35,7 +34,7 @@ const main = async () => {
 
     console.log('-----------------------------------\n');
 
-    const fileName = `${createOutputFolderIfNeeded()}/qualitative-evaluation-${Date.now()}.txt`;
+    const fileName = `${createOutputFolderIfNeeded('output/evaluations/qualitative')}/qualitative-evaluation-${Date.now()}.txt`;
     await writeFile(fileName, reportFile);
     console.log('Report written to', fileName);
 }

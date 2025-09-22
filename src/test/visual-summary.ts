@@ -1,14 +1,8 @@
 import { readdir, readFile, writeFile } from "fs/promises";
-import { existsSync, mkdirSync } from "fs";
-import { parseCliArgs } from "../lib/cli";
-import { parseCSV } from "../lib/utils";
+import yargs from "yargs";
+import { createOutputFolderIfNeeded, parseCSV } from "../lib/utils";
 import { PATH_NORMALIZATION_MARK } from "../lib/nlp";
-
-const createOutputFolderIfNeeded = () => {
-  const outputFolder = "output/test_results";
-  if (!existsSync(outputFolder)) mkdirSync(outputFolder, { recursive: true });
-  return outputFolder;
-};
+import { hideBin } from "yargs/helpers";
 
 const getHeatmapColor = (value: number) => {
   const v = Math.max(0, Math.min(1, value));
@@ -107,7 +101,11 @@ const buildCandidateTooltipHTML = (candidate: string) => `
   </div>`;
 
 const main = async () => {
-  const { input } = parseCliArgs(["input"]) as { input: string };
+  const { input } = await yargs(hideBin(process.argv))
+    .option('input', { alias: 'i', type: 'string', demandOption: true, description: 'Input base name used to filter results' })
+    .help()
+    .parse();
+
   const normalizedInput = input.replaceAll("/", PATH_NORMALIZATION_MARK);
 
   const allFiles = (await readdir("output/scores")).filter(
@@ -261,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 </body></html>`;
 
-  const fileName = `${createOutputFolderIfNeeded()}/${normalizedInput}.html`;
+  const fileName = `${createOutputFolderIfNeeded('output/test_results')}/${normalizedInput}.html`;
   await writeFile(fileName, html);
   console.log("Report written to", fileName);
 };

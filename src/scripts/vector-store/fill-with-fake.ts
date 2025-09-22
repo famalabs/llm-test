@@ -1,8 +1,9 @@
 import { readFile } from 'fs/promises';
-import { parseCliArgs } from '../../lib/cli';
+import yargs from 'yargs';
 import { createClient, RedisClientType, SCHEMA_FIELD_TYPE, SCHEMA_VECTOR_FIELD_ALGORITHM } from "redis";
 import "dotenv/config";
 import { randomUnitVector } from '../../lib/utils';
+import { hideBin } from 'yargs/helpers';
 
 const EMBEDDING_DIMENSION = 1024;
 let ALGORITHM : 'FLAT' | 'HNSW' | null = null;
@@ -50,14 +51,13 @@ async function createIndex(client: RedisClientType, indexName: string) {
 }
 
 const main = async () => {
-  const { scale, algorithm } = parseCliArgs(['scale', 'algorithm']);
-  if (!['xs', 's', 'm', 'l'].includes(scale!)) {
-    throw new Error('Scale must be one of: xs, s, m, l');
-  }
+  const argv = await yargs(hideBin(process.argv))
+    .option('scale', { alias: 's', choices: ['xs', 's', 'm', 'l'], demandOption: true, type: 'string', description: 'Dataset scale: xs|s|m|l' })
+    .option('algorithm', { alias: 'a', choices: ['FLAT', 'HNSW'], demandOption: true, type: 'string', description: 'Redis vector index algorithm' })
+    .help()
+    .parse();
 
-  if (!["FLAT", "HNSW"].includes(algorithm!.toUpperCase())) {
-    throw new Error("Algorithm must be one of: FLAT, HNSW");
-  }
+  const { scale, algorithm } = argv;
 
   ALGORITHM = algorithm!.toUpperCase() as 'FLAT' | 'HNSW';
 

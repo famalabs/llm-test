@@ -1,8 +1,9 @@
 import { createClient } from "redis";
-import { parseCliArgs } from "../../lib/cli";
+import yargs from "yargs";
 import { readFile } from "fs/promises";
 import { writeFile } from "fs/promises";
 import { mean, stddev, percentile, randomUnitVector } from "../../lib/utils";
+import { hideBin } from "yargs/helpers";
 
 const EMBEDDING_DIMENSION = 1024;
 const NUM_QUERIES = 100;
@@ -35,14 +36,14 @@ async function runBenchmark(client: any, indexName: string, query: string, label
 }
 
 const main = async () => {
-  const { scale, algorithm, k } = parseCliArgs(["scale", "algorithm", "k"]);
-  if (!["xs", "s", "m", "l"].includes(scale!)) {
-    throw new Error("Scale must be one of: xs, s, m, l");
-  }
+  const argv = await yargs(hideBin(process.argv))
+    .option('scale', { alias: 's', choices: ['xs', 's', 'm', 'l'], demandOption: true, type: 'string', description: 'Dataset scale: xs|s|m|l' })
+    .option('algorithm', { alias: 'a', choices: ['FLAT', 'HNSW'], demandOption: true, type: 'string', description: 'Redis vector index algorithm' })
+    .option('k', { type: 'number', demandOption: true, description: 'K for KNN' })
+    .help()
+    .parse();
 
-  if (!["FLAT", "HNSW"].includes(algorithm!.toUpperCase())) {
-    throw new Error("Algorithm must be one of: FLAT, HNSW");
-  }
+  const { scale, algorithm, k } = argv;
 
   if (!k || isNaN(Number(k)) || Number(k) <= 0) {
     throw new Error("k must be a positive number");

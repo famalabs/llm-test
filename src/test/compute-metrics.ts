@@ -1,19 +1,16 @@
 import { readFile, writeFile } from "fs/promises"
-import { existsSync, mkdirSync } from "fs";
 import { tqdm } from "node-console-progress-bar-tqdm";
-import { parseCliArgs } from "../lib/cli";
+import yargs from "yargs";
 import { customLLMAsAJudge, meteor, rouge1 } from "../scripts/evaluations/metrics";
-import { mean } from '../lib/utils';
+import { createOutputFolderIfNeeded, mean } from '../lib/utils';
+import { hideBin } from "yargs/helpers";
 const allMetrics = { customLLMAsAJudge, meteor, rouge1 };
 
-const createOutputFolderIfNeeded = () => {
-    const outputFolder = 'output/scores';
-    if (!existsSync(outputFolder)) mkdirSync(outputFolder, { recursive: true });
-    return outputFolder;
-}
-
 const main = async () => {
-    const { input } = parseCliArgs(['input']) as { input: string };
+    const { input } = await yargs(hideBin(process.argv))
+        .option('input', { alias: 'i', type: 'string', demandOption: true, description: 'Path to candidates JSON produced by run-test' })
+        .help()
+        .parse();
 
     const resultsContent = JSON.parse(await readFile(input!, 'utf-8'));
     const outputFileName =  input!.split('/').slice(-1)[0].split('.').slice(0, -1).join('.') + '.csv';
@@ -44,7 +41,7 @@ const main = async () => {
         out += `${i + 1},"${question.replaceAll('"', '""')}","${reference.replaceAll('"', '""')}","${candidate.replaceAll('"', '""')}",${evaluations['llm-as-a-judge'][i]},${evaluations['meteor'][i]},${evaluations['rouge1'][i]}\n`;
     }
 
-    const fileName = `${createOutputFolderIfNeeded()}/${outputFileName}`;
+    const fileName = `${createOutputFolderIfNeeded('output/scores')}/${outputFileName}`;
     await writeFile(fileName, out);
     console.log('Report written to', fileName);
 

@@ -1,13 +1,11 @@
-import { Chunk, PromptDocument } from "../lib/chunks/interfaces";
+import { applyChunkFiltering, retrieveParentPage, Chunk, PromptDocument } from "../lib/chunks";
 import { VectorStore } from "../vector-store/vector-store";
-import z from "zod";
 import { generateObject } from "ai";
 import { mistral } from "@ai-sdk/mistral";
 import { RagConfig, ResolvedRagConfig } from "./interfaces";
-import { retrieveParentPage } from "../lib/chunks/parent-page";
-import { applyChunkFiltering } from "../lib/chunks";
 import { resolveConfig } from "./rag.config";
 import { rerankingPrompt } from "../lib/prompt";
+import z from "zod";
 
 export class Rag {
     private readonly config: ResolvedRagConfig;
@@ -70,10 +68,6 @@ export class Rag {
 
     private runPreflightChecks(): void {
         const { numResults, reranking, parentPageRetrieval, output } = this.config;
-
-        if (this.vectorStore.size === 0) {
-            throw new Error("Vector store is empty. Please add data before running queries.");
-        }
 
         if (numResults < 1) {
             throw new Error(`Invalid numResults value: ${numResults}. It must be at least 1.`);

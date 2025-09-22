@@ -1,10 +1,9 @@
 import mammoth from 'mammoth';
-import { parseCliArgs } from '../../lib/cli';
-import { getFileExtension } from '../../lib/utils';
+import { getFileExtension } from '../../../lib/utils';
 import { writeFile } from 'fs/promises';
+import { ExtractionOptions } from './interfaces';
 
-const main = async () => {
-    const { source, dest } = parseCliArgs(['source', 'dest'], ['dest']);
+export const parseDocx = async ({ source, dest, format } : ExtractionOptions) => {
 
     const sourceExtension = getFileExtension(source!);
 
@@ -18,14 +17,25 @@ const main = async () => {
         if (destinationExtension == 'html') {
             operation = 'convertToHtml';
         }
+        else if (destinationExtension == 'md') {
+            operation = 'convertToMarkdown';
+        }
         else if (destinationExtension != 'txt') {
             throw new Error('Unsupported destination extension.');
+        }
+    }
+    else {
+        if (format == 'html') {
+            operation = 'convertToHtml';
+        }
+        else if (format == 'md') {
+            operation = 'convertToMarkdown';
         }
     }
 
     const { value, messages } = await (mammoth as any)[operation]({ path: source! });
 
-    if (messages) {
+    if (messages.length > 0) {
         console.warn(messages);
     }
 
@@ -35,9 +45,5 @@ const main = async () => {
         await writeFile(dest!, value);
         console.log('Result written in file:', dest!);
     }
-    else {
-        console.log(value);
-    }
+    return value;
 }
-
-main().catch(console.error).then(() => process.exit(0))

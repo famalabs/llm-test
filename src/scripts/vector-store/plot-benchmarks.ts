@@ -1,13 +1,18 @@
 import { readFile, writeFile } from "fs/promises";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
-import { parseCliArgs } from "../../lib/cli";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 
 
 const main = async () => {
-    const { algorithm, k } = parseCliArgs(["algorithm", "k"]);
-    if (!["FLAT", "HNSW"].includes(algorithm!.toUpperCase())) {
-        throw new Error("Algorithm must be one of: FLAT, HNSW");
-    }
+    const argv = await yargs(hideBin(process.argv))
+        .option('algorithm', { alias: 'a', choices: ['FLAT', 'HNSW'], type: 'string', demandOption: true, description: 'Algorithm used for benchmarks' })
+        .option('k', { type: 'number', demandOption: true, description: 'K used in benchmarks' })
+        .strict()   
+        .help()
+        .parse();
+    
+    const { algorithm, k } = argv;
 
     if (!k || isNaN(Number(k)) || Number(k) <= 0) {
         throw new Error("k must be a positive number");

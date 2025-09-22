@@ -1,13 +1,18 @@
-import { parseCliArgs } from '../lib/cli';
+import yargs from 'yargs';
 import { VectorStore } from '../vector-store';
 import { readFile } from 'fs/promises';
 import { RecursiveCharacterTextSplitter, TextSplitter } from 'langchain/text_splitter';
 import { Document } from 'langchain/document';
-
-console.log('Running index documents script.')
+import { hideBin } from 'yargs/helpers';
 
 async function main() {
-    const { files, chunking } = parseCliArgs(['files', 'chunking']);
+    const argv = await yargs(hideBin(process.argv))
+        .option('files', { alias: 'f', type: 'string', demandOption: true, description: 'Comma-separated list of text file paths' })
+        .option('chunking', { alias: 'c', type: 'string', choices: ['fixed-size', 'agentic'], demandOption: true, description: 'Chunking strategy' })
+        .help()
+        .parse();
+        
+    const { files, chunking } = argv;
     const filesPath = files!.split(',');
     let splitter: TextSplitter;
 

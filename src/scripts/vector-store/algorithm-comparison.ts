@@ -1,10 +1,20 @@
 import { readFile, writeFile } from "fs/promises";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
-import { parseCliArgs } from "../../lib/cli";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 
 const main = async () => {
 
-    const { k } = parseCliArgs(["k"]);
+    const argv  = await yargs(hideBin(process.argv))
+        .option("k", {
+            type: "number",
+            describe: "K used in benchmarks",
+            demandOption: true,
+        })
+        .help()
+        .parse();
+
+    const { k } = argv;
     if (!k || isNaN(Number(k)) || Number(k) <= 0) {
         throw new Error("k must be a positive number");
     }

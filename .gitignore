@@ -2,6 +2,7 @@
 node_modules
 data/*.txt
 data/*.csv
+data/*.pdf
 data/*.webp
 data/*.doc*
 output

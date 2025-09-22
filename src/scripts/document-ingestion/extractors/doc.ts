@@ -1,12 +1,11 @@
 import WordExtractor from "word-extractor";
-import { parseCliArgs } from '../../lib/cli';
-import { getFileExtension } from '../../lib/utils';
+import { getFileExtension } from '../../../lib/utils';
 import { writeFile } from 'fs/promises';
+import { ExtractionOptions } from "./interfaces";
 
 const extractor = new WordExtractor();
 
-const main = async () => {
-    const { source, dest } = parseCliArgs(['source', 'dest'], ['dest']);
+export const parseDoc = async ({ source, dest } : ExtractionOptions) => {
 
     const sourceExtension = getFileExtension(source!);
 
@@ -22,9 +21,5 @@ const main = async () => {
         await writeFile(dest!, value);
         console.log('Result written in file:', dest!);
     }
-    else {
-        console.log(value);
-    }
+    return value;
 }
-
-main().catch(console.error).then(() => process.exit(0))

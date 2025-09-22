@@ -1,19 +1,20 @@
 import { readFile, writeFile } from "fs/promises"
-import { parseCliArgs } from "../../lib/cli"
+import yargs from "yargs"
 import { Rag } from "../../rag";
 import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag/rag-tool";
-import { existsSync, mkdirSync } from "fs";
 import { tqdm } from "node-console-progress-bar-tqdm";
 import { PATH_NORMALIZATION_MARK } from "../../lib/nlp";
-
-const createOutputFolderIfNeeded = () => {
-    const outputFolder = 'output/candidates';
-    if (!existsSync(outputFolder)) mkdirSync(outputFolder, { recursive: true });
-    return outputFolder;
-}
+import { createOutputFolderIfNeeded } from "../../lib/utils";
+import { hideBin } from "yargs/helpers";
 
 const main = async () => {
-    const { test : testFile, config : configFile } = parseCliArgs(['test', 'config']);
+    const argv = await yargs(hideBin(process.argv))
+        .option('test', { alias: 't', type: 'string', demandOption: true, description: 'Path to evaluation test JSON' })
+        .option('config', { alias: 'c', type: 'string', demandOption: true, description: 'Path to RAG config JSON' })
+        .help()
+        .parse();
+
+    const { test: testFile, config: configFile } = argv;
 
     if (
         testFile?.includes('_') || configFile?.includes('_') ||
@@ -46,7 +47,7 @@ const main = async () => {
     const normalizedTestFile = (testFile!).replaceAll('/', PATH_NORMALIZATION_MARK);
     const normalizedConfigFile = (configFile!).replaceAll('/', PATH_NORMALIZATION_MARK);
 
-    const fileName = `${createOutputFolderIfNeeded()}/${normalizedTestFile}_${normalizedConfigFile}.json`;
+    const fileName = `${createOutputFolderIfNeeded('output/candidates')}/${normalizedTestFile}_${normalizedConfigFile}.json`;
     await writeFile(fileName, JSON.stringify(output, null, 2));
     console.log('Report written to', fileName);
 }

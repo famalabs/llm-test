@@ -1,4 +1,5 @@
 import csv from 'csv-parser';
+import { existsSync, mkdirSync } from 'fs';
 
 export const sleep = (seconds: number) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
 
@@ -55,4 +56,9 @@ export const parseCSV = (csvContent: string) => {
     parser.on('end', () => resolve(results));
     parser.end(csvContent);
   });
+}
+
+export const createOutputFolderIfNeeded = (outputFolder: string) => {
+  if (!existsSync(outputFolder)) mkdirSync(outputFolder, { recursive: true });
+  return outputFolder;
 }

@@ -1,7 +1,9 @@
 import { faker } from '@faker-js/faker';
 import { existsSync, mkdirSync } from 'fs';
-import { parseCliArgs } from '../../lib/cli';
+import yargs from 'yargs';
 import { writeFile } from 'fs/promises';
+import { createOutputFolderIfNeeded } from '../../lib/utils';
+import { hideBin } from 'yargs/helpers';
 
 
 const docTypes = ['therapy_plan', 'log', 'faq', 'instruction', 'chat_summary'];
@@ -15,14 +17,6 @@ const getRandomDateInPast6Months = () => {
     return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
-faker.lorem.paragraph(2)
-
-const createOutputFolderIfNeeded = () => {
-    const outputFolder = 'output/vector-store/fake-data';
-    if (!existsSync(outputFolder)) mkdirSync(outputFolder, { recursive: true });
-    return outputFolder;
-}
-
 const getRandomChunk = () => {
     const sample = Math.random();
     // 20% small (5 paragraphs)
@@ -34,11 +28,10 @@ const getRandomChunk = () => {
 }
 
 const main = async () => {
-    const { scale } = parseCliArgs(['scale']);
-
-    if (!['xs', 's', 'm', 'l'].includes(scale!)) {
-        throw new Error('Scale must be one of: xs, s, m, l');
-    }
+    const { scale } = await yargs(hideBin(process.argv))
+        .option('scale', { alias: 's', choices: ['xs', 's', 'm', 'l'], demandOption: true, type: 'string', description: 'Data size: xs|s|m|l' })
+        .help()
+        .parse();
 
     let numPatients = 100;
     if (scale === 's') numPatients = 1_000;
@@ -52,7 +45,7 @@ const main = async () => {
         l: 'large',
     }
 
-    const fileName = `${createOutputFolderIfNeeded()}/fake-patients-data-${scaleName[scale!]}.json`;
+    const fileName = `${createOutputFolderIfNeeded('output/vector-store/fake-data')}/fake-patients-data-${scaleName[scale!]}.json`;
     const patients = [];
     for (let i = 0; i < numPatients; i++) {
         const metadata = {

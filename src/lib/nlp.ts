@@ -1,4 +1,3 @@
-import { PreTrainedTokenizer } from "@huggingface/transformers";
 import keywordExtractor from 'keyword-extractor';
 
 export const PATH_NORMALIZATION_MARK = '::';
@@ -15,12 +14,6 @@ export const addLineNumbers = (text: string): string => {
 export const getCitationText = (document: string, startIndex: number, endIndex: number): string => {
     return document.split('\n').slice(startIndex, endIndex + 1).join('\n') || '';
 };
-
-export const computeTokenNumber = async (document: string, model: { hub: string }): Promise<number> => {
-    const tokenizer = await PreTrainedTokenizer.from_pretrained(model.hub);
-    const tokens = tokenizer.encode(document);
-    return tokens.length;
-}
 
 export const extractKeywords = (text: string): string[] => {
     return keywordExtractor.extract(text, {

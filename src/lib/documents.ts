@@ -10,16 +10,16 @@ export const getDocumentLines = async (source: string) => {
   return documentCache[source];
 }
 
-export const readDocument = async (source: string, avoidCache : boolean = false) => {
-    if (avoidCache) {
-        const text = await readFile(source, "utf-8");
-        return text;
-    }
+export const readDocument = async (source: string, avoidCache: boolean = false) => {
+  if (avoidCache) {
+    const text = await readFile(source, "utf-8");
+    return text;
+  }
 
-    if (!documentCache[source]) {
-      const text = await readFile(source, "utf-8");
-      documentCache[source] = text.split("\n");
-    }
-    
-    return documentCache[source].join('\n');
+  if (!documentCache[source]) {
+    const text = await readFile(source, "utf-8");
+    documentCache[source] = text.split("\n");
+  }
+
+  return documentCache[source].join('\n');
 }
