@@ -1,21 +1,27 @@
 import { applyChunkFiltering, retrieveParentPage, Chunk, PromptDocument } from "../lib/chunks";
+import { AnswerFormatInterface } from "./interfaces";
 import { VectorStore } from "../vector-store/vector-store";
 import { generateObject } from "ai";
 import { RagConfig } from "./interfaces";
 import { resolveConfig } from "./rag.config";
 import { rerankingPrompt } from "../lib/prompt";
 import { getObjectLength } from "../utils";
-import z from "zod";
 import { getLLMProvider } from "./factory";
+import z from "zod";
 
 export class Rag {
     private readonly config: RagConfig;
-    private docStore: VectorStore<Chunk>;
+    private readonly docStore: VectorStore<Chunk>;
+    private readonly cacheStore?: VectorStore<AnswerFormatInterface & { distance : number }>;
     private isInitialized: boolean = false;
 
-    constructor(ragConfig: RagConfig, docStore: VectorStore<Chunk>) {
+    constructor(ragConfig: RagConfig) {
         this.config = resolveConfig(ragConfig);
-        this.docStore = docStore;
+        this.docStore = this.config.docStore;
+
+        if (getObjectLength(this.config.semanticCache) > 0 && this.config.semanticCache?.cacheStore) {
+            this.cacheStore = this.config.semanticCache.cacheStore;
+        }
     }
 
     public getConfig() {
@@ -39,6 +45,12 @@ export class Rag {
         const formatConfig = (obj: any, indent: string = ''): string => {
             let result = '';
             for (const key in obj) {
+                if (key == 'docStore' || key == 'semanticCache') {
+                    result += `${indent}${fmtKey(key)}: [VectorStore instance]\n`;
+                    continue;
+                }
+
+
                 const value = obj[key];
                 if (typeof value === 'object' && value !== null && getObjectLength(value) > 0) {
                     result += `${indent}${fmtKey(key)}:\n`;
@@ -67,6 +79,9 @@ export class Rag {
             return;
         }
         await this.docStore.load();
+        if (this.cacheStore) {
+            await this.cacheStore.load();
+        }
 
         this.runPreflightChecks();
         this.isInitialized = true;
@@ -137,15 +152,36 @@ export class Rag {
         this.log("Preflight checks passed.");
     }
 
+    public async checkCache(queryEmbeddings: number[]): Promise<(AnswerFormatInterface & { distance : number })[] | null> {
+        if (!this.cacheStore || !this.config.semanticCache?.distanceThreshold) {
+            return null;
+        }
+
+        const cachedAnswer = await this.cacheStore.retrieve(queryEmbeddings, 1);
+        if (cachedAnswer.length > 0) {
+            const { distance } = cachedAnswer[0];
+            const { distanceThreshold } = this.config.semanticCache;
+
+            if (distance <= distanceThreshold) {
+                this.log(`Cache hit (distance: ${distance.toFixed(4)} <= threshold: ${distanceThreshold}). Using cached answer.`);
+                return cachedAnswer;
+            }
+        }
+
+        return cachedAnswer;
+    }
 
     public async search(query: string): Promise<Chunk[]> {
         if (!this.isInitialized) {
             throw new Error("Rag instance is not initialized. Please call the init() method first.");
         }
 
-        let chunks = await this.docStore.retrieveFromText(query, this.config.numResults);
+        const queryEmbedding = await this.docStore.embedQuery(query);
 
-        console.log('CHUNKS[0]:', chunks[0]);
+        // const cachedAnswer = await this.checkCache(queryEmbedding);
+        // if (cachedAnswer) return cachedAnswer;
+
+        let chunks = await this.docStore.retrieve(queryEmbedding, this.config.numResults);
 
         if (getObjectLength(this.config.chunkFiltering) > 0 && this.config?.chunkFiltering?.thresholdMultiplier) {
             chunks = applyChunkFiltering(
@@ -161,6 +197,9 @@ export class Rag {
         if (getObjectLength(this.config.parentPageRetrieval) > 0 && this.config.parentPageRetrieval?.offset) {
             chunks = await retrieveParentPage(chunks, this.config.parentPageRetrieval.offset);
         }
+
+        // const answer = await generateAnswer(query, chunks); -> salva in cache e ritorna
+        // return answer: AnswerFormatInterface
 
         return chunks;
     }

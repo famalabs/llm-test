@@ -8,13 +8,12 @@ import "dotenv/config";
 
 export const EMBEDDING_FIELD = "embedding";
 
-export class VectorStore<TReturnDocument> {
+export class VectorStore<ReturnDocumentType extends Record<string, any>> {
     private client: Redis;
     private config: VectorStoreConfig;
     private loaded = false;
     private readonly embedder: Embedder;
-    private readonly deserializationTypes: Record<string, 'string' | 'number' | 'object' | 'boolean'> = {};
-    private readonly fieldTypes: Record<string, string> = {};
+    private readonly registeredFields = new Set<string>();
 
     constructor(config: VectorStoreConfig) {
         this.config = resolveConfig(config);
@@ -27,10 +26,15 @@ export class VectorStore<TReturnDocument> {
         return name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
     }
 
+    public embedQuery(query: string): Promise<number[]> {
+        return this.embedder.embedQuery(query);
+    }
+
     public async load() {
         if (this.loaded) return;
         try {
-            await this.client.call("FT.INFO", this.config.indexName);
+            const info = (await this.client.call("FT.INFO", this.config.indexName)) as Record<string, any>;
+            this.rebuildFieldTypesFromInfo(info);
         } catch (e: any) {
             if (e?.message?.includes("Unknown Index name")) {
                 throw new Error(`Index "${this.config.indexName}" does not exist. Create it before using VectorStore.`);
@@ -40,86 +44,54 @@ export class VectorStore<TReturnDocument> {
         this.loaded = true;
     }
 
-    private buildDocumentPayload(doc: Record<string, any>, vector: number[]): Record<string, any> {
-        const fieldToEmbed = this.config.fieldToEmbed;
-        const value: Record<string, any> = {
-            [fieldToEmbed]: doc[fieldToEmbed],
-            [EMBEDDING_FIELD]: float32Buffer(vector)
-        };
+    private rebuildFieldTypesFromInfo(info: Record<string, any>) {
+        if (!Array.isArray(info)) return;
+        const map: Record<string, any> = {};
+        for (let i = 0; i < info.length; i += 2) map[info[i]] = info[i + 1];
 
-        for (const [k, raw] of Object.entries(doc)) {
-            if (k == "ttl" || k == fieldToEmbed || k == EMBEDDING_FIELD) continue;
-            if (raw === undefined || raw === null) continue;
+        const attributes = map.attributes || map.attrs;
+        if (!Array.isArray(attributes)) return;
 
-            const fieldType = typeof raw;
-            let redisType: string;
-
-            switch (fieldType) {
-
-                case "number":
-                    redisType = "NUMERIC";
-                    value[k] = Number(raw);
-                    this.deserializationTypes[k] = "number";
-                    break;
-
-                case "string":
-                    redisType = "TEXT";
-                    value[k] = String(raw);
-                    this.deserializationTypes[k] = "string";
-                    break;
-
-                case "boolean":
-                    redisType = "TAG";
-                    value[k] = String(raw);
-                    this.deserializationTypes[k] = "boolean";
-                    break;
-
-                case "object":
-                    redisType = "TEXT";
-                    value[k] = JSON.stringify(raw);
-                    this.deserializationTypes[k] = "object";
-
-                    break;
-
-                default:
-                    throw new Error(`Unsupported data type for field "${k}": ${fieldType}`);
+        for (const attr of attributes) {
+            if (!Array.isArray(attr)) continue;
+            const obj: Record<string, any> = {};
+            for (let i = 0; i < attr.length - 1; i += 2) {
+                obj[attr[i]] = attr[i + 1];
             }
+            const redisType = obj.type.toString();
+            if (redisType === "VECTOR" || !redisType) continue;
+            const field = obj.identifier;
+            if (!field) continue;
+            this.registeredFields.add(field);
+        }
+    }
 
+    private deserializeField(key: string, value: string): any {
+        if (value === "true") return true;
+        if (value === "false") return false;
 
-            if (!this.fieldTypes[k]) {
-                this.fieldTypes[k] = redisType;
+        if (
+            (value.startsWith("{") && value.endsWith("}")) ||
+            (value.startsWith("[") && value.endsWith("]"))
+        ) {
+            try {
+                return JSON.parse(value);
+            } catch {
+                return value;
             }
+        }
+
+        if (/^-?\d+(\.\d+)?$/.test(value)) {
+            try {
+                const num = parseFloat(value);
+                if (!Number.isNaN(num)) return num;
+            } catch { }
         }
 
         return value;
     }
 
-    private deserializeField(key: string, value: string): any {
-        const targetType = this.deserializationTypes[key];
-        if (!targetType) return value;
-
-        try {
-            switch (targetType) {
-                case "number":
-                    return parseFloat(value);
-                case "boolean":
-                    return value === "true";
-                case "object":
-                    return JSON.parse(value);
-                case "string":
-                    return value;
-                default:
-                    return value;
-            }
-        }
-
-        catch (error) {
-            console.error(`Error deserializing field "${key}" with value "${value}":`, error);
-            return value;
-        }
-    }
-
-    public async add(documents: ({ [key: string]: any; ttl?: number })[]) {
+    public async add(documents: (ReturnDocumentType & { ttl?: number })[]) {
         const fieldToEmbed = this.config.fieldToEmbed;
         const contents = documents.map(d => d[fieldToEmbed] ?? "");
         const vectors = await this.embedder.embedDocuments(contents);
@@ -130,31 +102,31 @@ export class VectorStore<TReturnDocument> {
             if (doc[fieldToEmbed] == null) {
                 throw new Error(`Document at index ${i} missing text field "${fieldToEmbed}".`);
             }
-
             const key = `${this.config.indexName}:${randomUUID()}`;
-            const value = this.buildDocumentPayload(doc, vectors[i]);
-
+            for (const k of Object.keys(doc)) {
+                this.registeredFields.add(k);
+                if (typeof doc[k] === "object") (doc as any)[k] = JSON.stringify(doc[k]);
+            }
+            const value = { ...doc, [EMBEDDING_FIELD]: float32Buffer(vectors[i]) };
             pipeline.hset(key, value);
             if (doc.ttl && doc.ttl > 0) pipeline.expire(key, doc.ttl);
         }
-
         await pipeline.exec();
     }
 
-    public async retrieveFromText(text: string, numResults = 3, filter?: string): Promise<TReturnDocument[]> {
-        const queryEmbedding = await this.embedder.embedQuery(text);
+    public async retrieveFromText(text: string, numResults = 3, filter?: string): Promise<ReturnDocumentType[]> {
+        const queryEmbedding = await this.embedQuery(text);
         return this.retrieve(queryEmbedding, numResults, filter);
     }
-
 
     public async retrieve(
         queryEmbedding: number[],
         numResults = 3,
         filter?: string
-    ): Promise<TReturnDocument[]> {
+    ): Promise<ReturnDocumentType[]> {
         const filterQuery = filter ?? "*";
         const blob = float32Buffer(queryEmbedding);
-        const returnFields = Object.keys(this.fieldTypes);
+        const returnFields = Array.from(this.registeredFields);
 
         const knnQuery = `${filterQuery}=>[KNN ${numResults} @${EMBEDDING_FIELD} $BLOB AS distance]`;
 
@@ -169,7 +141,7 @@ export class VectorStore<TReturnDocument> {
 
         const res = await this.client.callBuffer("FT.SEARCH", ...searchArgs);
 
-        const docs: TReturnDocument[] = [];
+        const docs: ReturnDocumentType[] = [];
         if (!Array.isArray(res)) return docs;
 
         for (let i = 1; i < res.length; i += 2) {
@@ -181,7 +153,6 @@ export class VectorStore<TReturnDocument> {
                 const k = fields[j].toString();
                 let v: any = fields[j + 1];
                 if (k === EMBEDDING_FIELD) continue;
-                if (k == "distance") v = parseFloat(v);
                 obj[k] = this.deserializeField(k, v.toString());
             }
             docs.push(obj);
@@ -190,28 +161,38 @@ export class VectorStore<TReturnDocument> {
         return docs;
     }
 
-    public async deleteByFilter(filter?: string): Promise<number> {
-        const filterQuery = filter ?? "*";
+    public async deleteByFilter(filter = "*"): Promise<number> {
+        const { indexName } = this.config;
         let totalDeleted = 0;
+        const PAGE = 1000;
+        let offset = 0;
 
-        const res = await this.client.call(
-            "FT.SEARCH",
-            this.config.indexName,
-            filterQuery,
-            "NOCONTENT"
-        ) as string[];
+        while (true) {
+            const res = await this.client.call(
+                "FT.SEARCH",
+                indexName,
+                filter,
+                "NOCONTENT",
+                "LIMIT", offset.toString(), PAGE.toString(),
+                "DIALECT", "2"
+            ) as (string | number)[];
 
+            if (!Array.isArray(res) || res.length === 0) break;
 
-        const keys = res.slice(1);
+            const total = Number(res[0] ?? 0);
+            const keys = res.slice(1) as string[];
+            if (keys.length === 0) break;
 
-        // UNLINK faster then DEL
-        const pipeline = this.client.multi();
-        for (const key of keys) {
-            pipeline.unlink(key);
+            const pipeline = this.client.multi();
+            for (const key of keys) {
+                pipeline.call("FT.DEL", indexName, key, "DD");
+            }
+            await pipeline.exec();
+            totalDeleted += keys.length;
+
+            offset += PAGE;
+            if (offset >= total) break;
         }
-        await pipeline.exec();
-
-        totalDeleted += keys.length;
 
         return totalDeleted;
     }

@@ -7,8 +7,7 @@ import { sleep } from './utils';
 import { Rag } from './rag';
 import Redis from 'ioredis';
 import z from 'zod';
-import { VectorStore } from './vector-store';
-import { ensureIndex } from './lib/redis-index';
+import { VectorStore, ensureIndex } from './vector-store';
 import { Chunk } from './lib/chunks';
 
 const docStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
@@ -33,8 +32,9 @@ const rag = new Rag({
     chunksOrAnswerFormat: 'answer',
     includeCitations: false,
     fewShotsEnabled: false,
-    verbose: true
-}, docStore);
+    verbose: true,
+    docStore
+});
 
 const messages: ModelMessage[] = [];
 
@@ -67,7 +67,6 @@ const main = async () => {
                         let out = 'No answer could be found.';
                         try {
                             const ragAgentToolFunctionOutput = await ragAgentToolFunction(`Informazioni sul farmaco ${medicineName}: ${textualQuery}`);
-                            console.log(ragAgentToolFunctionOutput);
                             out = await ragAnswerToString(
                                 ragAgentToolFunctionOutput,
                                 rag

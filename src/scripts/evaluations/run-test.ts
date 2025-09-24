@@ -1,21 +1,20 @@
 import { readFile, writeFile } from "fs/promises"
 import yargs from "yargs"
 import { Rag } from "../../rag";
-import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag/rag-tool";
+import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag";
 import { tqdm } from "node-console-progress-bar-tqdm";
 import { PATH_NORMALIZATION_MARK } from "../../lib/nlp";
 import { createOutputFolderIfNeeded } from "../../utils";
 import { hideBin } from "yargs/helpers";
 import Redis from "ioredis";
-import { VectorStore } from "../../vector-store";
-import { ensureIndex } from "../../lib/redis-index";
+import { VectorStore, ensureIndex } from "../../vector-store";
 import { Chunk } from "../../lib/chunks";
 
 const main = async () => {
     const { test: testFile, config: configFile, indexName } = await yargs(hideBin(process.argv))
         .option('test', { alias: 't', type: 'string', demandOption: true, description: 'Path to evaluation test JSON' })
         .option('config', { alias: 'c', type: 'string', demandOption: true, description: 'Path to RAG config JSON' })
-        .option('indexName', { alias: 'v', type: 'string', demandOption: true, description: 'Name of the index of the document store' })
+        .option('indexName', { alias: 'i', type: 'string', demandOption: true, description: 'Name of the index of the document store' })
         .help()
         .parse();
 
@@ -40,7 +39,7 @@ const main = async () => {
         indexName
     });
 
-    const rag = new Rag(config, docStore);
+    const rag = new Rag({...config, docStore});
 
     await rag.init();
 

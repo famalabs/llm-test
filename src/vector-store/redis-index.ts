@@ -1,7 +1,6 @@
 import Redis from "ioredis";
-import { EMBEDDING_DIMENSION } from "./embeddings";
-// Embedding field name must match VectorStore.EMBEDDING_FIELD usage
-const EMBEDDING_FIELD = 'embedding';
+import { EMBEDDING_DIMENSION } from "../lib/embeddings";
+import { EMBEDDING_FIELD } from "./vector-store";
 
 export const ensureIndex = async (client: Redis, indexName: string, indexSchema: string[]) => {
     try {

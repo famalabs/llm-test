@@ -1,12 +1,11 @@
 import yargs from 'yargs';
-import { VectorStore } from '../vector-store';
 import { readFile } from 'fs/promises';
 import { RecursiveCharacterTextSplitter, TextSplitter } from 'langchain/text_splitter';
 import { Document } from 'langchain/document';
 import { hideBin } from 'yargs/helpers';
 import { Chunk } from '../lib/chunks';
 import Redis from 'ioredis';
-import { ensureIndex } from '../lib/redis-index';
+import { VectorStore, ensureIndex } from "../vector-store";
 
 async function main() {
     const argv = await yargs(hideBin(process.argv))

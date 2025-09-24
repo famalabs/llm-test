@@ -6,13 +6,7 @@ import { Chunk, Citation } from "../lib/chunks/interfaces";
 import { Rag } from "./rag";
 import { ragCorpusInContext } from "../lib/prompt";
 import { getLLMProvider } from "./factory";
-
-export interface AnswerFormatInterface {
-    answer: string;
-    chunks: Chunk[];
-    citations?: Citation[];
-    reasoning?: string;
-}
+import { AnswerFormatInterface } from "./interfaces";
 
 export const getRagAgentToolFunction = (rag: Rag) => {
 

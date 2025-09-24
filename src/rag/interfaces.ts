@@ -1,39 +1,48 @@
-import { LanguageModel } from 'ai';
+import { VectorStore } from '../vector-store';
+import { Chunk, Citation } from '../lib/chunks';
+
+export interface AnswerFormatInterface {
+    answer: string;
+    chunks: Chunk[];
+    citations?: Citation[];
+    reasoning?: string;
+}
+
 
 export interface RerankingConfig {
     /** 
      * Name of the LLM used for reranking.
      */
-    llm?: string;
+    llm: string;
 
     /** 
      * Enables few-shot examples to improve reranking quality.
      */
-    fewShotsEnabled?: boolean;
+    fewShotsEnabled: boolean;
 
     /** 
      * Maximum number of chunks processed in a single reranking batch.
      */
-    batchSize?: number;
+    batchSize: number;
 
     /** 
      * Weight assigned to the LLM evaluation score when combining with vector similarity.
      */
-    llmEvaluationWeight?: number;
+    llmEvaluationWeight: number;
 
     /** 
      * Ask for a reasoning sentence during reranking.
      */
-    reasoningEnabled?: boolean;
+    reasoningEnabled: boolean;
 
     /** 
      * Configuration for filtering chunks before reranking.
      */
-    chunkFiltering?: {
+    chunkFiltering: {
         /**
          * Multiplier that determines the filtering threshold relative to average similarity.
          */
-        thresholdMultiplier?: number;
+        thresholdMultiplier: number;
     };
 }
 
@@ -41,22 +50,48 @@ export interface ParentPageRetrievalConfig {
     /**
      * Number of lines to include around the ones containing the original chunk.
      */
-    offset?: number;
+    offset: number;
+}
+
+export interface SemanticCacheConfig {
+    /**
+     * Instance of the semantic cache vector store.
+     */
+    cacheStore: VectorStore<AnswerFormatInterface & { distance: number }>;
+
+    /**
+     * Distance threshold for retrieving from the semantic cache.
+     * If a cached chunk has distance below this threshold, it will be used directly.
+     */
+    distanceThreshold: number;
 }
 
 export interface RagConfig {
     /**
-     * Name of the LLM provider.
+     * Name of the LLM provider. Defaults to 'mistral'.
      */
     provider: 'mistral' | 'google' | 'openai';
 
     /**
-     * Name of the main LLM used for generating answers.
+     * Name of the main LLM used for generating answers. Defaults to 'mistral-small-latest'.
      */
     llm: string;
 
     /**
-     * Number of chunks retrieved from the vector store.
+     * Instance of the document store (vector database) used for retrieval.
+     */
+    docStore: VectorStore<Chunk>;
+
+    /**
+     * Determines the output format:
+     * - 'chunks': return retrieved chunks
+     * - 'answer': return a string answer
+     * Defaults to 'chunks'.
+     */
+    chunksOrAnswerFormat: 'chunks' | 'answer';
+
+    /**
+     * Number of chunks retrieved from the vector store. Defaults to 10.
      */
     numResults?: number;
 
@@ -81,29 +116,27 @@ export interface RagConfig {
     parentPageRetrieval?: ParentPageRetrievalConfig;
 
     /**
-     * Ask for reasoning during the final answer generation.
+     * Ask for reasoning during the final answer generation. Defaults to false.
      */
     reasoningEnabled?: boolean;
 
     /**
-     * Determines the output format:
-     * - 'chunks': return retrieved chunks
-     * - 'answer': return a string answer
-     */
-    chunksOrAnswerFormat: 'chunks' | 'answer';
-
-    /**
-     * Includes citations (references to source chunks) in the answer.
+     * Includes citations (references to source chunks) in the answer. Defaults to false.
      */
     includeCitations?: boolean;
 
     /**
-     * Enables few-shot examples for answer generation.
+     * Enables few-shot examples for answer generation. Defaults to false.
      */
     fewShotsEnabled?: boolean;
 
     /**
-     * Prints detailed logs during retrieval and generation.
+     * Prints detailed logs during retrieval and generation. Defaults to false.
      */
     verbose?: boolean;
+
+    /**
+     * Optional configuration for a semantic cache to speed up responses.
+     */
+    semanticCache?: SemanticCacheConfig;
 }

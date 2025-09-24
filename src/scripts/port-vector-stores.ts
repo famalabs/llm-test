@@ -1,9 +1,8 @@
-import { VectorStore } from '../vector-store';
+import { VectorStore, ensureIndex } from '../vector-store';
 import { Document } from 'langchain/document';
 import { readFile } from 'fs/promises';
 import { Chunk } from '../lib/chunks';
 import Redis from 'ioredis';
-import { ensureIndex } from '../lib/redis-index';
 
 const sources = {
     agentic: [
@@ -13,15 +12,15 @@ const sources = {
 };
 
 async function main() {
-    
+
     const client = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
     for (const [chunkType, files] of Object.entries(sources)) {
         const indexName = `vector_store_index_${chunkType}`;
-            await ensureIndex(client, 'vector_store_index_agentic', [
-        "pageContent", "TEXT",
-        "source", "TAG",
-        "metadata", "TEXT",
-    ]);
+        await ensureIndex(client, indexName, [
+            "pageContent", "TEXT",
+            "source", "TAG",
+            "metadata", "TEXT",
+        ]);
         const vectorStore = new VectorStore({
             client,
             indexName,
