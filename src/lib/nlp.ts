@@ -8,6 +8,7 @@ export const splitTextIntoSentences = (text: string, language: 'it'): string[] =
 };
 
 export const addLineNumbers = (text: string): string => {
+    console.log(text);
     return text.split('\n').map((line, idx) => `${idx}: ${line}`).join('\n');
 };
 

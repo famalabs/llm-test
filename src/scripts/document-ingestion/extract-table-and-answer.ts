@@ -1,17 +1,15 @@
+import { createOutputFolderIfNeeded, getFileExtension } from '../../utils';
+import { generateObject, ModelMessage } from 'ai';
+import { readFile, writeFile } from "fs/promises";
+import { tableQAPrompt } from '../../lib/prompt';
+import { hideBin } from 'yargs/helpers';
+import { parseDoc } from '../../lib/ingestion';
+import { mistral } from '@ai-sdk/mistral';
 import { tqdm } from 'node-console-progress-bar-tqdm';
 import { z } from 'zod';
-import { mistral } from '@ai-sdk/mistral';
-import yargs from "yargs";
-import { generateObject, ModelMessage } from 'ai';
-import {
-    parseDocx,
-} from './extractors';
-import { createOutputFolderIfNeeded, getFileExtension } from '../../utils';
-import { writeFile } from "fs/promises";
-import { tableQAPrompt } from '../../lib/prompt';
 import questions from '../../../data/rag-table-tests.json';
+import yargs from "yargs";
 import 'dotenv/config';
-import { hideBin } from 'yargs/helpers';
 
 const answerQuestion = async (table: string, format: string, question: string, llm: string) => {
 
@@ -35,7 +33,7 @@ const main = async () => {
     const argv = await yargs(hideBin(process.argv))
         .option('source', { alias: 's', type: 'string', demandOption: true, description: 'Path to the source .docx file' })
         .option('llm', { alias: 'l', type: 'string', demandOption: true, description: 'LLM model id, e.g., mistral-small-latest' })
-        .option('format', { alias: 'f', choices: ['html', 'md', 'text'], type: 'string', demandOption: true, description: 'Output table format' })
+        .option('format', { alias: 'f', choices: ['html', 'markdown', 'text'], type: 'string', demandOption: true, description: 'Output table format' })
         .help()
         .parse();
 
@@ -46,7 +44,9 @@ const main = async () => {
 
     if (sourceExtension === 'docx') {
         console.log('Will parse .docx file');
-        parsed = await parseDocx({ source: source!, format: format! as 'html' | 'md' | 'text' });
+        const inputBuffer = await readFile(source!);
+        const output = await parseDoc(inputBuffer, format! as 'html' | 'markdown' | 'text');
+        parsed = output.toString('utf-8');
     }
     else {
         console.error('Unsupported file type. Only .docx is supported.');

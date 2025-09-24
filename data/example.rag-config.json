@@ -1,5 +1,4 @@
 {
-    "vectorStoreName": "vector_store_index_fixed_size",
     "llm": "mistral-small-latest",
     "numResults": 30,
     "output": {

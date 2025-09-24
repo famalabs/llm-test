@@ -35,7 +35,7 @@ export const randomUnitVector = (dim: number, asBuffer: boolean = false): Buffer
   const arr = Array.from({ length: dim }, () => Math.random() * 2 - 1);
   const norm = Math.sqrt(arr.reduce((acc, x) => acc + x * x, 0));
   const normalized = arr.map((x) => x / norm);
-  return asBuffer ? Buffer.from(new Float32Array(normalized).buffer) : normalized;
+  return asBuffer ? float32Buffer(normalized) : normalized;
 };
 
 export const percentile = (values: number[], p: number) => {
@@ -76,4 +76,8 @@ export const getObjectLength = (obj: Record<string, any> | null | undefined) => 
 
 export const getUserInput = async (prompt: string) => {
   return await terminal.question(prompt)
+}
+
+export const float32Buffer = (arr: number[]) => {
+  return Buffer.from(new Float32Array(arr).buffer);
 }

@@ -2,12 +2,9 @@ import { z } from 'zod';
 import { mistral } from '@ai-sdk/mistral';
 import yargs from "yargs";
 import { generateObject, ModelMessage } from 'ai';
-import {
-    parseDocx,
-    parseDoc,
-} from './extractors';
+import { parseDoc, parseDocx } from '../../lib/ingestion';
 import { createOutputFolderIfNeeded, getFileExtension } from '../../utils';
-import { writeFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 import { PATH_NORMALIZATION_MARK } from "../../lib/nlp";
 import 'dotenv/config';
 import { hideBin } from 'yargs/helpers';
@@ -43,11 +40,15 @@ const main = async () => {
 
     if (sourceExtension === 'docx') {
         console.log('Will parse .docx file');
-        text = await parseDocx({ source: source! });
+        const inputBuffer = await readFile(source!);
+        const outputBuffer = await parseDocx(inputBuffer, 'text');
+        text = outputBuffer.toString('utf-8');
     }
     else if (sourceExtension === 'doc') {
         console.log('Will parse .doc file');
-        text = await parseDoc({ source: source! });
+        const inputBuffer = await readFile(source!);
+        const outputBuffer = await parseDoc(inputBuffer, 'text');
+        text = outputBuffer.toString('utf-8');
     }
     else {
         console.error('Unsupported file type');

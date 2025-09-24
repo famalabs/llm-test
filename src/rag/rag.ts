@@ -10,12 +10,12 @@ import { getLLMProvider } from "./factory";
 
 export class Rag {
     private readonly config: RagConfig;
-    private vectorStore: VectorStore;
+    private docStore: VectorStore<Chunk>;
     private isInitialized: boolean = false;
 
-    constructor(ragConfig: RagConfig) {
+    constructor(ragConfig: RagConfig, docStore: VectorStore<Chunk>) {
         this.config = resolveConfig(ragConfig);
-        this.vectorStore = new VectorStore(this.config.vectorStoreName);
+        this.docStore = docStore;
     }
 
     public getConfig() {
@@ -33,21 +33,27 @@ export class Rag {
     }
 
     public printSummary() {
-        let summary = `====== RAG SYSTEM CONFIGURATION =====\n`;
+        let summary = `\n====== RAG SYSTEM CONFIGURATION =====\n`;
+        const fmtKey = (key: string) => key.replace(/([A-Z])/g, ' $1').toUpperCase();
 
-        for (const key in this.config) {
-            const typedKey = key as keyof RagConfig;
-            const value = this.config[typedKey];
-            if (typeof value === 'object' && value !== null) {
-                summary += `${key.toUpperCase()}:\n`;
-                for (const subKey in value) {
-                    const typedSubKey = subKey as keyof typeof value;
-                    summary += `\t${subKey.toUpperCase()}: ${(value)[typedSubKey]}\n`;
+        const formatConfig = (obj: any, indent: string = ''): string => {
+            let result = '';
+            for (const key in obj) {
+                const value = obj[key];
+                if (typeof value === 'object' && value !== null && getObjectLength(value) > 0) {
+                    result += `${indent}${fmtKey(key)}:\n`;
+                    result += formatConfig(value, indent + '\t');
+                } else {
+
+                    if (typeof value == 'object') { continue } // l'oggetto è vuoto
+
+                    result += `${indent}${fmtKey(key)}: ${value}\n`;
                 }
-            } else {
-                summary += `${key.toUpperCase()}: ${value}\n`;
             }
-        }
+            return result;
+        };
+
+        summary += formatConfig(this.config);
 
         summary += `=====================================\n`;
 
@@ -60,7 +66,7 @@ export class Rag {
             console.warn("Rag instance is already initialized.");
             return;
         }
-        await this.vectorStore.load();
+        await this.docStore.load();
 
         this.runPreflightChecks();
         this.isInitialized = true;
@@ -137,7 +143,9 @@ export class Rag {
             throw new Error("Rag instance is not initialized. Please call the init() method first.");
         }
 
-        let chunks = await this.vectorStore.retrieveFromText(query, this.config.numResults);
+        let chunks = await this.docStore.retrieveFromText(query, this.config.numResults);
+
+        console.log('CHUNKS[0]:', chunks[0]);
 
         if (getObjectLength(this.config.chunkFiltering) > 0 && this.config?.chunkFiltering?.thresholdMultiplier) {
             chunks = applyChunkFiltering(

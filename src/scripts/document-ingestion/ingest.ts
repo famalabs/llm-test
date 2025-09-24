@@ -1,6 +1,7 @@
-import { hideBin } from "yargs/helpers";
+import { parseDoc, parsePDF, parseDocx } from "../../lib/ingestion";
+import { readFile, writeFile } from "fs/promises";
 import { getFileExtension } from '../../utils';
-import { parseDoc, parsePDF, parseDocx } from "./extractors";
+import { hideBin } from "yargs/helpers";
 import yargs from "yargs";
 
 const ingest = async () => {
@@ -21,19 +22,40 @@ const ingest = async () => {
         .parse();
 
     const source = argv.source;
+    const extension = getFileExtension(source!);
     const dest = argv.destination;
+    const destinationFileType = dest ? getFileExtension(dest) : 'text';
+    const destinationFileFormat =   destinationFileType === 'md' ? 'markdown' : destinationFileType === 'html' ? 'html' : 'text';
 
-    const extension = getFileExtension(source);
+    const inputFileBuffer = await readFile(source!);
+    let outputString: string;
+
+    const start = performance.now();
 
     switch (extension) {
         case 'doc':
-            return await parseDoc({ source, dest });
+            outputString = await parseDoc(inputFileBuffer,  destinationFileFormat );
+            break;
         case 'docx':
-            return await parseDocx({ source, dest });
+            outputString = await parseDocx(inputFileBuffer, destinationFileFormat );
+            break;
         case 'pdf':
-            return await parsePDF({ source, dest });
+            outputString = await parsePDF(inputFileBuffer, destinationFileFormat);
+            break;
         default:
             throw new Error('Unsupported file type. Supported types are .doc, .docx, .pdf');
+    }
+
+    const end = performance.now();
+
+    console.log(`Ingestion completed in ${(end - start).toFixed(2)} ms`);
+
+    if (dest) {
+        await writeFile(dest!, outputString);
+    }
+
+    else {
+        console.log(outputString);
     }
 }
 

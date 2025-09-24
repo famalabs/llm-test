@@ -5,6 +5,8 @@ import { RecursiveCharacterTextSplitter, TextSplitter } from 'langchain/text_spl
 import { Document } from 'langchain/document';
 import { hideBin } from 'yargs/helpers';
 import { Chunk } from '../lib/chunks';
+import Redis from 'ioredis';
+import { ensureIndex } from '../lib/redis-index';
 
 async function main() {
     const argv = await yargs(hideBin(process.argv))
@@ -38,7 +40,20 @@ async function main() {
         process.exit(1);
     }
 
-    const vectorStore = new VectorStore(`vector_store_index_${chunking}`);
+    const client = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+    const indexName = `vector_store_index_${chunking}`;
+    const indexSchema = [
+        "pageContent", "TEXT",
+        "source", "TAG",
+        "metadata", "TEXT",
+    ];
+    await ensureIndex(client, indexName, indexSchema);
+
+    const vectorStore = new VectorStore({
+        client,
+        indexName,
+        fieldToEmbed : 'pageContent',
+    });
     await vectorStore.load();
 
     const docs = await Promise.all(

@@ -8,18 +8,35 @@ import { customLLMAsAJudge, Metric, MetricArguments } from "./metrics";
 import { extractKeywords } from "../../lib/nlp";
 import { createOutputFolderIfNeeded } from "../../utils";
 import { hideBin } from "yargs/helpers";
+import Redis from "ioredis";
+import { VectorStore } from "../../vector-store";
+import { ensureIndex } from "../../lib/redis-index";
+import { Chunk } from "../../lib/chunks";
 
 const allMetrics = { customLLMAsAJudge };
 
 const main = async () => {
-    const { json } = await yargs(hideBin(process.argv))
+    const { json, indexName } = await yargs(hideBin(process.argv))
         .option('json', { alias: 'j', type: 'string', demandOption: true, description: 'Path to RAG config JSON' })
+        .option('indexName', { alias: 'v', type: 'string', demandOption: true, description: 'Name of the index of the document store' })
         .help()
         .parse();
 
     const fileContent = await readFile(json!, 'utf-8');
     const config = JSON.parse(fileContent);
-    const rag = new Rag(config);
+    
+    const docStoreRedisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+    await ensureIndex(docStoreRedisClient, indexName, [
+        "pageContent", "TEXT",
+        "source", "TAG",
+        "metadata", "TEXT",
+    ]);
+    const docStore = new VectorStore<Chunk>({
+        client: docStoreRedisClient,
+        indexName,
+        fieldToEmbed: 'pageContent'
+    });
+    const rag = new Rag(config, docStore);
 
     await rag.init();
     const summary = rag.printSummary();

@@ -13,7 +13,7 @@ export const resolveCitations = async (citations: Citation[], retrievedChunks: C
         const { chunkIndex, startLine, endLine } = citation;
         const chunk = retrievedChunks[chunkIndex];
         const parentPage = chunk.metadata.source;
-        const offset = chunk.metadata.loc.lines.from;
+        const offset = chunk.metadata.loc!.lines.from;
         const startLineInParentPage = offset+startLine;
         const endLineInParentPage = offset+endLine;
 

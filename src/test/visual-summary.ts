@@ -1,37 +1,9 @@
-import { readdir, readFile, writeFile } from "fs/promises";
-import yargs from "yargs";
+import { escapeText, escapeAttrQuotesOnly, getHeatmapColor, getTextColor} from "../utils";
 import { createOutputFolderIfNeeded, parseCSV } from "../utils";
+import { readdir, readFile, writeFile } from "fs/promises";
 import { PATH_NORMALIZATION_MARK } from "../lib/nlp";
 import { hideBin } from "yargs/helpers";
-
-const getHeatmapColor = (value: number) => {
-  const v = Math.max(0, Math.min(1, value));
-  const r = Math.round(255 * (1 - v));
-  const g = Math.round(255 * v);
-  return `rgb(${r},${g},0)`;
-};
-
-const getTextColor = (value: number) => {
-  const v = Math.max(0, Math.min(1, value));
-  const r = 255 * (1 - v),
-    g = 255 * v,
-    b = 0;
-  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 140 ? "#111827" : "#FFFFFF";
-};
-
-const escapeText = (s: string) =>
-  String(s ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-
-const escapeAttrQuotesOnly = (s: string) =>
-  String(s ?? "")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+import yargs from "yargs";
 
 const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
   const renderValue = (value: any): string => {
@@ -56,21 +28,21 @@ const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
       `)
       .join("");
 
-  const topLevelPrimitives = Object.fromEntries(Object.entries(config ?? {}).filter(([,v]) => typeof v !== 'object' || v === null));
-  const topLevelObjects = Object.fromEntries(Object.entries(config ?? {}).filter(([,v]) => typeof v === 'object' && v !== null));
+  const topLevelPrimitives = Object.fromEntries(Object.entries(config ?? {}).filter(([, v]) => typeof v !== 'object' || v === null));
+  const topLevelObjects = Object.fromEntries(Object.entries(config ?? {}).filter(([, v]) => typeof v === 'object' && v !== null));
 
   let html = `<div class="space-y-3 text-white">
     <div class="text-xs text-gray-400 break-all"><b>File:</b> ${escapeText(filePath)}</div>
     <div class="border-t border-gray-700"></div>`;
 
-  if(Object.keys(topLevelPrimitives).length > 0) {
-     html += `<div class="bg-gray-700 p-2 rounded-md">
+  if (Object.keys(topLevelPrimitives).length > 0) {
+    html += `<div class="bg-gray-700 p-2 rounded-md">
        <div class="font-semibold text-sm mb-1 text-gray-200">General</div>
        <div class="text-xs">${renderConfigObject(topLevelPrimitives)}</div>
      </div>`
   }
 
-  for(const [sectionTitle, sectionObject] of Object.entries(topLevelObjects)) {
+  for (const [sectionTitle, sectionObject] of Object.entries(topLevelObjects)) {
     html += `<div class="bg-gray-700 p-2 rounded-md">
       <div class="font-semibold text-sm mb-1 text-gray-200 capitalize">${escapeText(sectionTitle)}</div>
       <div class="text-xs">${renderConfigObject(sectionObject as Record<string, any>)}</div>
@@ -156,7 +128,7 @@ const main = async () => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css"/>
-  <link rel="icon" type="image/x-icon" href="../../data/fl-logo.webp"/>
+  <link rel="icon" type="image/x-icon" href="../../local/fl-logo.webp"/>
   <script src="https://unpkg.com/@popperjs/core@2"></script>
   <script src="https://unpkg.com/tippy.js@6"></script>
   <style>

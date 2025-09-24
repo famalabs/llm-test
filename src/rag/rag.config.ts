@@ -1,6 +1,6 @@
 import { RagConfig } from "./interfaces";
 
-const DEFAULT_CONFIG: Omit<RagConfig, 'vectorStoreName'> = {
+const DEFAULT_CONFIG: RagConfig = {
     provider: 'mistral',
     llm: "mistral-small-latest",
     numResults: 10,

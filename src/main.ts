@@ -1,15 +1,32 @@
+import { getRagAgentToolFunction, ragAnswerToString } from './rag/rag-tool';
 import { ModelMessage, stepCountIs, streamText, tool } from 'ai';
+import { ragChatbotSystemPrompt } from './lib/prompt';
 import { getUserInput } from './utils';
-import { Rag } from './rag';
 import { mistral } from '@ai-sdk/mistral';
 import { sleep } from './utils';
+import { Rag } from './rag';
+import Redis from 'ioredis';
 import z from 'zod';
-import { getRagAgentToolFunction, ragAnswerToString } from './rag/rag-tool';
-import { ragChatbotSystemPrompt } from './lib/prompt';
+import { VectorStore } from './vector-store';
+import { ensureIndex } from './lib/redis-index';
+import { Chunk } from './lib/chunks';
+
+const docStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+const INDEX_NAME = 'vector_store_index_fixed_size';
+const INDEX_SCHEMA = [
+    'pageContent', 'TEXT',
+    'source', 'TAG',
+    'metadata', 'TEXT',
+];
+
+const docStore = new VectorStore<Chunk>({
+    client: docStoreRedisClient,
+    indexName: INDEX_NAME,
+    fieldToEmbed: 'pageContent'
+});
 
 const rag = new Rag({
     provider: 'mistral',
-    vectorStoreName: 'vector_store_index_fixed_size',
     llm: 'mistral-medium-latest',
     numResults: 5,
     reasoningEnabled: true,
@@ -17,12 +34,13 @@ const rag = new Rag({
     includeCitations: false,
     fewShotsEnabled: false,
     verbose: true
-});
+}, docStore);
 
 const messages: ModelMessage[] = [];
 
 const main = async () => {
 
+    await ensureIndex(docStoreRedisClient, INDEX_NAME, INDEX_SCHEMA);
     await rag.init();
     rag.printSummary();
     const ragAgentToolFunction = getRagAgentToolFunction(rag);
@@ -48,15 +66,12 @@ const main = async () => {
                     execute: async ({ medicineName, textualQuery }) => {
                         let out = 'No answer could be found.';
                         try {
-
-                            const ragAgentToolFunctionOutput =await ragAgentToolFunction(`Informazioni sul farmaco ${medicineName}: ${textualQuery}`);
+                            const ragAgentToolFunctionOutput = await ragAgentToolFunction(`Informazioni sul farmaco ${medicineName}: ${textualQuery}`);
                             console.log(ragAgentToolFunctionOutput);
-
                             out = await ragAnswerToString(
                                 ragAgentToolFunctionOutput,
                                 rag
                             );
-                            console.log(out)
                         }
                         catch (error) {
                             console.error('Error during RAG processing:', error);

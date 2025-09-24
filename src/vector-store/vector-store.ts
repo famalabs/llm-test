@@ -1,186 +1,219 @@
-/**
- * To execute Redis:
- * sudo docker run -it --rm --name redis-search    -p 6379:6379    redislabs/redisearch
- */
-
-import { MistralAIEmbeddings } from "@langchain/mistralai";
-import {
-    createClient,
-    RedisClientType,
-    SCHEMA_FIELD_TYPE,
-    SCHEMA_VECTOR_FIELD_ALGORITHM,
-} from "redis";
+import { VectorStoreConfig } from "./interfaces";
+import { createEmbedder, Embedder } from "../lib/embeddings";
+import { resolveConfig } from "./vector-store.config";
+import { float32Buffer } from "../utils";
 import { randomUUID } from "crypto";
+import Redis from "ioredis";
 import "dotenv/config";
-import { Chunk } from "../lib/chunks/interfaces";
 
-const EMBEDDING_DIMENSION = 1024; // mistral-embed output dimension
+export const EMBEDDING_FIELD = "embedding";
 
-function float32Buffer(arr: number[]) {
-    return Buffer.from(new Float32Array(arr).buffer);
-}
+export class VectorStore<TReturnDocument> {
+    private client: Redis;
+    private config: VectorStoreConfig;
+    private loaded = false;
+    private readonly embedder: Embedder;
+    private readonly deserializationTypes: Record<string, 'string' | 'number' | 'object' | 'boolean'> = {};
+    private readonly fieldTypes: Record<string, string> = {};
 
-function escapeTagValue(value: string) {
-    return value.replace(/([,{}\\])/g, "\\$1").replace(/ /g, "\\ ");
-}
-
-export class VectorStore {
-    private client: RedisClientType | null = null;
-    private readonly embeddings: MistralAIEmbeddings;
-    private readonly indexName: string;
-
-    constructor(indexName: string) {
-        this.indexName = this.normalizeIndexName(indexName);
-        this.embeddings = new MistralAIEmbeddings({ model: "mistral-embed" });
+    constructor(config: VectorStoreConfig) {
+        this.config = resolveConfig(config);
+        this.config.indexName = this.normalizeIndexName(this.config.indexName);
+        this.client = this.config.client;
+        this.embedder = createEmbedder(this.config.embeddingsModel);
     }
 
     private normalizeIndexName(name: string): string {
         return name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
     }
 
-    private async ensureIndex() {
-        if (!this.client) throw new Error("Client not connected");
-        try {
-            await this.client.ft.info(this.indexName);
-            console.log(`Index "${this.indexName}" exists.`);
-            return;
-        } catch (e: any) {
-            // questo viene rilanciato se l'errore non è dovuto all'assenza dell'indice (ad esempio problemi di connessione o permessi)
-            if (!e?.message?.includes("Unknown Index name")) throw e;
-
-            console.log(`Index "${this.indexName}" not found. Creating (FLAT, HASH)...`);
-        }
-
-        await this.client.ft.create(
-            this.indexName,
-            {
-                pageContent: { type: SCHEMA_FIELD_TYPE.TEXT }, // da vedere se serve
-                embedding: {
-                    type: SCHEMA_FIELD_TYPE.VECTOR,
-                    ALGORITHM: SCHEMA_VECTOR_FIELD_ALGORITHM.FLAT,
-                    TYPE: "FLOAT32",
-                    DIM: EMBEDDING_DIMENSION,
-                    DISTANCE_METRIC: "COSINE",
-                },
-                source: { type: SCHEMA_FIELD_TYPE.TAG },
-            },
-            {
-                ON: "HASH",
-                PREFIX: `${this.indexName}:`,
-            }
-        );
-        console.log(`Index "${this.indexName}" created.`);
-    }
-
     public async load() {
-        if (!process.env.REDIS_URL) {
-            throw new Error("Missing REDIS_URL in environment variables.");
+        if (this.loaded) return;
+        try {
+            await this.client.call("FT.INFO", this.config.indexName);
+        } catch (e: any) {
+            if (e?.message?.includes("Unknown Index name")) {
+                throw new Error(`Index "${this.config.indexName}" does not exist. Create it before using VectorStore.`);
+            }
+            throw e;
         }
-        this.client = createClient({ url: process.env.REDIS_URL });
-        await this.client.connect();
-        console.log("Redis connected.");
-        await this.ensureIndex();
-        console.log(`Redis vector store ready. Index: ${this.indexName}`);
+        this.loaded = true;
     }
 
-    public async wipe() {
-        if (!this.client) throw new Error("Store not initialized. Call load() first.");
-        try {
-            await this.client.ft.dropIndex(this.indexName);
-            console.log(`Index "${this.indexName}" dropped.`);
-        } catch (e: any) {
-            // questo viene rilanciato se l'errore non è dovuto all'assenza dell'indice (ad esempio problemi di connessione o permessi)
-            if (e?.message?.includes("Unknown Index name")) {
-                console.log(`Index "${this.indexName}" does not exist. Nothing to drop.`);
-            } else {
-                throw e;
+    private buildDocumentPayload(doc: Record<string, any>, vector: number[]): Record<string, any> {
+        const fieldToEmbed = this.config.fieldToEmbed;
+        const value: Record<string, any> = {
+            [fieldToEmbed]: doc[fieldToEmbed],
+            [EMBEDDING_FIELD]: float32Buffer(vector)
+        };
+
+        for (const [k, raw] of Object.entries(doc)) {
+            if (k == "ttl" || k == fieldToEmbed || k == EMBEDDING_FIELD) continue;
+            if (raw === undefined || raw === null) continue;
+
+            const fieldType = typeof raw;
+            let redisType: string;
+
+            switch (fieldType) {
+
+                case "number":
+                    redisType = "NUMERIC";
+                    value[k] = Number(raw);
+                    this.deserializationTypes[k] = "number";
+                    break;
+
+                case "string":
+                    redisType = "TEXT";
+                    value[k] = String(raw);
+                    this.deserializationTypes[k] = "string";
+                    break;
+
+                case "boolean":
+                    redisType = "TAG";
+                    value[k] = String(raw);
+                    this.deserializationTypes[k] = "boolean";
+                    break;
+
+                case "object":
+                    redisType = "TEXT";
+                    value[k] = JSON.stringify(raw);
+                    this.deserializationTypes[k] = "object";
+
+                    break;
+
+                default:
+                    throw new Error(`Unsupported data type for field "${k}": ${fieldType}`);
+            }
+
+
+            if (!this.fieldTypes[k]) {
+                this.fieldTypes[k] = redisType;
             }
         }
-        await this.ensureIndex();
+
+        return value;
     }
 
-    public async add(documents: Chunk[]) {
-        if (!this.client) throw new Error("Store not initialized. Call load() first.");
-        const contents = documents.map((d) => d.pageContent ?? "");
-        const vectors = await this.embeddings.embedDocuments(contents);
+    private deserializeField(key: string, value: string): any {
+        const targetType = this.deserializationTypes[key];
+        if (!targetType) return value;
 
-        const multi = this.client.multi();
+        try {
+            switch (targetType) {
+                case "number":
+                    return parseFloat(value);
+                case "boolean":
+                    return value === "true";
+                case "object":
+                    return JSON.parse(value);
+                case "string":
+                    return value;
+                default:
+                    return value;
+            }
+        }
+
+        catch (error) {
+            console.error(`Error deserializing field "${key}" with value "${value}":`, error);
+            return value;
+        }
+    }
+
+    public async add(documents: ({ [key: string]: any; ttl?: number })[]) {
+        const fieldToEmbed = this.config.fieldToEmbed;
+        const contents = documents.map(d => d[fieldToEmbed] ?? "");
+        const vectors = await this.embedder.embedDocuments(contents);
+
+        const pipeline = this.client.multi();
         for (let i = 0; i < documents.length; i++) {
             const doc = documents[i];
-            const key = `${this.indexName}:${randomUUID()}`;
-            const source = doc.metadata.source;
-            const value = {
-                pageContent: doc.pageContent,
-                embedding: float32Buffer(vectors[i]),
-                source: String(source),
+            if (doc[fieldToEmbed] == null) {
+                throw new Error(`Document at index ${i} missing text field "${fieldToEmbed}".`);
+            }
 
-                metadata: JSON.stringify(doc.metadata)
-            };
-            multi.hSet(key, value);
+            const key = `${this.config.indexName}:${randomUUID()}`;
+            const value = this.buildDocumentPayload(doc, vectors[i]);
+
+            pipeline.hset(key, value);
+            if (doc.ttl && doc.ttl > 0) pipeline.expire(key, doc.ttl);
         }
-        await multi.exec();
-        console.log(`Added ${documents.length} documents to index "${this.indexName}"`);
+
+        await pipeline.exec();
     }
 
-    public async retrieveFromText(
-        text: string,
-        numResults = 3,
-        filter?: Record<string, any>
-    ): Promise<Chunk[]> {
-        const queryEmbedding = await this.embeddings.embedQuery(text);
+    public async retrieveFromText(text: string, numResults = 3, filter?: string): Promise<TReturnDocument[]> {
+        const queryEmbedding = await this.embedder.embedQuery(text);
         return this.retrieve(queryEmbedding, numResults, filter);
     }
+
 
     public async retrieve(
         queryEmbedding: number[],
         numResults = 3,
-        filter?: Record<string, any>
-    ): Promise<Chunk[]> {
-        if (!this.client) throw new Error("Store not initialized. Call load() first.");
-
-        let filterQuery = "*";
-        if (filter && Object.keys(filter).length > 0) {
-            const parts: string[] = [];
-            if (filter.source) {
-                const values = Array.isArray(filter.source) ? filter.source : [filter.source];
-                const tagSet = values.map((v: string) => escapeTagValue(String(v))).join("|");
-                parts.push(`@source:{${tagSet}}`);
-            }
-            filterQuery = parts.length ? `(${parts.join(" ")})` : "*";
-        }
-
-        const knn = `${filterQuery}=>[KNN ${numResults} @embedding $BLOB AS vector_score]`;
+        filter?: string
+    ): Promise<TReturnDocument[]> {
+        const filterQuery = filter ?? "*";
         const blob = float32Buffer(queryEmbedding);
-        const res = await this.client.ft.search(this.indexName, knn, {
-            PARAMS: { BLOB: blob },
-            SORTBY: "vector_score",
-            DIALECT: 2,
-            RETURN: ["vector_score", "pageContent", "source", "metadata"],
-        });
+        const returnFields = Object.keys(this.fieldTypes);
 
-        const docs = (res?.documents ?? []).map((d) => {
-            const pageContent = d.value?.pageContent ?? "";
-            const source = d.value?.source ?? "";
-            const distance = Number(d.value?.vector_score ?? 0);
-            let metadata: Record<string, any> = {};
-            try {
-                metadata = d.value?.metadata ? JSON.parse(String(d.value.metadata)) : {};
-            } catch {
-                metadata = {};
+        const knnQuery = `${filterQuery}=>[KNN ${numResults} @${EMBEDDING_FIELD} $BLOB AS distance]`;
+
+        const searchArgs = [
+            this.config.indexName,
+            knnQuery,
+            "PARAMS", "2", "BLOB", blob,
+            "SORTBY", "distance",
+            "RETURN", (returnFields.length + 1).toString(), "distance", ...returnFields,
+            "DIALECT", "2"
+        ];
+
+        const res = await this.client.callBuffer("FT.SEARCH", ...searchArgs);
+
+        const docs: TReturnDocument[] = [];
+        if (!Array.isArray(res)) return docs;
+
+        for (let i = 1; i < res.length; i += 2) {
+            const fields = res[i + 1];
+            if (!Array.isArray(fields)) continue;
+
+            const obj: any = {};
+            for (let j = 0; j < fields.length; j += 2) {
+                const k = fields[j].toString();
+                let v: any = fields[j + 1];
+                if (k === EMBEDDING_FIELD) continue;
+                if (k == "distance") v = parseFloat(v);
+                obj[k] = this.deserializeField(k, v.toString());
             }
-
-            const doc = { pageContent, metadata: { source, ...metadata } };
-            return { ...doc, distance } as Chunk;
-        });
+            docs.push(obj);
+        }
 
         return docs;
     }
 
-    public async close() {
-        if (this.client) {
-            await this.client.quit();
-            this.client = null;
-            console.log("Redis connection closed.");
+    public async deleteByFilter(filter?: string): Promise<number> {
+        const filterQuery = filter ?? "*";
+        let totalDeleted = 0;
+
+        const res = await this.client.call(
+            "FT.SEARCH",
+            this.config.indexName,
+            filterQuery,
+            "NOCONTENT"
+        ) as string[];
+
+
+        const keys = res.slice(1);
+
+        // UNLINK faster then DEL
+        const pipeline = this.client.multi();
+        for (const key of keys) {
+            pipeline.unlink(key);
         }
+        await pipeline.exec();
+
+        totalDeleted += keys.length;
+
+        return totalDeleted;
     }
+
 }

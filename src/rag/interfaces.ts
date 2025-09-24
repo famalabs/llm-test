@@ -46,11 +46,6 @@ export interface ParentPageRetrievalConfig {
 
 export interface RagConfig {
     /**
-     * Name of the vector store used to retrieve documents.
-     */
-    vectorStoreName: string;
-
-    /**
      * Name of the LLM provider.
      */
     provider: 'mistral' | 'google' | 'openai';

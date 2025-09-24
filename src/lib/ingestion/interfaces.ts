@@ -1,0 +1,1 @@
+export type DocumentIngester = (inputBuffer: Buffer, outputFormat: 'text' | 'markdown' | 'html') => Promise<string>;

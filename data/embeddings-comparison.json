@@ -1,0 +1,20 @@
+{
+    "Malattia simile ma trattamento opposto": [
+        "Serve antibiotico per raffreddore?",
+        "Serve antibiotico per sinusite batterica?"
+    ],
+    "Dettaglio clinico che cambia tutto": [
+        "Posso assumere ibuprofene in gravidanza?",
+        "Posso assumere paracetamolo in gravidanza?"
+    ],
+    "Language mixing": [
+        "Posso assumere ibuprofene in gravidanza?",
+        "Can I take ibuprofen during pregnancy?"
+    ], 
+    "Query rephrase & query scorrelate": [
+        "Posso assumere ibuprofene in gravidanza?",
+        "Posso prendere ibuprofene durante la gravidanza?",
+        "Serve antibiotico per raffreddore?",
+        "Stasera prima di andare a letto, leggerò almeno 10 pagine."
+    ]
+}
