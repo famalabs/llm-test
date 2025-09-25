@@ -17,24 +17,16 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
 
     constructor(config: VectorStoreConfig) {
         this.config = resolveConfig(config);
-        this.config.indexName = this.normalizeIndexName(this.config.indexName);
         this.client = this.config.client;
         this.embedder = createEmbedder(this.config.embeddingsModel);
-    }
-
-    private normalizeIndexName(name: string): string {
-        return name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
-    }
-
-    public embedQuery(query: string): Promise<number[]> {
-        return this.embedder.embedQuery(query);
     }
 
     public async load() {
         if (this.loaded) return;
         try {
-            const info = (await this.client.call("FT.INFO", this.config.indexName)) as Record<string, any>;
-            this.rebuildFieldTypesFromInfo(info);
+            const info = await this.client.call("FT.INFO", this.config.indexName) as Record<string, any>;
+            await this.rebuildRegisteredFieldsFromInfo(info);
+            await this.rebuildRegisteredFieldsFromSample();
         } catch (e: any) {
             if (e?.message?.includes("Unknown Index name")) {
                 throw new Error(`Index "${this.config.indexName}" does not exist. Create it before using VectorStore.`);
@@ -44,12 +36,12 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         this.loaded = true;
     }
 
-    private rebuildFieldTypesFromInfo(info: Record<string, any>) {
+    private async rebuildRegisteredFieldsFromInfo(info: Record<string, any>) {
         if (!Array.isArray(info)) return;
         const map: Record<string, any> = {};
         for (let i = 0; i < info.length; i += 2) map[info[i]] = info[i + 1];
-
-        const attributes = map.attributes || map.attrs;
+        
+        const attributes = map.attributes;
         if (!Array.isArray(attributes)) return;
 
         for (const attr of attributes) {
@@ -58,15 +50,42 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
             for (let i = 0; i < attr.length - 1; i += 2) {
                 obj[attr[i]] = attr[i + 1];
             }
-            const redisType = obj.type.toString();
-            if (redisType === "VECTOR" || !redisType) continue;
             const field = obj.identifier;
-            if (!field) continue;
+            if (!field || field == EMBEDDING_FIELD) continue;
             this.registeredFields.add(field);
         }
     }
 
-    private deserializeField(key: string, value: string): any {
+    private async rebuildRegisteredFieldsFromSample() {
+        const res = await this.client.call(
+            "FT.SEARCH",
+            this.config.indexName,
+            "*",                // match all
+            "LIMIT", "0", "1",  // just one document
+            "DIALECT", "2"
+        ) as any[];
+
+        if (!Array.isArray(res) || res.length < 2) return;
+
+        const fieldsArray = res[2];
+        if (!Array.isArray(fieldsArray)) return;
+
+        for (let i = 0; i < fieldsArray.length; i += 2) {
+            const field = fieldsArray[i].toString();
+            if (field === EMBEDDING_FIELD) continue;
+            this.registeredFields.add(field);
+        }
+    }
+
+    public getRegisteredFields(): string[] {
+        return Array.from(this.registeredFields);
+    }
+
+    public embedQuery(query: string): Promise<number[]> {
+        return this.embedder.embedQuery(query);
+    }
+
+    private deserializeField(value: string): any {
         if (value === "true") return true;
         if (value === "false") return false;
 
@@ -93,21 +112,29 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
 
     public async add(documents: (ReturnDocumentType & { ttl?: number })[]) {
         const fieldToEmbed = this.config.fieldToEmbed;
-        const contents = documents.map(d => d[fieldToEmbed] ?? "");
-        const vectors = await this.embedder.embedDocuments(contents);
+        let vectors: number[][] = [];
+
+        if (!fieldToEmbed) {
+            if (documents.some(doc => !Array.isArray(doc[EMBEDDING_FIELD]) || doc[EMBEDDING_FIELD].length === 0)) {
+                throw new Error(`Documents must have the "${EMBEDDING_FIELD}" field with precomputed embeddings, or specify "fieldToEmbed" in the config.`);
+            }
+            vectors = documents.map(doc => doc[EMBEDDING_FIELD] as number[]);
+        }
+
+        else {
+            const contents = documents.map(d => d[fieldToEmbed] ?? "");
+            vectors = await this.embedder.embedDocuments(contents);
+        }
 
         const pipeline = this.client.multi();
         for (let i = 0; i < documents.length; i++) {
             const doc = documents[i];
-            if (doc[fieldToEmbed] == null) {
-                throw new Error(`Document at index ${i} missing text field "${fieldToEmbed}".`);
-            }
             const key = `${this.config.indexName}:${randomUUID()}`;
             for (const k of Object.keys(doc)) {
                 this.registeredFields.add(k);
                 if (typeof doc[k] === "object") (doc as any)[k] = JSON.stringify(doc[k]);
             }
-            const value = { ...doc, [EMBEDDING_FIELD]: float32Buffer(vectors[i]) };
+            const value = { ...doc, [EMBEDDING_FIELD]: float32Buffer(vectors[i]!) };
             pipeline.hset(key, value);
             if (doc.ttl && doc.ttl > 0) pipeline.expire(key, doc.ttl);
         }
@@ -153,7 +180,7 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
                 const k = fields[j].toString();
                 let v: any = fields[j + 1];
                 if (k === EMBEDDING_FIELD) continue;
-                obj[k] = this.deserializeField(k, v.toString());
+                obj[k] = this.deserializeField(v.toString());
             }
             docs.push(obj);
         }
@@ -161,7 +188,7 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         return docs;
     }
 
-    public async deleteByFilter(filter = "*"): Promise<number> {
+    public async deleteByFilter(filter: string): Promise<number> {
         const { indexName } = this.config;
         let totalDeleted = 0;
         const PAGE = 1000;
@@ -197,4 +224,17 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         return totalDeleted;
     }
 
+    public async wipe(): Promise<void> {
+        const { indexName } = this.config;
+        try {
+            await this.client.call("FT.DROPINDEX", indexName, "DD");
+            this.loaded = false;
+            this.registeredFields.clear();
+        } catch (e: any) {
+            if (e?.message?.includes("Unknown Index name")) {
+                return;
+            }
+            throw e;
+        }
+    }
 }

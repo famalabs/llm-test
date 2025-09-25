@@ -5,5 +5,5 @@ export interface VectorStoreConfig {
     indexName: string;
     distanceMetric?: 'COSINE' | 'L2' | 'IP';
     embeddingsModel?: string;
-    fieldToEmbed: string;
+    fieldToEmbed?: string;
 }

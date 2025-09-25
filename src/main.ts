@@ -1,27 +1,29 @@
-import { getRagAgentToolFunction, ragAnswerToString } from './rag/rag-tool';
 import { ModelMessage, stepCountIs, streamText, tool } from 'ai';
 import { ragChatbotSystemPrompt } from './lib/prompt';
 import { getUserInput } from './utils';
 import { mistral } from '@ai-sdk/mistral';
 import { sleep } from './utils';
-import { Rag } from './rag';
+import { Rag, RagAnswer } from './rag';
 import Redis from 'ioredis';
 import z from 'zod';
 import { VectorStore, ensureIndex } from './vector-store';
-import { Chunk } from './lib/chunks';
+import { Chunk, resolveCitations } from './lib/chunks';
 
 const docStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const INDEX_NAME = 'vector_store_index_fixed_size';
-const INDEX_SCHEMA = [
-    'pageContent', 'TEXT',
-    'source', 'TAG',
-    'metadata', 'TEXT',
-];
-
+const docStoreIndexName = 'vector_store_index_fixed_size';
+const docStoreIndexSchema = [ 'pageContent', 'TEXT', 'source', 'TAG' ]; // metadata non va indicizzato.
 const docStore = new VectorStore<Chunk>({
     client: docStoreRedisClient,
-    indexName: INDEX_NAME,
+    indexName: docStoreIndexName,
     fieldToEmbed: 'pageContent'
+});
+
+const cacheStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+const cacheStoreIndexName = 'cache_store_index';
+const cacheStoreIndexSchema: string[] = []; // Non dobbiamo indicicazzare niente
+const cacheStore = new VectorStore<RagAnswer>({
+    client: cacheStoreRedisClient,
+    indexName: cacheStoreIndexName,
 });
 
 const rag = new Rag({
@@ -29,21 +31,25 @@ const rag = new Rag({
     llm: 'mistral-medium-latest',
     numResults: 5,
     reasoningEnabled: true,
-    chunksOrAnswerFormat: 'answer',
     includeCitations: false,
     fewShotsEnabled: false,
     verbose: true,
-    docStore
+    docStore, 
+    semanticCache: {
+        cacheStore,
+        distanceThreshold: 0.5,
+    }
 });
 
 const messages: ModelMessage[] = [];
 
 const main = async () => {
 
-    await ensureIndex(docStoreRedisClient, INDEX_NAME, INDEX_SCHEMA);
+    await ensureIndex(docStoreRedisClient, docStoreIndexName, docStoreIndexSchema);
+    await ensureIndex(cacheStoreRedisClient, cacheStoreIndexName, cacheStoreIndexSchema);
+
     await rag.init();
     rag.printSummary();
-    const ragAgentToolFunction = getRagAgentToolFunction(rag);
 
     while (true) {
         const userQuery = await getUserInput('>> ');
@@ -66,11 +72,12 @@ const main = async () => {
                     execute: async ({ medicineName, textualQuery }) => {
                         let out = 'No answer could be found.';
                         try {
-                            const ragAgentToolFunctionOutput = await ragAgentToolFunction(`Informazioni sul farmaco ${medicineName}: ${textualQuery}`);
-                            out = await ragAnswerToString(
-                                ragAgentToolFunctionOutput,
-                                rag
+                            const { answer, citations, reasoning, chunks } = await rag.search(
+                                `Informazioni sul farmaco ${medicineName}: ${textualQuery}`
                             );
+                            out = `Answer: ${answer}\n\n` + 
+                            (citations && citations.length > 0 ? 'Citations:\n' + await resolveCitations(citations, chunks) + '\n\n' : '') +
+                            (reasoning ? 'Reasoning:\n\n' + reasoning : '');
                         }
                         catch (error) {
                             console.error('Error during RAG processing:', error);

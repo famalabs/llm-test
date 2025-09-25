@@ -5,7 +5,6 @@ const DEFAULT_CONFIG: Omit<RagConfig, 'docStore' | 'semanticCache'> = {
     llm: "mistral-small-latest",
     numResults: 10,
     reasoningEnabled: false,
-    chunksOrAnswerFormat: 'chunks',
     includeCitations: false,
     fewShotsEnabled: false,
     verbose: false,

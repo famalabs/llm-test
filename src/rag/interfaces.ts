@@ -1,19 +1,24 @@
 import { VectorStore } from '../vector-store';
 import { Chunk, Citation } from '../lib/chunks';
 
-export interface AnswerFormatInterface {
+export interface RagAnswer {
     answer: string;
     chunks: Chunk[];
     citations?: Citation[];
     reasoning?: string;
+    distance?: number;
 }
-
 
 export interface RerankingConfig {
     /** 
      * Name of the LLM used for reranking.
      */
     llm: string;
+
+    /**
+     * Provider of the LLM used for reranking.
+     */
+    provider: 'mistral' | 'google' | 'openai';
 
     /** 
      * Enables few-shot examples to improve reranking quality.
@@ -36,9 +41,9 @@ export interface RerankingConfig {
     reasoningEnabled: boolean;
 
     /** 
-     * Configuration for filtering chunks before reranking.
+     * Configuration for filtering chunks before reranking. Optional.
      */
-    chunkFiltering: {
+    chunkFiltering?: {
         /**
          * Multiplier that determines the filtering threshold relative to average similarity.
          */
@@ -57,13 +62,18 @@ export interface SemanticCacheConfig {
     /**
      * Instance of the semantic cache vector store.
      */
-    cacheStore: VectorStore<AnswerFormatInterface & { distance: number }>;
+    cacheStore: VectorStore<RagAnswer>;
 
     /**
      * Distance threshold for retrieving from the semantic cache.
-     * If a cached chunk has distance below this threshold, it will be used directly.
+     * If a cached answer has distance below this threshold, it will be used directly.
      */
     distanceThreshold: number;
+
+    /** 
+     * Time-to-live for cached answers. Optional.
+     */
+    ttl?: number;
 }
 
 export interface RagConfig {
@@ -81,14 +91,6 @@ export interface RagConfig {
      * Instance of the document store (vector database) used for retrieval.
      */
     docStore: VectorStore<Chunk>;
-
-    /**
-     * Determines the output format:
-     * - 'chunks': return retrieved chunks
-     * - 'answer': return a string answer
-     * Defaults to 'chunks'.
-     */
-    chunksOrAnswerFormat: 'chunks' | 'answer';
 
     /**
      * Number of chunks retrieved from the vector store. Defaults to 10.

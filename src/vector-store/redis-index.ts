@@ -2,7 +2,12 @@ import Redis from "ioredis";
 import { EMBEDDING_DIMENSION } from "../lib/embeddings";
 import { EMBEDDING_FIELD } from "./vector-store";
 
+export const normalizeIndexName = (name: string): string => {
+    return name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
+}
+
 export const ensureIndex = async (client: Redis, indexName: string, indexSchema: string[]) => {
+    indexName = normalizeIndexName(indexName);
     try {
         await client.call('FT.INFO', indexName);
         return; // exists

@@ -2,7 +2,7 @@ import { readDocument } from "../../utils/documents";
 import { Chunk } from "./interfaces";
 
 const mergeLineIntervals = (chunks: Chunk[]): Chunk[] => {
-    const sorted = [...chunks].sort((a, b) => a.metadata.loc.lines.from - b.metadata.loc.lines.from);
+    const sorted = [...chunks].sort((a, b) => a.metadata.loc!.lines.from - b.metadata.loc!.lines.from);
     const merged: Chunk[] = [];
 
     for (const curr of sorted) {
@@ -12,8 +12,8 @@ const mergeLineIntervals = (chunks: Chunk[]): Chunk[] => {
         }
 
         const prev = merged[merged.length - 1];
-        if (curr.metadata.loc.lines.from <= prev.metadata.loc.lines.to) {
-            prev.metadata.loc.lines.to = Math.max(prev.metadata.loc.lines.to, curr.metadata.loc.lines.to);
+        if (curr.metadata.loc!.lines.from <= prev.metadata.loc!.lines.to) {
+            prev.metadata.loc!.lines.to = Math.max(prev.metadata.loc!.lines.to, curr.metadata.loc!.lines.to);
         } else {
             merged.push(curr);
         }
@@ -23,8 +23,8 @@ const mergeLineIntervals = (chunks: Chunk[]): Chunk[] => {
 }
 
 const extendChunkLines = (chunk: Chunk, offset: number, totalLines: number): Chunk => {
-    const from = Math.max(1, chunk.metadata.loc.lines.from - offset);
-    const to = Math.min(totalLines, chunk.metadata.loc.lines.to + offset);
+    const from = Math.max(1, chunk.metadata.loc!.lines.from - offset);
+    const to = Math.min(totalLines, chunk.metadata.loc!.lines.to + offset);
     return {
         ...chunk,
         metadata: {
@@ -61,7 +61,7 @@ export const retrieveParentPage = async (chunks: Chunk[], offset: number): Promi
         merged.sort((a, b) => a.distance - b.distance);
 
         for (const { metadata, distance } of merged) {
-            const { from, to } = metadata.loc.lines;
+            const { from, to } = metadata.loc!.lines;
             const content = lines.slice(from - 1, to).join("\n");
 
             result.push({
