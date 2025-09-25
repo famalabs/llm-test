@@ -2,7 +2,6 @@ import { readFile, writeFile } from "fs/promises"
 import yargs from "yargs"
 import { Rag } from "../../rag";
 import ragTestSuiteQuestions from '../../../data/rag-test-suite.json';
-import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag";
 import { createOutputFolderIfNeeded } from "../../utils";
 import { hideBin } from "yargs/helpers";
 import Redis from "ioredis";
@@ -36,14 +35,12 @@ const main = async () => {
     await ensureIndex(docStoreRedisClient, indexName!, indexSchema);
     await rag.init();
     const summary = rag.printSummary();
-
-    const getRagAnswer = getRagAgentToolFunction(rag);
     let reportFile = summary + '\n\n';
 
     for (const { question } of ragTestSuiteQuestions.questions) {
         console.log('[ === User\'s Question === ]:');
         console.log(question, '\n\n');
-        const { answer } = await getRagAnswer(question) as AnswerFormatInterface;
+        const { answer } = await rag.search(question);
         console.log('[ === Answer === ]:');
         console.log(answer, '\n\n');
         reportFile += `Question:\n${question}\n\nAnswer:\n${answer}\n\n========================\n\n`;

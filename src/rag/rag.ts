@@ -76,10 +76,10 @@ export class Rag {
             return;
         }
         await this.docStore.load();
-        this.log("Document store loaded. Fields:", this.docStore.getRegisteredFields());
+        this.log("Document store loaded.");
         if (this.cacheStore) {
             await this.cacheStore.load();
-            this.log("Cache store loaded. Fields:", this.cacheStore.getRegisteredFields());
+            this.log("Cache store loaded.");
         }
 
         this.runPreflightChecks();
@@ -165,6 +165,12 @@ export class Rag {
             if (distance && distance <= distanceThreshold) {
                 this.log(`Cache hit (distance: ${distance.toFixed(4)} <= threshold: ${distanceThreshold}). Using cached answer.`);
                 return cachedAnswer[0];
+            }
+            else if (distance) {
+                this.log(`Cache miss (distance: ${distance.toFixed(4)} > threshold: ${distanceThreshold}).`);
+            }
+            else {
+                this.log("Cache miss (no distance).");
             }
         }
 
@@ -257,6 +263,7 @@ export class Rag {
 
         const {
             llm,
+            provider,
             batchSize,
             llmEvaluationWeight,
             reasoningEnabled,
@@ -289,7 +296,7 @@ export class Rag {
             }
 
             const { object: result } = await generateObject({
-                model: (await getLLMProvider('mistral'))(llm!),
+                model: (await getLLMProvider(provider!))(llm!),
                 prompt,
                 schema: z.object({
                     rankings: z.array(

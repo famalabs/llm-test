@@ -2,6 +2,7 @@ import { VectorStoreConfig } from "./interfaces";
 
 const DEFAULT_CONFIG: Omit<VectorStoreConfig, 'indexName' | 'indexSchema'| 'client'> = {
     distanceMetric: "COSINE",
+    embeddingsProvider: "mistral",
     embeddingsModel: "mistral-embed",
 };
 

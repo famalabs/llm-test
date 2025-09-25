@@ -5,5 +5,6 @@ export interface VectorStoreConfig {
     indexName: string;
     distanceMetric?: 'COSINE' | 'L2' | 'IP';
     embeddingsModel?: string;
+    embeddingsProvider?: 'mistral' | 'openai';
     fieldToEmbed?: string;
 }

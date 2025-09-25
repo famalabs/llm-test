@@ -1,4 +1,4 @@
-import { createOutputFolderIfNeeded, escapeText } from "../utils";
+import { createOutputFolderIfNeeded, escapeText, sleep } from "../utils";
 import { readFile, writeFile } from "fs/promises";
 import { createEmbedder } from "../lib/embeddings";
 import { hideBin } from "yargs/helpers";
@@ -7,7 +7,7 @@ import { cosineSimilarity } from "ai";
 import 'dotenv/config';
 
 const main = async () => {
-  const { input, tooltip } = await yargs(hideBin(process.argv))
+  const { input, tooltip, provider, model } = await yargs(hideBin(process.argv))
     .option("input", {
       alias: "i",
       type: "string",
@@ -20,9 +20,22 @@ const main = async () => {
       default: false,
       describe: "If true, show Q<n> with tooltips, otherwise show full queries directly",
     })
+    .option("provider", {
+      alias: "p",
+      type: "string",
+      demandOption: true,
+      choices: ["mistral", "openai", "voyage"],
+      describe: "Provider to use for embeddings",
+    })
+    .option("model", {
+      alias: "m",
+      type: "string",
+      demandOption: true,
+      describe: "Model to use for embeddings",
+    })
     .parse();
 
-  const embedder = createEmbedder("mistral-embed");
+  const embedder = createEmbedder(model, provider as "mistral" | "openai");
   const embeddingsCache: Record<string, number[]> = {};
 
   const inputData = JSON.parse(await readFile(input, "utf-8"));
@@ -42,6 +55,7 @@ const main = async () => {
       const embedding = await embedder.embedQuery(q);
       embeddingsCache[q] = embedding;
       embeddings.push(embedding);
+      if (provider == 'voyage') await sleep(30);
     }
     const matrix: number[][] = [];
 
@@ -225,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
   const outputFile = `${createOutputFolderIfNeeded(
     "output/embeddings-comparison"
-  )}/${input.split("/").slice(-1)[0].split(".").slice(0, -1).join(".")}-similarity-matrix.html`;
+  )}/${input.split("/").slice(-1)[0].split(".").slice(0, -1).join(".")}-${model}-${provider}-similarity-matrix.html`;
   await writeFile(outputFile, html);
   console.log("Output written to", outputFile);
 };

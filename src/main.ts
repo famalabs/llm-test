@@ -37,7 +37,7 @@ const rag = new Rag({
     docStore, 
     semanticCache: {
         cacheStore,
-        distanceThreshold: 0.5,
+        distanceThreshold: 0.2,
     }
 });
 

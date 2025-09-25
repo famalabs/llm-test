@@ -13,72 +13,25 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
     private config: VectorStoreConfig;
     private loaded = false;
     private readonly embedder: Embedder;
-    private readonly registeredFields = new Set<string>();
 
     constructor(config: VectorStoreConfig) {
         this.config = resolveConfig(config);
         this.client = this.config.client;
-        this.embedder = createEmbedder(this.config.embeddingsModel);
+        this.embedder = createEmbedder(this.config.embeddingsModel!, this.config.embeddingsProvider!);
     }
 
     public async load() {
         if (this.loaded) return;
         try {
-            const info = await this.client.call("FT.INFO", this.config.indexName) as Record<string, any>;
-            await this.rebuildRegisteredFieldsFromInfo(info);
-            await this.rebuildRegisteredFieldsFromSample();
-        } catch (e: any) {
+            await this.client.call("FT.INFO", this.config.indexName);
+        } 
+        catch (e: any) {
             if (e?.message?.includes("Unknown Index name")) {
-                throw new Error(`Index "${this.config.indexName}" does not exist. Create it before using VectorStore.`);
+                throw new Error(`Index "${this.config.indexName}" does not exist. Create it with ensureIndex() before using VectorStore.`);
             }
             throw e;
         }
         this.loaded = true;
-    }
-
-    private async rebuildRegisteredFieldsFromInfo(info: Record<string, any>) {
-        if (!Array.isArray(info)) return;
-        const map: Record<string, any> = {};
-        for (let i = 0; i < info.length; i += 2) map[info[i]] = info[i + 1];
-        
-        const attributes = map.attributes;
-        if (!Array.isArray(attributes)) return;
-
-        for (const attr of attributes) {
-            if (!Array.isArray(attr)) continue;
-            const obj: Record<string, any> = {};
-            for (let i = 0; i < attr.length - 1; i += 2) {
-                obj[attr[i]] = attr[i + 1];
-            }
-            const field = obj.identifier;
-            if (!field || field == EMBEDDING_FIELD) continue;
-            this.registeredFields.add(field);
-        }
-    }
-
-    private async rebuildRegisteredFieldsFromSample() {
-        const res = await this.client.call(
-            "FT.SEARCH",
-            this.config.indexName,
-            "*",                // match all
-            "LIMIT", "0", "1",  // just one document
-            "DIALECT", "2"
-        ) as any[];
-
-        if (!Array.isArray(res) || res.length < 2) return;
-
-        const fieldsArray = res[2];
-        if (!Array.isArray(fieldsArray)) return;
-
-        for (let i = 0; i < fieldsArray.length; i += 2) {
-            const field = fieldsArray[i].toString();
-            if (field === EMBEDDING_FIELD) continue;
-            this.registeredFields.add(field);
-        }
-    }
-
-    public getRegisteredFields(): string[] {
-        return Array.from(this.registeredFields);
     }
 
     public embedQuery(query: string): Promise<number[]> {
@@ -131,7 +84,6 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
             const doc = documents[i];
             const key = `${this.config.indexName}:${randomUUID()}`;
             for (const k of Object.keys(doc)) {
-                this.registeredFields.add(k);
                 if (typeof doc[k] === "object") (doc as any)[k] = JSON.stringify(doc[k]);
             }
             const value = { ...doc, [EMBEDDING_FIELD]: float32Buffer(vectors[i]!) };
@@ -149,37 +101,33 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
     public async retrieve(
         queryEmbedding: number[],
         numResults = 3,
-        filter?: string
+        filter?: string,
+        returnFields?: string[]
     ): Promise<ReturnDocumentType[]> {
         const filterQuery = filter ?? "*";
         const blob = float32Buffer(queryEmbedding);
-        const returnFields = Array.from(this.registeredFields);
-
         const knnQuery = `${filterQuery}=>[KNN ${numResults} @${EMBEDDING_FIELD} $BLOB AS distance]`;
-
         const searchArgs = [
             this.config.indexName,
             knnQuery,
             "PARAMS", "2", "BLOB", blob,
             "SORTBY", "distance",
-            "RETURN", (returnFields.length + 1).toString(), "distance", ...returnFields,
-            "DIALECT", "2"
         ];
+        if (returnFields && returnFields.length > 0) searchArgs.push(
+            "RETURN", (returnFields.length + 1).toString(), "distance", ...returnFields,
+        );
+        searchArgs.push("DIALECT", "2");
 
-        const res = await this.client.callBuffer("FT.SEARCH", ...searchArgs);
-
+        const res = await this.client.callBuffer("FT.SEARCH", ...searchArgs) as (Buffer | Buffer[])[];
         const docs: ReturnDocumentType[] = [];
-        if (!Array.isArray(res)) return docs;
 
         for (let i = 1; i < res.length; i += 2) {
-            const fields = res[i + 1];
-            if (!Array.isArray(fields)) continue;
-
+            const fields = res[i + 1] as Buffer[];
             const obj: any = {};
             for (let j = 0; j < fields.length; j += 2) {
-                const k = fields[j].toString();
-                let v: any = fields[j + 1];
+                let k = fields[j].toString();
                 if (k === EMBEDDING_FIELD) continue;
+                let v = fields[j + 1];
                 obj[k] = this.deserializeField(v.toString());
             }
             docs.push(obj);
@@ -202,20 +150,16 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
                 "NOCONTENT",
                 "LIMIT", offset.toString(), PAGE.toString(),
                 "DIALECT", "2"
-            ) as (string | number)[];
+            );
 
-            if (!Array.isArray(res) || res.length === 0) break;
-
-            const total = Number(res[0] ?? 0);
-            const keys = res.slice(1) as string[];
-            if (keys.length === 0) break;
+            const [total, ...keys] = res as [number, ...string[]];
+            if (total == 0 || keys.length == 0) break;
 
             const pipeline = this.client.multi();
-            for (const key of keys) {
-                pipeline.call("FT.DEL", indexName, key, "DD");
-            }
+            for (const key of keys) pipeline.call("FT.DEL", indexName, key, "DD");
             await pipeline.exec();
-            totalDeleted += keys.length;
+            
+            totalDeleted += total;
 
             offset += PAGE;
             if (offset >= total) break;
@@ -229,8 +173,8 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         try {
             await this.client.call("FT.DROPINDEX", indexName, "DD");
             this.loaded = false;
-            this.registeredFields.clear();
-        } catch (e: any) {
+        } 
+        catch (e: any) {
             if (e?.message?.includes("Unknown Index name")) {
                 return;
             }

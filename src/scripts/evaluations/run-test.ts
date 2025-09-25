@@ -1,7 +1,6 @@
 import { readFile, writeFile } from "fs/promises"
 import yargs from "yargs"
 import { Rag } from "../../rag";
-import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag";
 import { tqdm } from "node-console-progress-bar-tqdm";
 import { PATH_NORMALIZATION_MARK } from "../../lib/nlp";
 import { createOutputFolderIfNeeded } from "../../utils";
@@ -50,10 +49,9 @@ const main = async () => {
         results: [],
         config
     }
-    const getRagAnswer = getRagAgentToolFunction(rag);
 
     for (const { question, expectedAnswer: reference } of tqdm(test.questions)) {
-        const { answer: candidate } = await getRagAnswer(question) as AnswerFormatInterface;
+        const { answer: candidate } = await rag.search(question);
         output.results.push({ question, reference, candidate });
     }
 

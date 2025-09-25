@@ -3,7 +3,6 @@ import { readFile, writeFile } from "fs/promises"
 import yargs from "yargs"
 import { Rag } from "../../rag";
 import ragTestSuiteQuestions from '../../../data/rag-test-suite.json';
-import { AnswerFormatInterface, getRagAgentToolFunction } from "../../rag";
 import { customLLMAsAJudge, Metric, MetricArguments } from "./metrics";
 import { extractKeywords } from "../../lib/nlp";
 import { createOutputFolderIfNeeded } from "../../utils";
@@ -40,13 +39,12 @@ const main = async () => {
     await rag.init();
     const summary = rag.printSummary();
     const start = performance.now();
-    const getRagAnswer = getRagAgentToolFunction(rag);
 
 
     console.log('Generating answers for evaluation questions...');
     const evaluationSamples = [];
     for (const { question, expectedAnswer } of tqdm(ragTestSuiteQuestions.questions)) {
-        const { answer } = await getRagAnswer(question) as AnswerFormatInterface;
+        const { answer } = await rag.search(question);
         const keywords = extractKeywords(expectedAnswer);
         evaluationSamples.push({ question, expectedAnswer, answer, keywords });
     }

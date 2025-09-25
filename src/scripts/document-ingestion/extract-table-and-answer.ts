@@ -46,7 +46,7 @@ const main = async () => {
         console.log('Will parse .docx file');
         const inputBuffer = await readFile(source!);
         const output = await parseDoc(inputBuffer, format! as 'html' | 'markdown' | 'text');
-        parsed = output.toString('utf-8');
+        parsed = output;
     }
     else {
         console.error('Unsupported file type. Only .docx is supported.');
