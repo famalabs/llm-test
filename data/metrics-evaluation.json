@@ -1,0 +1,995 @@
+{
+  "Aspirina": {
+    "Test": "Quali sono gli effetti collaterali dell'aspirina?",
+    "FullRef": "Gli effetti collaterali più comuni dell’aspirina includono disturbi gastrointestinali come nausea, vomito, bruciore di stomaco e dolori addominali. Possono verificarsi anche sanguinamenti gastrointestinali, reazioni allergiche (rash cutaneo, prurito, gonfiore), vertigini e, raramente, problemi renali o epatici.",
+    "KeyRef": "Gli effetti collaterali più frequenti sono disturbi gastrointestinali e dolori addominali. Possono verificarsi anche sanguinamenti gastrointestinali, reazioni allergiche, vertigini e, raramente, problemi renali o epatici.",
+    "MainCategory": 4.0,
+    "SubCategory": 4.0,
+    "Candidates": [
+      {
+        "Candidate": "Gli effetti collaterali più comuni dell’aspirina includono disturbi gastrointestinali come nausea, vomito, bruciore di stomaco e dolori addominali. Possono verificarsi anche sanguinamenti gastrointestinali, reazioni allergiche (rash cutaneo, prurito, gonfiore), vertigini e, raramente, problemi renali o epatici.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Gli effetti collaterali più comuni dell’aspirina includono nausea, vomito, bruciore di stomaco, dolori addominali, sanguinamenti gastrointestinali, reazioni allergiche (rash cutaneo, prurito, gonfiore), vertigini e, raramente, problemi renali o epatici.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "L’aspirina può provocare nausea, vomito, bruciore di stomaco e dolori addominali, oltre a sanguinamenti gastrointestinali, reazioni allergiche come rash e prurito, vertigini e, raramente, danni renali o epatici.",
+        "MainCategory": 4,
+        "SubCategory": 3,
+        "Continuous": 0.9,
+        "Binary": 1
+      },
+      {
+        "Candidate": "L’aspirina può provocare disturbi gastrointestinali, fino a sanguinamenti, reazioni allergiche, vertigini e, in rari casi, problemi renali o epatici.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Gli effetti collaterali più frequenti sono disturbi gastrointestinali e dolori addominali. Possono verificarsi anche sanguinamenti gastrointestinali, reazioni allergiche, vertigini e, raramente, problemi renali o epatici.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "L’aspirina può provocare nausea, vomito, bruciore di stomaco e dolori addominali, oltre a reazioni allergiche come rash cutanei, prurito e gonfiori. Può inoltre provocare vertigini e, raramente, danni renali o epatici.",
+        "MainCategory": 3,
+        "SubCategory": 4,
+        "Continuous": 0.6,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina può provocare nausea, vomito, bruciore di stomaco e dolori addominali, oltre a reazioni allergiche, vertigini e, in rari casi, problemi renali o epatici.",
+        "MainCategory": 3,
+        "SubCategory": 2,
+        "Continuous": 0.5,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina può provocare disturbi gastrointestinali, reazioni allergiche, vertigini e, in rari casi, problemi renali o epatici.",
+        "MainCategory": 3,
+        "SubCategory": 1,
+        "Continuous": 0.4,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Gli effetti collaterali principali dell’aspirina ci sono nausea, dolori allo stomaco, vertigini e reazioni allergiche.",
+        "MainCategory": 2,
+        "SubCategory": 2,
+        "Continuous": 0.3,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina può dare disturbi allo stomaco e qualche reazione allergica.",
+        "MainCategory": 2,
+        "SubCategory": 1,
+        "Continuous": 0.2,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina può causare rash cutanei.",
+        "MainCategory": 1,
+        "SubCategory": 2,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina può avere effetti indesiderati.",
+        "MainCategory": 1,
+        "SubCategory": 1,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina è una compressa bianca.",
+        "MainCategory": 1,
+        "SubCategory": 1,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’aspirina può non essere tollerata da tutti.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Gli effetti collaterali più comuni dell’aspirina sono sonno profondo e aumento di appetito. Raramente può causare mal di testa e disturbi epilettici.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Gli effetti collaterali più comuni dell’aspirina includono disturbi gastrointestinali come nausea, vomito, bruciore di stomaco e dolori addominali. Possono verificarsi anche sanguinamenti gastrointestinali, reazioni allergiche (rash cutaneo, prurito, gonfiore), vertigini e, raramente, emicrania, problemi renali o epatici.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Gli effetti collaterali più comuni dell’aspirina includono  problemi renali o epatici, disturbi gastrointestinali come nausea, vomito, bruciore di stomaco e dolori addominali. Possono verificarsi anche sanguinamenti gastrointestinali, reazioni allergiche (rash cutaneo, prurito, gonfiore) e raramente vertigini.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      }
+    ]
+  },
+  "Battery": {
+    "Test": "Quanto tempo dura la batteria?",
+    "FullRef": "La batteria dura 15 ore",
+    "KeyRef": "15 ore",
+    "MainCategory": 4.0,
+    "SubCategory": 4.0,
+    "Candidates": [
+      {
+        "Candidate": "La batteria dura 15 ore",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "La batteria può durare fino a 15 ore",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "La batteria dura circa 15 ore",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "15 ore",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Non ho informazioni sulla batteria",
+        "MainCategory": 1,
+        "SubCategory": 4,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Non so dirti quante ore dura la batteria",
+        "MainCategory": 1,
+        "SubCategory": 4,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La batteria dura ore",
+        "MainCategory": 1,
+        "SubCategory": 4,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Quante ore dura la batteria",
+        "MainCategory": 1,
+        "SubCategory": 1,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La batteria dura 10 ore",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La batteria può durare fino a 10 ore",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "10 ore",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La batteria dura più di 15 ore",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La batteria dura meno di 15 ore",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      }
+    ]
+  },
+  "Medicine": {
+    "Test": "Che medicine devo prendere oggi?",
+    "FullRef": "Stamattina dovresti assumere una bustina di tachipirina 500, dopo pranzo una compressa di Clavulin e dopo cena un'altra compressa di Clavulin.",
+    "KeyRef": "Stamattina una tachipirina, dopo pranzo Clavulin e dopo cena ancora Clavulin.",
+    "MainCategory": 4.0,
+    "SubCategory": 4.0,
+    "Candidates": [
+      {
+        "Candidate": "Stamattina dovresti assumere una bustina di tachipirina 500, dopo pranzo una compressa di Clavulin e dopo cena un'altra compressa di Clavulin.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Al mattino assumi una bustina di tachipirina 500, poi dopo pranzo una compressa di Clavulin e infine dopo cena un’altra compressa di Clavulin.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Alle 9 una tachipirina 500, alle 14 una pastiglia di Clavulin e alle 21 un'altra pastiglia di Clavulin.",
+        "MainCategory": 4,
+        "SubCategory": 3,
+        "Continuous": 0.9,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Al mattino assumi tachipirina 500, dopo pranzo Clavulin e dopo cena ancora Clavulin.",
+        "MainCategory": 4,
+        "SubCategory": 2,
+        "Continuous": 0.8,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Prendi tachipirina al mattino e Clavulin dopo pranzo e cena.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Stamattina prendi una bustina di tachipirina 500 e dopo pranzo una compressa di Clavulin.",
+        "MainCategory": 3,
+        "SubCategory": 4,
+        "Continuous": 0.6,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Stamattina tachipirina 500 e dopo pranzo Clavulin.",
+        "MainCategory": 3,
+        "SubCategory": 2,
+        "Continuous": 0.5,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Devi prendere dopo pranzo e cena Clavulin,",
+        "MainCategory": 3,
+        "SubCategory": 1,
+        "Continuous": 0.4,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Prendi tachipirina 500 e Clavulin oggi.",
+        "MainCategory": 2,
+        "SubCategory": 2,
+        "Continuous": 0.3,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Oggi devi prendere Clavulin.",
+        "MainCategory": 2,
+        "SubCategory": 1,
+        "Continuous": 0.2,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Devi prendere farmaci oggi.",
+        "MainCategory": 1,
+        "SubCategory": 1,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Stamattina prendi ibuprofene, dopo pranzo aspirina e dopo cena melatonina.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Stamattina dovresti assumere una bustina di tachipirina 500, dopo pranzo una compressa di Clavulin e dopo cena una bustina di tachipirina 500.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Stamattina dovresti assumere una bustina di tachipirina 500, dopo pranzo una compressa di Clavulin e dopo cena un'altra compressa di Clavulin e una busta di tachipirina.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      }
+    ]
+  },
+  "Pizza": {
+    "Test": "Quali sono gli ingredienti della pizza?",
+    "FullRef": "Gli ingredienti base della pizza sono quelli dell'impasto, ovvero farina, acqua, lievito (di birra o madre), sale e olio extravergine d'oliva. Per quanto riguarda i condimenti, i più comuni includono la mozzarella e il pomodoro, a cui si possono aggiungere ingredienti come basilico, origano, aglio, salumi, formaggi e funghi, variando in base al tipo di pizza.",
+    "KeyRef": "Gli ingredienti principali sono farina, acqua, lievito, sale e olio per fare l'impasto, poi si possono aggiungere diversi condimenti, di cui i più comuni sono pomodoro e mozzarella.",
+    "MainCategory": 4.0,
+    "SubCategory": 4.0,
+    "Candidates": [
+      {
+        "Candidate": "Gli ingredienti base della pizza sono quelli dell'impasto, ovvero farina, acqua, lievito (di birra o madre), sale e olio extravergine d'oliva. Per quanto riguarda i condimenti, i più comuni includono la mozzarella e il pomodoro, a cui si possono aggiungere ingredienti come basilico, origano, aglio, salumi, formaggi e funghi, variando in base al tipo di pizza.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Per fare l'impasto della pizza servono farina, acqua, lievito (madre o di birra), sale e olio extravergine d'oliva. I condimenti più comuni sono pomodoro e mozzarella, ma si possono aggiungere anche salumi, formaggi, funghi, aglio, basilico o origano.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Per fare l'impasto della pizza servono farina, acqua, lievito (madre o di birra), sale e olio extravergine d'oliva. I condimenti più comuni sono pomodoro e mozzarella, ma si possono aggiungere anche salumi, formaggi o funghi.",
+        "MainCategory": 4,
+        "SubCategory": 3,
+        "Continuous": 0.9,
+        "Binary": 1
+      },
+      {
+        "Candidate": "La pizza si prepara con farina, acqua, lievito, sale e olio extravergine d’oliva. Di solito si condisce con pomodoro e mozzarella, e talvolta con basilico, origano, aglio, salumi, formaggi o funghi.",
+        "MainCategory": 4,
+        "SubCategory": 3,
+        "Continuous": 0.9,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Per fare la pizza servono farina, acqua, lievito, sale e olio EVO; di solito si condisce con mozzarella e pomodoro, ma si può variare molto a seconda del tipo di pizza.",
+        "MainCategory": 4,
+        "SubCategory": 2,
+        "Continuous": 0.8,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Gli ingredienti principali sono farina, acqua, lievito, sale e olio per fare l'impasto, poi si possono aggiungere diversi condimenti, di cui i più comuni sono pomodoro e mozzarella.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "L’impasto della pizza richiede farina, acqua, lievito, sale e olio. I condimenti più diffusi includono mozzarella e pomodoro.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "L’impasto della pizza richiede farina, lievito madre o di birra, olio EVO e sale. Tra i condimenti più diffusi ci sono mozzarella, pomodoro, basilico e origano, ma anche aglio, salumi, formaggi e funghi.",
+        "MainCategory": 3,
+        "SubCategory": 4,
+        "Continuous": 0.6,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’impasto della pizza richiede farina, acqua, lievito e olio extravergine d'oliva. Tra i condimenti più diffusi ci sono mozzarella, pomodoro, basilico e origano, ma anche salumi e formaggi.",
+        "MainCategory": 3,
+        "SubCategory": 3,
+        "Continuous": 0.6,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L’impasto della pizza richiede farina, acqua, lievito e sale. Tra i condimenti più diffusi ci sono mozzarella, pomodoro, basilico e origano, ma anche salumi e formaggi.",
+        "MainCategory": 3,
+        "SubCategory": 2,
+        "Continuous": 0.5,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Per fare la pizza servono farina, acqua e lievito. Si può condire con mozzarella, pomodoro e altri ingredienti a piacere.",
+        "MainCategory": 3,
+        "SubCategory": 1,
+        "Continuous": 0.4,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza si fa con un impasto a base di farina, e si condisce spesso con mozzarella e pomodoro, ma anche con basilico, origano, aglio, salumi, formaggi o funghi, variando in base al tipo di pizza.",
+        "MainCategory": 2,
+        "SubCategory": 3,
+        "Continuous": 0.3,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza si fa con un impasto a base di farina, e si condisce spesso con mozzarella e pomodoro, ma anche con salumi, formaggi o funghi, variando in base al tipo di pizza.",
+        "MainCategory": 2,
+        "SubCategory": 2,
+        "Continuous": 0.3,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza si fa con un impasto a base di farina e si condisce con mozzarella e pomodoro.",
+        "MainCategory": 2,
+        "SubCategory": 1,
+        "Continuous": 0.2,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza è fatta con farina e acqua, e spesso ha mozzarella sopra.",
+        "MainCategory": 2,
+        "SubCategory": 1,
+        "Continuous": 0.2,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza è un piatto con un impasto e vari condimenti.",
+        "MainCategory": 2,
+        "SubCategory": 1,
+        "Continuous": 0.2,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Gli ingredienti della pizza sono impasto e condimenti.",
+        "MainCategory": 2,
+        "SubCategory": 1,
+        "Continuous": 0.2,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Nella pizza si può trovare origano, basilico, aglio, ma anche salumi, funghi o formaggi.",
+        "MainCategory": 1,
+        "SubCategory": 3,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Nella pizza si può trovare salumi, funghi o formaggi.",
+        "MainCategory": 1,
+        "SubCategory": 2,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Non so quali siano gli ingredienti della pizza.",
+        "MainCategory": 1,
+        "SubCategory": 1,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza si prepara con diversi ingredienti.",
+        "MainCategory": 1,
+        "SubCategory": 1,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza è un cibo italiano molto famoso.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza si serve calda.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Gli ingredienti base della pizza sono quelli dell'impasto, ovvero farina, acqua, lievito (di birra o madre), zucchero, sale e olio extravergine d'oliva. Per quanto riguarda i condimenti, i più comuni includono la mozzarella e il pomodoro, a cui si possono aggiungere ingredienti come basilico, origano, aglio, salumi, formaggi e funghi, variando in base al tipo di pizza.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Gli ingredienti base della pizza sono quelli dell'impasto, ovvero farina, acqua, lievito (di birra o madre), pomodoro, sale e olio extravergine d'oliva. Per quanto riguarda i condimenti, i più comuni includono la mozzarella e il pomodoro, a cui si possono aggiungere ingredienti come basilico, origano, aglio, salumi, formaggi e funghi, variando in base al tipo di pizza.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "La pizza si prepara con riso, latte e cioccolato.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      }
+    ]
+  },
+  "Unknown": {
+    "Test": "A cosa serve il farmaco Cicaplast?",
+    "FullRef": "Non ho informazioni riguardo il farmaco Cicaplast, è consigliato rivolgersi ad un medico o farmacista.",
+    "KeyRef": "Non ho informazioni a riguardo.",
+    "MainCategory": 4.0,
+    "SubCategory": 4.0,
+    "Candidates": [
+      {
+        "Candidate": "Non ho informazioni a riguardo. Ti consiglio di consultare un medico o un farmacista.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Non ho informazioni riguardo il farmaco Cicaplast.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Non ho informazioni a riguardo.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Le informazioni del farmaco Cicaplast non sono presenti nei dati a disposizione.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Cicaplast è un farmaco.",
+        "MainCategory": 1,
+        "SubCategory": 1,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Serve ad accelerare la rigenerazione cutanea",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Cicaplast è una linea di trattamenti dermocosmetici per riparare, lenire e proteggere la pelle sensibile, irritata o danneggiata",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Non ho informazioni a disposizione, ma posso dirti che Cicaplast è una linea di prodotti per la cura della pelle.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Cicaplast è un antiinfiammatorio.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      }
+    ]
+  },
+  "cibo_aspirina": {
+    "Test": "Posso mangiare qualsiasi cosa voglia dopo aver preso Aspirina?",
+    "FullRef": "Non ho informazioni sufficienti per rispondere alla tua domanda. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche sull'alimentazione dopo aver preso Aspirina. Tuttavia, è consigliato assumere il prodotto a stomaco pieno, preferibilmente dopo i pasti principali.",
+    "KeyRef": "Non ci sono informazioni specifiche a riguardo.",
+    "MainCategory": 4.0,
+    "SubCategory": 4.0,
+    "Candidates": [
+      {
+        "Candidate": "Non dispongo di informazioni sufficienti per rispondere in modo preciso alla tua domanda. Ti consiglio di rivolgerti a un medico o a un farmacista per avere indicazioni personalizzate sull’alimentazione dopo l’assunzione di Aspirina. In generale, è raccomandato assumere il farmaco a stomaco pieno, preferibilmente dopo i pasti principali.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Non ho dati completi per rispondere con certezza. Ti suggerisco di chiedere consiglio a un medico o a un farmacista.",
+        "MainCategory": 4,
+        "SubCategory": 2,
+        "Continuous": 0.8,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Non ci sono informazioni specifiche nei documenti forniti riguardo a restrizioni dietetiche dopo aver assunto Aspirina. Tuttavia, è consigliato assumere il prodotto a stomaco pieno, preferibilmente dopo i pasti principali.",
+        "MainCategory": 4,
+        "SubCategory": 2,
+        "Continuous": 0.8,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Ti consiglio di consultare un medico o un farmacista. L’Aspirina va presa a stomaco pieno, preferibilmente dopo i pasti.",
+        "MainCategory": 1,
+        "SubCategory": 4,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "L'assunzione del prodotto deve avvenire a stomaco pieno, preferibilmente dopo i pasti principali.",
+        "MainCategory": 1,
+        "SubCategory": 2,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "No, non puoi mangiare qualsiasi cosa voglia dopo aver preso Aspirina. L'assunzione del prodotto deve avvenire a stomaco pieno, preferibilmente dopo i pasti principali.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      }
+    ]
+  },
+  "controOki": {
+    "Test": "Quali sono le controindicazioni di Oki?",
+    "FullRef": "OKI 30mg supposte è controindicato in diverse condizioni e situazioni. Di seguito sono elencate tutte le controindicazioni riportate dalle fonti: * Ipersensibilità al ketoprofene o a uno qualsiasi degli eccipienti del farmaco. * Storia di reazioni da ipersensibilità come broncospasmo, attacchi di asma, riniti, orticaria o altre reazioni allergiche a ketoprofene, acido acetilsalicilico (ASA) o altri FANS. In questi pazienti sono state osservate reazioni anafilattiche gravi, raramente fatali. * Severa insufficienza cardiaca. * Ulcera peptica attiva o emorragia, oppure storia di ulcera peptica/ematomi ricorrenti (definita come due o più episodi accertati di sanguinamento o ulcerazione). * Storia di perforazione o sanguinamento gastrointestinale conseguenti a precedente terapia con FANS. * Diatesi emorragica. * Grave insufficienza epatica. * Grave insufficienza renale. * Leucopenia o piastrinopenia. * Gravi disturbi dell’emocoagulazione. * Colite ulcerosa. * Gastrite. * Precedenti anamnestici di emorragia gastrointestinale, ulcerazione o perforazione, o dispepsia cronica. * Terzo trimestre di gravidanza: durante questo periodo, gli inibitori della sintesi di prostaglandine possono esporre il feto a tossicità cardiopolmonare (con chiusura prematura del dotto arterioso e ipertensione polmonare) e disfunzione renale, e la madre e il neonato a prolungamento del tempo di sanguinamento e inibizione delle contrazioni uterine. * Proctite o anamnesi di proctorragia. * Bambini di età inferiore ai 6 anni. Se ti riconosci in una di queste categorie, o comunque ritieni tu possa avere una situazione a rischio, è consigliabile consultare un medico.",
+    "KeyRef": "OKI è controindicato in caso di: - Ipersensibilità al ketoprofene o agli eccipienti. - Reazioni allergiche pregresse a ketoprofene, ASA o altri FANS, con rischio di reazioni anafilattiche gravi. - Severa insufficienza cardiaca. - Ulcera peptica attiva o emorragia, o storia di ulcere/ematomi ricorrenti. - Pregressa perforazione o sanguinamento gastrointestinale da FANS. - Diatesi emorragica. - Grave insufficienza epatica o renale. - Leucopenia o piastrinopenia. - Gravi disturbi della coagulazione. - Colite ulcerosa o gastrite. - Storia di emorragia gastrointestinale, ulcerazione, perforazione o dispepsia cronica. - Terzo trimestre di gravidanza. - Proctite o proctorragia. - Età inferiore ai 6 anni.",
+    "MainCategory": 4.0,
+    "SubCategory": 4.0,
+    "Candidates": [
+      {
+        "Candidate": "OKI 30 mg supposte è controindicato nei seguenti casi: - pazienti con ipersensibilità al ketoprofene o ad uno qualsiasi degli eccipienti; - pazienti con una storia di reazioni da ipersensibilità come broncospasmo, attacchi di asma, riniti, orticaria o altre reazioni allergiche a ketoprofene, acido acetil salicilico (ASA) o altri FANS; - severa insufficienza cardiaca; - ulcera peptica attiva/emorragia o storia di emorragia/ulcera peptica ricorrente (due o più episodi accertati di sanguinamento o ulcerazione); - storia di perforazione o sanguinamento gastrointestinale conseguenti a precedente terapia con FANS; - diatesi emorragica; - grave insufficienza epatica; - grave insufficienza renale; - leucopenia o piastrinopenia; - gravi disturbi dell'emocoagulazione; - colite ulcerosa; - gastrite; - precedenti anamnestici di emorragia gastrointestinale, ulcerazione o perforazione o dispepsia cronica; - terzo trimestre di gravidanza, che può creare problemi sia al feto che alla madre; - proctite o anamnesi di proctorragia; - bambini di età inferiore ai 6 anni.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "OKi 30 mg supposte è controindicato in pazienti con ipersensibilità al ketoprofene o ad uno qualsiasi degli eccipienti. Inoltre, il ketoprofene è controindicato nei pazienti con una storia di reazioni da ipersensibilità come broncospasmo, attacchi di asma, riniti, orticaria o altre reazioni allergiche a ketoprofene, acido acetil salicilico (ASA) o altri FANS. Le controindicazioni includono anche: severa insufficienza cardiaca, ulcera peptica attiva/emorragia o storia di emorragia/ulcera peptica ricorrente, storia di perforazione o sanguinamento gastrointestinale conseguenti a precedente terapia con FANS, diatesi emorragica, grave insufficienza epatica, grave insufficienza renale, leucopenia o piastrinopenia, gravi disturbi dell'emocoagulazione, colite ulcerosa, gastrite, precedenti anamnestici di emorragia gastrointestinale, ulcerazione o perforazione o dispepsia cronica, terzo trimestre di gravidanza (rischi per feto e madre), proctite o anamnesi di proctorragia, e bambini di età inferiore ai 6 anni.",
+        "MainCategory": 4,
+        "SubCategory": 3,
+        "Continuous": 0.9,
+        "Binary": 1
+      },
+      {
+        "Candidate": "OKI è controindicato in pazienti con ipersensibilità al ketoprofene o ad uno qualsiasi degli eccipienti. Il ketoprofene è controindicato nei pazienti con una storia di reazioni da ipersensibilità come broncospasmo, attacchi di asma, riniti, orticaria o altre reazioni allergiche a ketoprofene, acido acetil salicilico (ASA) o altri FANS. Reazioni anafilattiche gravi, raramente fatali, sono state osservate in questi pazienti. Il ketoprofene è controindicato nei seguenti casi: severa insufficienza cardiaca, ulcera peptica attiva /emorragia o storia di emorragia/ulcera peptica ricorrente, storia di perforazione o sanguinamento gastrointestinale conseguenti a precedente terapia con FANS, diatesi emorragica, grave insufficienza epatica, grave insufficienza renale, leucopenia o piastrinopenia, gravi disturbi dell'emocoagulazione, colite ulcerosa, gastrite, precedenti anamnestici di emorragia gastrointestinale, ulcerazione o perforazione o dispepsia cronica, terzo trimestre di gravidanza, proctite o anamnesi di proctorragia, bambini di età inferiore ai 6 anni.",
+        "MainCategory": 4,
+        "SubCategory": 2,
+        "Continuous": 0.8,
+        "Binary": 1
+      },
+      {
+        "Candidate": "OKI è controindicato in caso di: - Leucopenia o piastrinopenia. - Colite ulcerosa o gastrite. - Proctite o proctorragia. - Grave insufficienza epatica o renale. - Pregressa perforazione o sanguinamento gastrointestinale da FANS. - Severa insufficienza cardiaca. - Ipersensibilità al ketoprofene o agli eccipienti. - Reazioni allergiche pregresse (asma, broncospasmo, rinite, orticaria) a ketoprofene, ASA o altri FANS, con rischio di reazioni anafilattiche gravi. - Ulcera peptica attiva o emorragia, o storia di ulcere/ematomi ricorrenti. - Diatesi emorragica. - Gravi disturbi della coagulazione. - Storia di emorragia gastrointestinale, ulcerazione, perforazione o dispepsia cronica. - Terzo trimestre di gravidanza (rischi per feto e madre). - Età inferiore ai 6 anni.",
+        "MainCategory": 4,
+        "SubCategory": 2,
+        "Continuous": 0.8,
+        "Binary": 1
+      },
+      {
+        "Candidate": "OKI è controindicato in pazienti con ipersensibilità al ketoprofene o ad uno qualsiasi degli eccipienti. Il ketoprofene è controindicato nei pazienti con una storia di reazioni da ipersensibilità o altre reazioni allergiche a ketoprofene, acido acetil salicilico (ASA) o altri FANS. Reazioni anafilattiche gravi, raramente fatali, sono state osservate in questi pazienti. Il ketoprofene è controindicato nei seguenti casi: severa insufficienza cardiaca, ulcera peptica attiva /emorragia o storia di emorragia/ulcera peptica ricorrente, storia di perforazione o sanguinamento gastrointestinale conseguenti a precedente terapia con FANS, diatesi emorragica, grave insufficienza epatica, grave insufficienza renale, leucopenia o piastrinopenia, gravi disturbi dell'emocoagulazione, colite ulcerosa, gastrite, precedenti anamnestici di emorragia gastrointestinale, ulcerazione o perforazione o dispepsia cronica, terzo trimestre di gravidanza, proctite o anamnesi di proctorragia, bambini di età inferiore ai 6 anni.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "OKI 30 mg supposte è controindicato in pazienti con ipersensibilità al ketoprofene o ad uno qualsiasi degli eccipienti. Inoltre, il ketoprofene è controindicato nei pazienti con una storia di reazioni da ipersensibilità come broncospasmo, attacchi di asma, riniti, orticaria o altre reazioni allergiche a ketoprofene, acido acetil salicilico (ASA) o altri FANS. Altre controindicazioni includono: severa insufficienza cardiaca, ulcera peptica attiva/emorragia o storia di emorragia/ulcera peptica ricorrente (almeno 2 episodi), storia di perforazione o sanguinamento gastrointestinale conseguenti a precedente terapia con FANS, diatesi emorragica, grave insufficienza epatica, grave insufficienza renale, leucopenia o piastrinopenia, gravi disturbi dell'emocoagulazione.",
+        "MainCategory": 3,
+        "SubCategory": 3,
+        "Continuous": 0.6,
+        "Binary": 0
+      },
+      {
+        "Candidate": "OKI è controindicato in caso di: - Ipersensibilità al ketoprofene o agli eccipienti. - Reazioni allergiche pregresse (asma, broncospasmo, rinite, orticaria) a ketoprofene, ASA o altri FANS, con rischio di reazioni anafilattiche gravi. - Severa insufficienza cardiaca. - Ulcera peptica attiva o emorragia, o storia di ulcere/ematomi ricorrenti. - Pregressa perforazione o sanguinamento gastrointestinale da FANS. - Diatesi emorragica. - Grave insufficienza epatica o renale. - Leucopenia o piastrinopenia. - Gravi disturbi della coagulazione. - Colite ulcerosa o gastrite. - Storia di emorragia gastrointestinale, ulcerazione, perforazione o dispepsia cronica. - Terzo trimestre di gravidanza (rischi per feto e madre). - Proctite o proctorragia.",
+        "MainCategory": 3,
+        "SubCategory": 2,
+        "Continuous": 0.5,
+        "Binary": 0
+      },
+      {
+        "Candidate": "OKI è controindicato in pazienti con ipersensibilità al ketoprofene o ad uno qualsiasi degli eccipienti. Il ketoprofene è controindicato nei pazienti con una storia di reazioni da ipersensibilità o altre reazioni allergiche a ketoprofene, acido acetil salicilico (ASA) o altri FANS. Reazioni anafilattiche gravi, raramente fatali, sono state osservate in questi pazienti. Il ketoprofene è controindicato nei seguenti casi: severa insufficienza cardiaca, ulcera peptica attiva /emorragia o storia di emorragia/ulcera peptica ricorrente, storia di perforazione o sanguinamento gastrointestinale conseguenti a precedente terapia con FANS, grave insufficienza epatica, grave insufficienza renale, leucopenia o piastrinopenia, gravi disturbi dell'emocoagulazione, colite ulcerosa, gastrite, precedenti anamnestici di emorragia gastrointestinale, ulcerazione o perforazione o dispepsia cronica, terzo trimestre di gravidanza, proctite o anamnesi di proctorragia, bambini di età inferiore ai 6 anni.",
+        "MainCategory": 3,
+        "SubCategory": 1,
+        "Continuous": 0.4,
+        "Binary": 0
+      },
+      {
+        "Candidate": "OKI 30mg supposte è controindicato in caso di: allergia a ketoprofene o altri FANS. Ulcera o sanguinamento gastrointestinale. Grave insufficienza cardiaca, epatica o renale. Gravidanza avanzata. Età < 6 anni.",
+        "MainCategory": 2,
+        "SubCategory": 2,
+        "Continuous": 0.3,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Non usare OKI se: allergico a ketoprofene/FANS. Hai ulcera o grave insufficienza d’organo.",
+        "MainCategory": 2,
+        "SubCategory": 1,
+        "Continuous": 0.2,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Oki ha diverse controindicazioni, è consigliato consultare un medico.",
+        "MainCategory": 1,
+        "SubCategory": 2,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "OKI 30 mg supposte è controindicato nei seguenti casi: - pazienti con ipersensibilità al ketoprofene o ad uno qualsiasi degli eccipienti; - pazienti con una storia di reazioni da ipersensibilità come broncospasmo, attacchi di asma, riniti, orticaria o altre reazioni allergiche a ketoprofene, acido acetil salicilico (ASA) o altri FANS; - severa insufficienza cardiaca; - ulcera peptica attiva/emorragia o storia di emorragia/ulcera peptica ricorrente (due o più episodi accertati di sanguinamento o ulcerazione); - storia di perforazione o sanguinamento gastrointestinale conseguenti a precedente terapia con FANS; - diatesi emorragica; - grave insufficienza epatica; - grave insufficienza renale; - leucopenia o piastrinopenia; - gravi disturbi dell'emocoagulazione; - colite ulcerosa; - gastrite; - precedenti anamnestici di emorragia gastrointestinale, ulcerazione o perforazione o dispepsia cronica; - secondo e terzo trimestre di gravidanza, che può creare problemi sia al feto che alla madre; - proctite o anamnesi di proctorragia; - bambini di età inferiore ai 6 anni.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      }
+    ]
+  },
+  "dosaggio": {
+    "Test": "Qual è il dosaggio massimo giornaliero di OKI per un bambino di 25 Kg?",
+    "FullRef": "Per un bambino di 25 kg, il dosaggio massimo giornaliero di OKI dipende dall’età, secondo quanto riportato nel foglio illustrativo AIFA. Bambini di età di almeno 6 anni (peso minore di 30 kg): dosaggio per somministrazione: 1-2 mg/kg. Per un bambino di 25 kg, 1 OKI da 30 mg corrisponde a 1,2 mg/kg, quindi rientra nell’intervallo raccomandato. Schema posologico consigliato: 1 somministrazione 2-3 volte al giorno. Dosaggio massimo giornaliero: 3 somministrazioni = 90 mg di ketoprofene. Utilizzare la dose efficace più bassa per il periodo più breve necessario. Alcuni pazienti pediatrici possono manifestare emorragie gastrointestinali o ulcera peptica, quindi il trattamento deve essere effettuato sotto stretto controllo medico. Per bambini di età inferiore a 6 anni: controindicato, il farmaco non deve essere somministrato. In questi casi, è necessario rivolgersi al pediatra per individuare alternative sicure.",
+    "KeyRef": "Se il bambino ha almeno 6 anni, una somministrazione 3 volte al giorno è il dosaggio massimo. Se ha meno di 6 anni, il farmaco è controindicato.",
+    "MainCategory": 4.0,
+    "SubCategory": 4.0,
+    "Candidates": [
+      {
+        "Candidate": "Per un bambino di 25 kg, il dosaggio massimo giornaliero di OKI è stabilito in base all’età, come indicato dal foglio illustrativo AIFA. Nei bambini di almeno 6 anni con peso inferiore a 30 kg, la dose per singola somministrazione è di 1-2 mg/kg. Un bambino di 25 kg che assume 1 compressa di OKI da 30 mg riceve circa 1,2 mg/kg, quindi rientra nei valori raccomandati. Lo schema posologico prevede 1 somministrazione 2-3 volte al giorno, con un massimo di 3 dosi giornaliere pari a 90 mg di ketoprofene. È raccomandato usare la dose minima efficace per il periodo più breve possibile. Alcuni pazienti pediatrici possono sviluppare emorragie gastrointestinali o ulcera peptica, quindi la terapia deve essere monitorata dal medico. Nei bambini sotto i 6 anni il farmaco è controindicato e occorre rivolgersi al pediatra per alternative sicure.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Per un bambino di 25 kg e almeno 6 anni, il dosaggio di OKI è di 1-2 mg/kg per somministrazione. Una compressa da 30 mg equivale a 1,2 mg/kg, quindi è adeguata. Si consiglia 1 dose 2-3 volte al giorno, fino a un massimo di 90 mg al giorno. È importante usare la dose minima necessaria e il trattamento deve essere seguito dal medico. Nei bambini sotto i 6 anni il farmaco è controindicato.",
+        "MainCategory": 4,
+        "SubCategory": 3,
+        "Continuous": 0.9,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Per i bambini di età non inferiore ai 6 anni con peso corporeo inferiore ai 30 Kg, il dosaggio di Oki è di 1 somministrazione 2-3 volte al giorno. Pertanto, per un bambino di 25 Kg, il dosaggio massimo giornaliero di Oki è di 3 somministrazioni al giorno. Sotto i 6 anni il farmaco non va somministrato.",
+        "MainCategory": 4,
+        "SubCategory": 2,
+        "Continuous": 0.8,
+        "Binary": 1
+      },
+      {
+        "Candidate": "OKI per bambino di 25 kg (≥6 anni): una dose fino a 3 volte al giorno. Vietato sotto i 6 anni.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Per i bambini di età non inferiore ai 6 anni con peso corporeo inferiore ai 30 Kg, il dosaggio raccomandato è di 1 somministrazione 2-3 volte al giorno.",
+        "MainCategory": 2,
+        "SubCategory": 2,
+        "Continuous": 0.3,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Per un bambino di 25 kg, il dosaggio raccomandato di Oki è compreso tra 1 e 2 mg/kg per somministrazione. Pertanto, il dosaggio massimo giornaliero sarebbe di 2 mg/kg, 3 volte al giorno. Quindi, per un bambino di 25 kg, il dosaggio massimo giornaliero sarebbe: 2 mg/kg * 25 kg * 3 = 150 mg al giorno.",
+        "MainCategory": 2,
+        "SubCategory": 2,
+        "Continuous": 0.3,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Una dose 3 volte al giorno.",
+        "MainCategory": 2,
+        "SubCategory": 1,
+        "Continuous": 0.2,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Consultare un medico o pediatra.",
+        "MainCategory": 1,
+        "SubCategory": 2,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Per un bambino di 25 kg, il dosaggio massimo giornaliero di OKI dipende dall’età, secondo quanto riportato nel foglio illustrativo AIFA. Bambini di età di almeno 6 anni (peso minore di 30 kg): dosaggio per somministrazione: 1-2 mg/kg. Per un bambino di 25 kg, 1 OKI da 30 mg corrisponde a 1,2 mg/kg, quindi rientra nell’intervallo raccomandato. Schema posologico consigliato: 1 somministrazione 2 volte al giorno. Dosaggio massimo giornaliero: 2 somministrazioni. Utilizzare la dose efficace più bassa per il periodo più breve necessario. Alcuni pazienti pediatrici possono manifestare emorragie gastrointestinali o ulcera peptica, quindi il trattamento deve essere effettuato sotto stretto controllo medico. Per bambini di età inferiore a 6 anni: controindicato, il farmaco non deve essere somministrato. In questi casi, è necessario rivolgersi al pediatra per individuare alternative sicure.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Meglio non somministrare il farmaco.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      }
+    ]
+  },
+  "gravidanza": {
+    "Test": "OKI è controindicato durante la gravidanza?",
+    "FullRef": "OKI è controindicato durante tutta la durata di una gravidanza. Solo in casi eccezionali un medico può decidere di prescriverlo durante il primo o il secondo trimestre, se i benefici per la madre superano i rischi per il feto. Durante il terzo trimestre di gravidanza, OKI non deve essere usato in quanto può causare gravi complicazioni sia per la madre che per il bambino.",
+    "KeyRef": "OKI è controindicato durante tutta la durata di una gravidanza, tranne rare eccezioni nel primo e secondo trimestre.",
+    "MainCategory": 4.0,
+    "SubCategory": 4.0,
+    "Candidates": [
+      {
+        "Candidate": "OKI è controindicato per tutta la durata della gravidanza. Solo in casi eccezionali il medico può valutarne l’uso nel primo o nel secondo trimestre, se i benefici per la madre superano i rischi per il feto. Nel terzo trimestre, invece, il farmaco non deve essere assunto perché può provocare gravi complicazioni sia per la madre che per il bambino.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "OKI non deve essere usato in gravidanza. Solo in casi particolari il medico può prescriverlo nel primo o secondo trimestre, mentre nel terzo trimestre è assolutamente vietato per i rischi gravi che comporta.",
+        "MainCategory": 4,
+        "SubCategory": 3,
+        "Continuous": 0.9,
+        "Binary": 1
+      },
+      {
+        "Candidate": "OKI è sconsigliato in gravidanza, salvo eccezioni mediche nel primo o secondo trimestre. Nel terzo trimestre è vietato.",
+        "MainCategory": 4,
+        "SubCategory": 2,
+        "Continuous": 0.8,
+        "Binary": 1
+      },
+      {
+        "Candidate": "OKI non va usato in gravidanza, tranne rare eccezioni nei primi due trimestri.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "OKI è controindicato in gravidanza, soprattutto nel terzo trimestre in quanto ci sono rischi sia per il feto che per la madre",
+        "MainCategory": 3,
+        "SubCategory": 2,
+        "Continuous": 0.5,
+        "Binary": 0
+      },
+      {
+        "Candidate": "OKI è controindicato in gravidanza, soprattutto nel terzo trimestre.",
+        "MainCategory": 3,
+        "SubCategory": 1,
+        "Continuous": 0.4,
+        "Binary": 0
+      },
+      {
+        "Candidate": "OKI è controindicato nel terzo mese di gravidanza, in quanto ci sono rischi sia per la madre che per il feto.",
+        "MainCategory": 2,
+        "SubCategory": 2,
+        "Continuous": 0.3,
+        "Binary": 0
+      },
+      {
+        "Candidate": "In rari casi si può assumere durante i primi due trimestri.",
+        "MainCategory": 2,
+        "SubCategory": 1,
+        "Continuous": 0.2,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Non ho informazioni a riguardo, consultare un medico o farmacista.",
+        "MainCategory": 1,
+        "SubCategory": 1,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "OKI è controindicato per tutta la durata della gravidanza. Solo in casi eccezionali il medico può valutarne l’uso nel primo o nel secondo trimestre, se i benefici per la madre superano i rischi per il feto. Nel terzo trimestre, invece, il farmaco non deve essere assunto perché può provocare gravi complicazioni sia per il padre che per il bambino.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "OKI si può assumere durante la gravidanza.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      }
+    ]
+  },
+  "xanax": {
+    "Test": "Posso prendere xanax a 16 anni?",
+    "FullRef": "Non ho informazioni sufficienti per rispondere alla tua domanda. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche sull'uso di Xanax a 16 anni.",
+    "KeyRef": "Non ho sufficienti informazioni.",
+    "MainCategory": 4.0,
+    "SubCategory": 4.0,
+    "Candidates": [
+      {
+        "Candidate": "Non ho informazioni sufficienti per rispondere alla tua domanda. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche sull'uso di Xanax a 16 anni.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Non ho abbastanza informazioni per darti una risposta certa. Ti suggerisco di chiedere a un medico o a un farmacista se l’uso di Xanax a 16 anni è appropriato.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Non sono sicuro di poterti dare una risposta precisa. Ti raccomando di consultare un professionista sanitario per sapere se puoi assumere Xanax alla tua età.",
+        "MainCategory": 4,
+        "SubCategory": 4,
+        "Continuous": 1.0,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Non posso confermare se sia sicuro assumere Xanax a 16 anni. Ti invito a parlare con un medico.",
+        "MainCategory": 4,
+        "SubCategory": 3,
+        "Continuous": 0.9,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Non ho informazioni sufficienti per rispondere alla tua domanda sui farmaci Xanax.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Non ho informazioni su Xanax.",
+        "MainCategory": 4,
+        "SubCategory": 1,
+        "Continuous": 0.7,
+        "Binary": 1
+      },
+      {
+        "Candidate": "Non so rispondere.",
+        "MainCategory": 3,
+        "SubCategory": 1,
+        "Continuous": 0.4,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Ti consiglio di chiedere a un medico se puoi prendere Xanax alla tua età.",
+        "MainCategory": 1,
+        "SubCategory": 3,
+        "Continuous": 0.1,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Sì, puoi prendere Xanax a 16 anni senza problemi.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Forse sì, ma non sono sicuro.",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      },
+      {
+        "Candidate": "Lo Xanax è un farmaco per la gestione dell'ansia",
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
+        "Binary": 0
+      }
+    ]
+  }
+}

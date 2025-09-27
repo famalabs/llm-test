@@ -2,23 +2,23 @@ import os
 import pandas as pd
 import json
 
-METRICS_SOURCE_CSV = "data/Metriche LM - Groups.csv"
-METRICS_DESTINATION_JSON_IT = "data/metrics-evaluation-it.json"
-METRICS_DESTINATION_JSON_EN = "data/metrics-evaluation-en.json"
+METRICS_SOURCE_CSV = "local/Metriche LM - Groups + Metrics.csv"
+METRICS_DESTINATION_JSON = "data/metrics-evaluation.json"
 EVALUATION_PROMPTS_JSON = 'data/evaluation-prompts.json'
 
-def load_metrics_tests(lang):
+def load_prompts():
+    if not os.path.exists(EVALUATION_PROMPTS_JSON):
+        raise FileNotFoundError(f"Evaluation Prompts JSON file not found: {EVALUATION_PROMPTS_JSON}")
 
-    if lang == "it":
-        DESTINATION_JSON = METRICS_DESTINATION_JSON_IT
-    elif lang == "en":
-        DESTINATION_JSON = METRICS_DESTINATION_JSON_EN
-    else:
-        raise ValueError(f"Unsupported language: {lang}. Supported languages are 'it' and 'en'.")
+    with open(EVALUATION_PROMPTS_JSON, 'r') as f:
+        return json.loads(f.read())
+    
+
+def load_metrics_tests():
 
     # se esiste il json e non c'è il csv, ritorna il json
-    if os.path.exists(DESTINATION_JSON) and not os.path.exists(METRICS_SOURCE_CSV):
-        with open(DESTINATION_JSON, "r", encoding="utf-8") as f:
+    if os.path.exists(METRICS_DESTINATION_JSON) and not os.path.exists(METRICS_SOURCE_CSV):
+        with open(METRICS_DESTINATION_JSON, "r", encoding="utf-8") as f:
             return json.load(f)
     
     # se non esiste il csv, solleva un errore
@@ -29,35 +29,35 @@ def load_metrics_tests(lang):
     
     df = pd.read_csv(METRICS_SOURCE_CSV)
     df = df.dropna(how="all")
+
     grouped = {}
     for (group, test), g in df.groupby(["Group", "Test"]):
-        reference = g["Reference"].iloc[0]
-        keywords = g["Keywords"].iloc[0] if pd.notna(g["Keywords"].iloc[0]) else ""
+        full_ref = g["FullRef"].iloc[0]
+        key_ref = g["KeyRef"].iloc[0] if pd.notna(g["KeyRef"].iloc[0]) else ""
+        main_cat = g["Main Category"].iloc[0] if "Main Category" in g.columns else None
+        sub_cat = g["Sub Category"].iloc[0] if "Sub Category" in g.columns else None
 
         candidates = []
         for _, row in g.iterrows():
             candidates.append({
                 "Candidate": row["Candidate"],
-                "Expected": row["Expected"] if pd.notna(row["Expected"]) else None,
-                "Binary": int(row["Binary"]) if pd.notna(row["Binary"]) else None
+                "MainCategory": int(row["Main Category"]) if pd.notna(row["Main Category"]) else None,
+                "SubCategory": int(row["Sub Category"]) if pd.notna(row["Sub Category"]) else None,
+                "Continuous": float(row["Continuous"]) if pd.notna(row["Continuous"]) else None,
+                "Binary": int(row["Binary (unit test)"]) if pd.notna(row["Binary (unit test)"]) else None
             })
 
         grouped[group] = {
             "Test": test,
-            "Reference": reference,
-            "Keywords": keywords.split(",") if isinstance(keywords, str) else [],
+            "FullRef": full_ref,
+            "KeyRef": key_ref,
+            "MainCategory": main_cat,
+            "SubCategory": sub_cat,
             "Candidates": candidates
         }
 
-    with open(DESTINATION_JSON, "w", encoding="utf-8") as f:
+    with open(METRICS_DESTINATION_JSON, "w", encoding="utf-8") as f:
         json.dump(grouped, f, ensure_ascii=False, indent=2)
 
     os.remove(METRICS_SOURCE_CSV)
     return grouped
-
-def load_prompts():
-    if not os.path.exists('data/evaluation-prompts.json'):
-        raise FileNotFoundError(f"Evaluation Prompts JSON file not found: {METRICS_SOURCE_CSV}")
-    
-    with open('data/evaluation-prompts.json', 'r') as f:
-        return json.loads(f.read())

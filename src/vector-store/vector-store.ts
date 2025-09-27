@@ -159,7 +159,7 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
             for (const key of keys) pipeline.call("FT.DEL", indexName, key, "DD");
             await pipeline.exec();
             
-            totalDeleted += total;
+            totalDeleted += keys.length;
 
             offset += PAGE;
             if (offset >= total) break;
