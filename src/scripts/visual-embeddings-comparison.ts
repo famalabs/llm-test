@@ -12,7 +12,7 @@ SCRIPT:
  - Qwen 0.6B, then, take the previously created .venv (*), and install sentence_transformers. Check the code in custom-embedders/local.ts, then run:
  npx tsx src/scripts/visual-embeddings-comparison.ts -i data/embeddings-comparison.json -p local -m Qwen/Qwen3-Embedding-0.6B -l true
 
- - Google (⚠ the documentation report a wrong model name - set GOOGLE_GENERATIVE_AI_API_KEY in .env)
+ - Google (⚠ the documentation report a wrong model name - also, set GOOGLE_GENERATIVE_AI_API_KEY in .env)
  npx tsx src/scripts/visual-embeddings-comparison.ts -i data/embeddings-comparison.json -p google -m gemini-embedding-001 -l true
 
 */
