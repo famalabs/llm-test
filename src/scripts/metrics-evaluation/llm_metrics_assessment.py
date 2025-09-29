@@ -40,7 +40,7 @@ def main():
             sub_cat = tests.get('SubCategory')
                 
             for candidate in answer_candidates:
-                    batch_data.append({
+                batch_data.append({
                     'group_name': group_name,
                     'question_test': question_test,
                     'key_ref': key_ref,

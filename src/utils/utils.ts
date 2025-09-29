@@ -1,6 +1,7 @@
 import csv from 'csv-parser';
 import { existsSync, mkdirSync } from 'fs';
 import * as readline from 'node:readline/promises';
+import { exec } from 'node:child_process';
 
 const terminal = readline.createInterface({
   input: process.stdin,
@@ -80,4 +81,29 @@ export const getUserInput = async (prompt: string) => {
 
 export const float32Buffer = (arr: number[]) => {
   return Buffer.from(new Float32Array(arr).buffer);
+}
+
+export const lemmatizeQuery = (query:string) => {
+  const code = `import spacy; nlp = spacy.load("it_core_news_lg");  doc = nlp("""${query.replace(/"/g, '\\"')}""");  print(" ".join([token.lemma_ for token in doc]))`
+  return new Promise<string>((resolve, reject) => {
+    exec('source .venv/bin/activate && python -c ' + JSON.stringify(code), (error, stdout, stderr) => {
+      if (error) {
+        reject(`Error: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        reject(`Stderr: ${stderr}`);
+        return;
+      }
+      resolve(stdout.trim());
+    });
+  });
+}
+
+export const checkCallFromRoot = () => {
+  const currentDir = process.cwd();
+  if (!currentDir.endsWith('llm-test')) {
+    console.error('Error: This script must be run from the root of the repository (llm-test/).');
+    process.exit(1);
+  }
 }

@@ -192,7 +192,6 @@ def main():
     with open(f'output/evaluations/metrics/v2/results.json', 'w') as f:
         json.dump({"metrics": metrics_results, "meta": metrics_meta}, f, indent=4)
 
-    # 🔥 REPORT FINALE
     result_str = '='*50 + '\n' + "FINAL RESULTS" + '\n' + '='*50 + '\n'
     print("="*50)
     print("FINAL RESULTS")

@@ -1,6 +1,10 @@
+shallower_reinforcement_on_0 = "Remember: If the given answer include false information, its score is 0."
+
 PROMPT_CONFIGS = {
         "llm_full": {
+            
             "task_description": "Your task is to compare the provided answer with two answers: One contains only key informations, the other contains both key and optional informations.",
+            
             "expected_output": """1. A Correctness Score (0 to 1, in increments of 0.1).
 2. A brief explanation (1-3 sentences) justifying your score.""",
             "score_criteria": """Correctness Score (0 to 1, in increments of 0.1):
@@ -15,13 +19,48 @@ PROMPT_CONFIGS = {
     0.8 = All key pieces of information and a few optional pieces
     0.9 = All key pieces of information and many optional pieces
     1 = All key pieces of information and all optional pieces""",
+    
             "instructions": """1. Read the QUERY, EXPECTED KEY ANSWER, EXPECTED FULL ANSWER, and the GIVEN ANSWER carefully.
 2. Evaluate the GIVEN ANSWER against the EXPECTED ANSWERS based on Accuracy, Completeness, and Relevance.
 3. Assign a Correctness Score (0-1) with one decimal place.
-4. Provide a short explanation (1-3 sentences) justifying your score."""
+4. Provide a short explanation (1-3 sentences) justifying your score.""",
+        
+            "few_shots": """Example:
+QUERY:
+Quanti pianeti ci sono nel sistema solare e quali sono i loro nomi?
+-----------
+EXPECTED KEY ANSWER:
+Ci sono otto pianeti nel sistema solare. I loro nomi sono: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno.
+-----------
+EXPECTED FULL ANSWER:
+Nel nostro sistema solare, ci sono otto pianeti principali. Questi includono Mercurio, il pianeta più vicino al Sole, seguito da Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno. Ognuno di questi pianeti ha caratteristiche uniche e orbita intorno al Sole a diverse distanze.
+-----------
+GIVEN ANSWER:
+Ci sono tre pianeti nel sistema solare: Terra, Marte e Venere.
+-----------
+Score: 0 // False information.
+
+
+// Another GIVEN ANSWER
+GIVEN ANSWER:
+Ci sono otto pianeti nel sistema solare.
+-----------
+Score: 0.3 // Many key information (eight planets), some are missing (their names), and many optional information (details about each planet) are missing.
+
+// Another GIVEN ANSWER
+GIVEN ANSWER:
+Ci sono otto pianeti nel sistema solare: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno.
+-----------
+Score: 0.7 // All and only the key pieces of information (eight planets and their names), no optional information (details about each planet).
+            """
+        
         },
+        
+        
         "llm_main": {
+        
             "task_description": "Your task is to compare the provided answer with the answer containing only key informations.",
+        
             "expected_output": """You're expected to compare only the GIVEN ANSWER against the EXPECTED KEY ANSWER, using the QUERY and the EXPECTED FULL ANSWER just for the context.
 
 You're expected to provide:
@@ -30,31 +69,94 @@ You're expected to provide:
             "score_criteria": """Correctness Score (0 to 4, in increments of 1):
     0 = Incorrect or fabricated information (regardless of the presence of key or optional information)
     1 = Absence of key information (generic information without informative content)
-    2 = Somewhere between 0% and 50% of key pieces of information are present.
-    3 = Somewhere between 50% and 100% of key pieces of information are present.
+    2 = Somewhere between 0% and 50% (included) of key pieces of information are present.
+    3 = Somewhere between 50% and 100% (not included) of key pieces of information are present.
     4 = All key pieces of information are present.""",
+            
             "instructions": """1. Read the QUERY, EXPECTED KEY ANSWER, EXPECTED FULL ANSWER, and the GIVEN ANSWER carefully.
 2. Evaluate the GIVEN ANSWER against the EXPECTED KEY ANSWER based on Accuracy, Completeness, and Relevance.
 3. Assign a Correctness Score (0-4) with one decimal place.
-4. Provide a short explanation (1-3 sentences) justifying your score."""
+4. Provide a short explanation (1-3 sentences) justifying your score.""",
+
+        "few_shots": """Example:
+QUERY:
+Quanti pianeti ci sono nel sistema solare e quali sono i loro nomi?
+-----------
+EXPECTED KEY ANSWER:
+Ci sono otto pianeti nel sistema solare. I loro nomi sono: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno.
+-----------
+EXPECTED FULL ANSWER:
+Nel nostro sistema solare, ci sono otto pianeti principali. Questi includono Mercurio, il pianeta più vicino al Sole, seguito da Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno. Ognuno di questi pianeti ha caratteristiche uniche e orbita intorno al Sole a diverse distanze.
+-----------
+GIVEN ANSWER:
+Ci sono tre pianeti nel sistema solare: Terra, Marte e Venere.
+-----------
+Score: 0 // False information.
+
+
+// Another GIVEN ANSWER
+GIVEN ANSWER:
+Ci sono otto pianeti nel sistema solare.
+Score: 2 // 50% of key information (eight planets is present, their names are missing).
+
+// Another GIVEN ANSWER
+GIVEN ANSWER:
+Ci sono otto pianeti nel sistema solare: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno.
+Score: 4 // All key pieces of information (eight planets and their names) are present.
+            """
+        
         },
+        
+        
         "llm_sub": {
             "task_description": "Your task is to compare the provided answer with the answer containing both key and optional informations.",
             "expected_output": """You're expected to compare only the GIVEN ANSWER against the EXPECTED FULL ANSWER.
 You're expected to provide:
-1. A Correctness Score (0 to 4, in increments of 1).
+1. A Correctness Score (0 to 4, in increments of 1) comparing the QUERY with the EXPECTED FULL ANSWER (the EXPECTED KEY ANSWER must be used just for the context).
 2. A brief explanation (1-3 sentences) justifying your score.""",
             "score_criteria": """Correctness Score (0 to 4, in increments of 1):
     0 = Incorrect or fabricated information (regardless of the presence of key or optional information)
     1 = Absence of both key and optional information (generic information without informative content)
-    2 = Somewhere between 0% and 50% of key pieces of information are present.
-    3 = Somewhere between 50% and 100% of key pieces of information are present.
-    4 = All key pieces of information and all optional pieces are present.""",
+    2 = Somewhere between 0% and 50% of optional pieces of information are present.
+    3 = Somewhere between 50% and 100% of optional pieces of information are present.
+    4 = All optional pieces of information are present.""",
+    
             "instructions": """1. Read the QUERY, EXPECTED FULL ANSWER, and the GIVEN ANSWER carefully.
 2. Evaluate the GIVEN ANSWER against the EXPECTED FULL ANSWER based on Accuracy, Completeness, and Relevance.
 3. Assign a Correctness Score (0-4) with one decimal place.
-4. Provide a short explanation (1-3 sentences) justifying your score."""
+4. Provide a short explanation (1-3 sentences) justifying your score.""",
+
+            "few_shots" : """Example:
+QUERY:
+Quanti pianeti ci sono nel sistema solare e quali sono i loro nomi?
+-----------
+EXPECTED KEY ANSWER:
+Ci sono otto pianeti nel sistema solare. I loro nomi sono: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno.
+-----------
+EXPECTED FULL ANSWER:
+Nel nostro sistema solare, ci sono otto pianeti principali. Questi includono Mercurio, il pianeta più vicino al Sole, seguito da Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno. Ognuno di questi pianeti ha caratteristiche uniche e orbita intorno al Sole a diverse distanze.
+-----------
+GIVEN ANSWER:
+Ci sono tre pianeti nel sistema solare: Terra, Marte e Venere.
+-----------
+Score: 0 // False information.
+
+
+// Another GIVEN ANSWER
+GIVEN ANSWER:
+Ci sono otto pianeti nel sistema solare.
+-----------
+Score: 1 // Very few optional information. Optional in this case are all the details about each planet, which are all missing.
+
+// Another GIVEN ANSWER
+GIVEN ANSWER:
+Ci sono otto pianeti nel sistema solare: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno.
+-----------
+Score: 2 // Few optional information.
+"""
         },
+        
+        
         "llm_main_sub": {
             "task_description": """Your task is to compare the provided answer with BOTH:
 - The answer containing only key information (EXPECTED KEY ANSWER).
@@ -73,7 +175,47 @@ You're expected to provide:
             "instructions": """1. Read the QUERY, EXPECTED KEY ANSWER, EXPECTED FULL ANSWER, and the GIVEN ANSWER carefully.
 2. First, evaluate the GIVEN ANSWER against the EXPECTED KEY ANSWER and assign the first Correctness Score (0-4).
 3. Then, evaluate the GIVEN ANSWER against the EXPECTED FULL ANSWER and assign the second Correctness Score (0-4).
-4. Provide a single explanation (1-3 sentences) that justifies both scores, clearly referring to the key-only comparison and the full-answer comparison."""
+4. Provide a single explanation (1-3 sentences) that justifies both scores, clearly referring to the key-only comparison and the full-answer comparison.""",
+"few_shots": """Example:
+QUERY:
+Quanti pianeti ci sono nel sistema solare e quali sono i loro nomi?
+-----------
+EXPECTED KEY ANSWER:
+Ci sono otto pianeti nel sistema solare. I loro nomi sono: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno.
+-----------
+EXPECTED FULL ANSWER:
+Nel nostro sistema solare, ci sono otto pianeti principali. Questi includono Mercurio, il pianeta più vicino al Sole, seguito da Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno. Ognuno di questi pianeti ha caratteristiche uniche e orbita intorno al Sole a diverse distanze.
+-----------
+GIVEN ANSWER:
+Ci sono tre pianeti nel sistema solare: Terra, Marte e Venere.
+-----------
+Scores: 0 (key), 0 (full)
+// Explanation: The answer is factually incorrect because it lists only three planets instead of eight. Both key and optional information are missing.
+
+
+// Another GIVEN ANSWER
+GIVEN ANSWER:
+Ci sono otto pianeti nel sistema solare.
+-----------
+Scores: 2 (key), 1 (full)
+// Explanation: The answer contains the correct number of planets, so some key information is present, but it lacks the names (key) and all optional information (full).
+
+
+// Another GIVEN ANSWER
+GIVEN ANSWER:
+Ci sono otto pianeti nel sistema solare: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno.
+-----------
+Scores: 4 (key), 2 (full)
+// Explanation: The answer is fully correct with respect to the key answer (all planets and names are given), but it lacks optional information such as the description of each planet, so the full-answer score is partial.
+
+
+// Another GIVEN ANSWER
+GIVEN ANSWER:
+Ci sono otto pianeti nel sistema solare: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno. Mercurio è il pianeta più vicino al Sole.
+-----------
+Scores: 4 (key), 3 (full)
+// Explanation: This answer includes all key information and part of the optional details (only one planet's detail is provided), so the key score is perfect but the full-answer score is high but not maximum.
+"""
         }
     }
 
@@ -111,8 +253,12 @@ Considering also the query, you will assign a correctness score based on the fol
 
 {config['score_criteria']}
 
+{config['few_shots']}
+
 Instructions:
 {config['instructions']}
+
+{shallower_reinforcement_on_0}
 
 {''.join(input_blocks)}
 """.strip()

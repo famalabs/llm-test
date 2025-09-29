@@ -3,8 +3,6 @@
     "Test": "Quali sono gli effetti collaterali dell'aspirina?",
     "FullRef": "Gli effetti collaterali più comuni dell’aspirina includono disturbi gastrointestinali come nausea, vomito, bruciore di stomaco e dolori addominali. Possono verificarsi anche sanguinamenti gastrointestinali, reazioni allergiche (rash cutaneo, prurito, gonfiore), vertigini e, raramente, problemi renali o epatici.",
     "KeyRef": "Gli effetti collaterali più frequenti sono disturbi gastrointestinali e dolori addominali. Possono verificarsi anche sanguinamenti gastrointestinali, reazioni allergiche, vertigini e, raramente, problemi renali o epatici.",
-    "MainCategory": 4.0,
-    "SubCategory": 4.0,
     "Candidates": [
       {
         "Candidate": "Gli effetti collaterali più comuni dell’aspirina includono disturbi gastrointestinali come nausea, vomito, bruciore di stomaco e dolori addominali. Possono verificarsi anche sanguinamenti gastrointestinali, reazioni allergiche (rash cutaneo, prurito, gonfiore), vertigini e, raramente, problemi renali o epatici.",
@@ -131,8 +129,6 @@
     "Test": "Quanto tempo dura la batteria?",
     "FullRef": "La batteria dura 15 ore",
     "KeyRef": "15 ore",
-    "MainCategory": 4.0,
-    "SubCategory": 4.0,
     "Candidates": [
       {
         "Candidate": "La batteria dura 15 ore",
@@ -231,8 +227,6 @@
     "Test": "Che medicine devo prendere oggi?",
     "FullRef": "Stamattina dovresti assumere una bustina di tachipirina 500, dopo pranzo una compressa di Clavulin e dopo cena un'altra compressa di Clavulin.",
     "KeyRef": "Stamattina una tachipirina, dopo pranzo Clavulin e dopo cena ancora Clavulin.",
-    "MainCategory": 4.0,
-    "SubCategory": 4.0,
     "Candidates": [
       {
         "Candidate": "Stamattina dovresti assumere una bustina di tachipirina 500, dopo pranzo una compressa di Clavulin e dopo cena un'altra compressa di Clavulin.",
@@ -338,8 +332,6 @@
     "Test": "Quali sono gli ingredienti della pizza?",
     "FullRef": "Gli ingredienti base della pizza sono quelli dell'impasto, ovvero farina, acqua, lievito (di birra o madre), sale e olio extravergine d'oliva. Per quanto riguarda i condimenti, i più comuni includono la mozzarella e il pomodoro, a cui si possono aggiungere ingredienti come basilico, origano, aglio, salumi, formaggi e funghi, variando in base al tipo di pizza.",
     "KeyRef": "Gli ingredienti principali sono farina, acqua, lievito, sale e olio per fare l'impasto, poi si possono aggiungere diversi condimenti, di cui i più comuni sono pomodoro e mozzarella.",
-    "MainCategory": 4.0,
-    "SubCategory": 4.0,
     "Candidates": [
       {
         "Candidate": "Gli ingredienti base della pizza sono quelli dell'impasto, ovvero farina, acqua, lievito (di birra o madre), sale e olio extravergine d'oliva. Per quanto riguarda i condimenti, i più comuni includono la mozzarella e il pomodoro, a cui si possono aggiungere ingredienti come basilico, origano, aglio, salumi, formaggi e funghi, variando in base al tipo di pizza.",
@@ -529,8 +521,6 @@
     "Test": "A cosa serve il farmaco Cicaplast?",
     "FullRef": "Non ho informazioni riguardo il farmaco Cicaplast, è consigliato rivolgersi ad un medico o farmacista.",
     "KeyRef": "Non ho informazioni a riguardo.",
-    "MainCategory": 4.0,
-    "SubCategory": 4.0,
     "Candidates": [
       {
         "Candidate": "Non ho informazioni a riguardo. Ti consiglio di consultare un medico o un farmacista.",
@@ -601,8 +591,6 @@
     "Test": "Posso mangiare qualsiasi cosa voglia dopo aver preso Aspirina?",
     "FullRef": "Non ho informazioni sufficienti per rispondere alla tua domanda. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche sull'alimentazione dopo aver preso Aspirina. Tuttavia, è consigliato assumere il prodotto a stomaco pieno, preferibilmente dopo i pasti principali.",
     "KeyRef": "Non ci sono informazioni specifiche a riguardo.",
-    "MainCategory": 4.0,
-    "SubCategory": 4.0,
     "Candidates": [
       {
         "Candidate": "Non dispongo di informazioni sufficienti per rispondere in modo preciso alla tua domanda. Ti consiglio di rivolgerti a un medico o a un farmacista per avere indicazioni personalizzate sull’alimentazione dopo l’assunzione di Aspirina. In generale, è raccomandato assumere il farmaco a stomaco pieno, preferibilmente dopo i pasti principali.",
@@ -652,8 +640,6 @@
     "Test": "Quali sono le controindicazioni di Oki?",
     "FullRef": "OKI 30mg supposte è controindicato in diverse condizioni e situazioni. Di seguito sono elencate tutte le controindicazioni riportate dalle fonti: * Ipersensibilità al ketoprofene o a uno qualsiasi degli eccipienti del farmaco. * Storia di reazioni da ipersensibilità come broncospasmo, attacchi di asma, riniti, orticaria o altre reazioni allergiche a ketoprofene, acido acetilsalicilico (ASA) o altri FANS. In questi pazienti sono state osservate reazioni anafilattiche gravi, raramente fatali. * Severa insufficienza cardiaca. * Ulcera peptica attiva o emorragia, oppure storia di ulcera peptica/ematomi ricorrenti (definita come due o più episodi accertati di sanguinamento o ulcerazione). * Storia di perforazione o sanguinamento gastrointestinale conseguenti a precedente terapia con FANS. * Diatesi emorragica. * Grave insufficienza epatica. * Grave insufficienza renale. * Leucopenia o piastrinopenia. * Gravi disturbi dell’emocoagulazione. * Colite ulcerosa. * Gastrite. * Precedenti anamnestici di emorragia gastrointestinale, ulcerazione o perforazione, o dispepsia cronica. * Terzo trimestre di gravidanza: durante questo periodo, gli inibitori della sintesi di prostaglandine possono esporre il feto a tossicità cardiopolmonare (con chiusura prematura del dotto arterioso e ipertensione polmonare) e disfunzione renale, e la madre e il neonato a prolungamento del tempo di sanguinamento e inibizione delle contrazioni uterine. * Proctite o anamnesi di proctorragia. * Bambini di età inferiore ai 6 anni. Se ti riconosci in una di queste categorie, o comunque ritieni tu possa avere una situazione a rischio, è consigliabile consultare un medico.",
     "KeyRef": "OKI è controindicato in caso di: - Ipersensibilità al ketoprofene o agli eccipienti. - Reazioni allergiche pregresse a ketoprofene, ASA o altri FANS, con rischio di reazioni anafilattiche gravi. - Severa insufficienza cardiaca. - Ulcera peptica attiva o emorragia, o storia di ulcere/ematomi ricorrenti. - Pregressa perforazione o sanguinamento gastrointestinale da FANS. - Diatesi emorragica. - Grave insufficienza epatica o renale. - Leucopenia o piastrinopenia. - Gravi disturbi della coagulazione. - Colite ulcerosa o gastrite. - Storia di emorragia gastrointestinale, ulcerazione, perforazione o dispepsia cronica. - Terzo trimestre di gravidanza. - Proctite o proctorragia. - Età inferiore ai 6 anni.",
-    "MainCategory": 4.0,
-    "SubCategory": 4.0,
     "Candidates": [
       {
         "Candidate": "OKI 30 mg supposte è controindicato nei seguenti casi: - pazienti con ipersensibilità al ketoprofene o ad uno qualsiasi degli eccipienti; - pazienti con una storia di reazioni da ipersensibilità come broncospasmo, attacchi di asma, riniti, orticaria o altre reazioni allergiche a ketoprofene, acido acetil salicilico (ASA) o altri FANS; - severa insufficienza cardiaca; - ulcera peptica attiva/emorragia o storia di emorragia/ulcera peptica ricorrente (due o più episodi accertati di sanguinamento o ulcerazione); - storia di perforazione o sanguinamento gastrointestinale conseguenti a precedente terapia con FANS; - diatesi emorragica; - grave insufficienza epatica; - grave insufficienza renale; - leucopenia o piastrinopenia; - gravi disturbi dell'emocoagulazione; - colite ulcerosa; - gastrite; - precedenti anamnestici di emorragia gastrointestinale, ulcerazione o perforazione o dispepsia cronica; - terzo trimestre di gravidanza, che può creare problemi sia al feto che alla madre; - proctite o anamnesi di proctorragia; - bambini di età inferiore ai 6 anni.",
@@ -745,8 +731,6 @@
     "Test": "Qual è il dosaggio massimo giornaliero di OKI per un bambino di 25 Kg?",
     "FullRef": "Per un bambino di 25 kg, il dosaggio massimo giornaliero di OKI dipende dall’età, secondo quanto riportato nel foglio illustrativo AIFA. Bambini di età di almeno 6 anni (peso minore di 30 kg): dosaggio per somministrazione: 1-2 mg/kg. Per un bambino di 25 kg, 1 OKI da 30 mg corrisponde a 1,2 mg/kg, quindi rientra nell’intervallo raccomandato. Schema posologico consigliato: 1 somministrazione 2-3 volte al giorno. Dosaggio massimo giornaliero: 3 somministrazioni = 90 mg di ketoprofene. Utilizzare la dose efficace più bassa per il periodo più breve necessario. Alcuni pazienti pediatrici possono manifestare emorragie gastrointestinali o ulcera peptica, quindi il trattamento deve essere effettuato sotto stretto controllo medico. Per bambini di età inferiore a 6 anni: controindicato, il farmaco non deve essere somministrato. In questi casi, è necessario rivolgersi al pediatra per individuare alternative sicure.",
     "KeyRef": "Se il bambino ha almeno 6 anni, una somministrazione 3 volte al giorno è il dosaggio massimo. Se ha meno di 6 anni, il farmaco è controindicato.",
-    "MainCategory": 4.0,
-    "SubCategory": 4.0,
     "Candidates": [
       {
         "Candidate": "Per un bambino di 25 kg, il dosaggio massimo giornaliero di OKI è stabilito in base all’età, come indicato dal foglio illustrativo AIFA. Nei bambini di almeno 6 anni con peso inferiore a 30 kg, la dose per singola somministrazione è di 1-2 mg/kg. Un bambino di 25 kg che assume 1 compressa di OKI da 30 mg riceve circa 1,2 mg/kg, quindi rientra nei valori raccomandati. Lo schema posologico prevede 1 somministrazione 2-3 volte al giorno, con un massimo di 3 dosi giornaliere pari a 90 mg di ketoprofene. È raccomandato usare la dose minima efficace per il periodo più breve possibile. Alcuni pazienti pediatrici possono sviluppare emorragie gastrointestinali o ulcera peptica, quindi la terapia deve essere monitorata dal medico. Nei bambini sotto i 6 anni il farmaco è controindicato e occorre rivolgersi al pediatra per alternative sicure.",
@@ -824,8 +808,6 @@
     "Test": "OKI è controindicato durante la gravidanza?",
     "FullRef": "OKI è controindicato durante tutta la durata di una gravidanza. Solo in casi eccezionali un medico può decidere di prescriverlo durante il primo o il secondo trimestre, se i benefici per la madre superano i rischi per il feto. Durante il terzo trimestre di gravidanza, OKI non deve essere usato in quanto può causare gravi complicazioni sia per la madre che per il bambino.",
     "KeyRef": "OKI è controindicato durante tutta la durata di una gravidanza, tranne rare eccezioni nel primo e secondo trimestre.",
-    "MainCategory": 4.0,
-    "SubCategory": 4.0,
     "Candidates": [
       {
         "Candidate": "OKI è controindicato per tutta la durata della gravidanza. Solo in casi eccezionali il medico può valutarne l’uso nel primo o nel secondo trimestre, se i benefici per la madre superano i rischi per il feto. Nel terzo trimestre, invece, il farmaco non deve essere assunto perché può provocare gravi complicazioni sia per la madre che per il bambino.",
@@ -910,8 +892,6 @@
     "Test": "Posso prendere xanax a 16 anni?",
     "FullRef": "Non ho informazioni sufficienti per rispondere alla tua domanda. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche sull'uso di Xanax a 16 anni.",
     "KeyRef": "Non ho sufficienti informazioni.",
-    "MainCategory": 4.0,
-    "SubCategory": 4.0,
     "Candidates": [
       {
         "Candidate": "Non ho informazioni sufficienti per rispondere alla tua domanda. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche sull'uso di Xanax a 16 anni.",

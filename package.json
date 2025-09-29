@@ -31,6 +31,13 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^10.0.0",
+    "@google/genai": "^1.21.0",
+    "@google/generative-ai": "^0.24.1",
+    "@huggingface/inference": "^4.9.0",
+    "@huggingface/transformers": "^3.7.3",
+    "@langchain/community": "^0.3.56",
+    "@langchain/core": "^0.3.77",
+    "@langchain/google-genai": "^0.2.18",
     "@types/node": "^24.5.2",
     "@types/word-extractor": "^1.0.6",
     "chartjs-node-canvas": "^5.0.0",

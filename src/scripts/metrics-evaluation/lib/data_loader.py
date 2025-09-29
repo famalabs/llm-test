@@ -34,8 +34,6 @@ def load_metrics_tests():
     for (group, test), g in df.groupby(["Group", "Test"]):
         full_ref = g["FullRef"].iloc[0]
         key_ref = g["KeyRef"].iloc[0] if pd.notna(g["KeyRef"].iloc[0]) else ""
-        main_cat = g["Main Category"].iloc[0] if "Main Category" in g.columns else None
-        sub_cat = g["Sub Category"].iloc[0] if "Sub Category" in g.columns else None
 
         candidates = []
         for _, row in g.iterrows():
@@ -51,8 +49,6 @@ def load_metrics_tests():
             "Test": test,
             "FullRef": full_ref,
             "KeyRef": key_ref,
-            "MainCategory": main_cat,
-            "SubCategory": sub_cat,
             "Candidates": candidates
         }
 

@@ -1,13 +1,32 @@
-import { createOutputFolderIfNeeded, escapeText, sleep } from "../utils";
+/**
+
+LEMMATIZATION:
+ -  (*) create a venv named .venv in llm-test/ and install spacy
+ -  python -m spacy download it_core_news_lg
+
+SCRIPT:
+
+ - Qwen 8B (set the HUGGINGFACEHUB_API_KEY in .env)
+ npx tsx src/scripts/visual-embeddings-comparison.ts -i data/embeddings-comparison.json -p huggingface -m Qwen/Qwen3-Embedding-8B -l true
+
+ - Qwen 0.6B, then, take the previously created .venv (*), and install sentence_transformers. Check the code in custom-embedders/local.ts, then run:
+ npx tsx src/scripts/visual-embeddings-comparison.ts -i data/embeddings-comparison.json -p local -m Qwen/Qwen3-Embedding-0.6B -l true
+
+ - Google (⚠ the documentation report a wrong model name)
+ npx tsx src/scripts/visual-embeddings-comparison.ts -i data/embeddings-comparison.json -p google -m gemini-embedding-001 -l true
+
+*/
+
+import 'dotenv/config';
+import { createOutputFolderIfNeeded, escapeText, sleep, checkCallFromRoot, lemmatizeQuery } from "../utils";
 import { readFile, writeFile } from "fs/promises";
 import { createEmbedder } from "../lib/embeddings";
 import { hideBin } from "yargs/helpers";
-import yargs from "yargs";
 import { cosineSimilarity } from "ai";
-import 'dotenv/config';
+import yargs from "yargs";
 
 const main = async () => {
-  const { input, tooltip, provider, model } = await yargs(hideBin(process.argv))
+  const { input, tooltip, provider, model, lemmatization } = await yargs(hideBin(process.argv))
     .option("input", {
       alias: "i",
       type: "string",
@@ -24,7 +43,7 @@ const main = async () => {
       alias: "p",
       type: "string",
       demandOption: true,
-      choices: ["mistral", "openai", "voyage"],
+      choices: ["mistral", "openai", "voyage", "local", "huggingface", "google"],
       describe: "Provider to use for embeddings",
     })
     .option("model", {
@@ -33,10 +52,22 @@ const main = async () => {
       demandOption: true,
       describe: "Model to use for embeddings",
     })
+    .option("lemmatization", {
+      alias: "l",
+      type: "boolean",
+      demandOption: true,
+      describe: "If true, lemmatize queries before embedding",
+    })
     .parse();
+
+  if (lemmatization) {
+    checkCallFromRoot();
+    console.log('Lemmatization is enabled. Make sure you created a venv named .venv in llm-test/ and you installed spacy and ran python -m spacy download it_core_news_lg');
+  }
 
   const embedder = createEmbedder(model, provider as "mistral" | "openai");
   const embeddingsCache: Record<string, number[]> = {};
+  const lemmatizationCache: Record<string, string> = {};
 
   const inputData = JSON.parse(await readFile(input, "utf-8"));
 
@@ -45,8 +76,21 @@ const main = async () => {
 
   for (const group in inputData) {
     const queries: string[] = inputData[group];
+    if (lemmatization) {
+      console.log(`Lemmatizing ${queries.length} queries for group "${group}"...`);
+      for (let i = 0; i < queries.length; i++) {
+        const original = queries[i];
+        if (original in lemmatizationCache) {
+          queries[i] = lemmatizationCache[original];
+        } else {
+          const lemmatized = await lemmatizeQuery(original);
+          lemmatizationCache[original] = lemmatized;
+          queries[i] = lemmatized;
+        }
+      }
+    }
     groupQueries[group] = queries;
-    const embeddings = [];
+    const embeddings: number[][] = [];
     for (const q of queries) {
       if (q in embeddingsCache) {
         embeddings.push(embeddingsCache[q]);
@@ -105,6 +149,9 @@ const main = async () => {
 <div class="flex justify-between items-center mb-6 sticky top-0 bg-gray-50">
   <h1 class="text-3xl font-bold">Matrici di similarità</h1>
   <div class="flex items-center space-x-4">
+    <div id="hitsContainer" class="text-sm font-medium px-3 py-1 rounded bg-gray-200">
+      Hits: <span id="hitsCount">0</span>
+    </div>
     <div class="flex items-center space-x-2">
       <label for="minSim" class="text-sm font-medium">Min Similarity:</label>
       <input id="minSimRange" type="range" min="0" max="1" step="0.01" value="0" class="w-40">
@@ -156,7 +203,7 @@ const main = async () => {
 
       for (let j = 0; j < matrix[i].length; j++) {
         const v = matrix[i][j];
-        html += `<td class="border border-gray-300 p-3 text-center font-mono heatmap-cell" data-value="${v}">${v.toFixed(
+        html += `<td class="border border-gray-300 p-3 text-center font-mono heatmap-cell" data-value="${v}" data-diagonal="${i === j}" data-i="${i}" data-j="${j}">${v.toFixed(
           3
         )}</td>`;
       }
@@ -186,8 +233,10 @@ function updateColors() {
   const minSim = parseFloat(document.getElementById("minSim").value);
   const useAsThreshold = document.getElementById("useAsThreshold").checked;
   const remapValues = document.getElementById("remapValues").checked;
+  let aboveThresholdCount = 0;
   document.querySelectorAll(".heatmap-cell").forEach(cell => {
     let value = parseFloat(cell.dataset.value);
+    const isDiagonal = cell.dataset.diagonal === "true";
     if (remapValues) {
       if (value < minSim) {
         cell.innerText = "-";
@@ -199,7 +248,17 @@ function updateColors() {
     }
     cell.style.backgroundColor = getHeatmapColor(value, minSim, useAsThreshold);
     cell.style.color = getTextColor(value, minSim);
+
+    // Count hits: value strictly greater than threshold, excluding diagonal
+    if (!isDiagonal && value > minSim) {
+      aboveThresholdCount += 1;
+    }
   });
+
+  // Divide by two to account for symmetric duplicates (i,j) and (j,i)
+  const uniquePairs = Math.floor(aboveThresholdCount / 2);
+  const hitsEl = document.getElementById("hitsCount");
+  if (hitsEl) hitsEl.textContent = String(uniquePairs);
 }
 
 // sincronizza slider e input
@@ -239,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
   const outputFile = `${createOutputFolderIfNeeded(
     "output/embeddings-comparison"
-  )}/${input.split("/").slice(-1)[0].split(".").slice(0, -1).join(".")}-${model}-${provider}-similarity-matrix.html`;
+  )}/${input.split("/").slice(-1)[0].split(".").slice(0, -1).join(".")}-${model.replace('/', '-')}-${provider}-lemmatization=${lemmatization.toString()}-similarity-matrix.html`;
   await writeFile(outputFile, html);
   console.log("Output written to", outputFile);
 };
