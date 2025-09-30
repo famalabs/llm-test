@@ -2,6 +2,8 @@ import csv from 'csv-parser';
 import { existsSync, mkdirSync } from 'fs';
 import * as readline from 'node:readline/promises';
 import { exec } from 'node:child_process';
+import path from 'path';
+import os from 'os';
 
 const terminal = readline.createInterface({
   input: process.stdin,
@@ -65,7 +67,12 @@ export const parseCSV = (csvContent: string) => {
   });
 }
 
-export const createOutputFolderIfNeeded = (outputFolder: string) => {
+// Accepts either a single string (possibly already containing separators) or multiple
+// path segments and ensures the directory exists. Returns the absolute/relative (as passed) path.
+export const createOutputFolderIfNeeded = (...segments: string[]) => {
+  const outputFolder = segments.length === 0
+    ? '.'
+    : (segments.length === 1 ? segments[0] : path.join(...segments));
   if (!existsSync(outputFolder)) mkdirSync(outputFolder, { recursive: true });
   return outputFolder;
 }
@@ -83,10 +90,23 @@ export const float32Buffer = (arr: number[]) => {
   return Buffer.from(new Float32Array(arr).buffer);
 }
 
-export const lemmatizeQuery = (query:string) => {
-  const code = `import spacy; nlp = spacy.load("it_core_news_lg");  doc = nlp("""${query.replace(/"/g, '\\"')}""");  print(" ".join([token.lemma_ for token in doc]))`
-  return new Promise<string>((resolve, reject) => {
-    exec('source .venv/bin/activate && python -c ' + JSON.stringify(code), (error, stdout, stderr) => {
+export const lemmatize = (text: string | string[]) => {
+  const code = `import spacy; import json; nlp = spacy.load("it_core_news_lg"); texts = ${JSON.stringify(text)}; lem = [" ".join(doc.lemma_ if isinstance(doc, spacy.tokens.Token) else [t.lemma_ for t in doc]) for doc in nlp.pipe(texts)]; print(json.dumps(lem))`;
+  return new Promise<string[]>((resolve, reject) => {
+    let command: any;
+
+    const platform = os.platform();
+
+    if (platform === 'win32') {
+      // x EMA
+    }
+    else if (platform == 'darwin' || platform == 'linux') {
+      command = 'source .venv/bin/activate && python -c ' + JSON.stringify(code);
+    }
+    else {
+      return reject(new Error(`Unsupported platform: ${platform}`));
+    }
+    exec(command, (error, stdout, stderr) => {
       if (error) {
         reject(`Error: ${error.message}`);
         return;
@@ -95,7 +115,13 @@ export const lemmatizeQuery = (query:string) => {
         reject(`Stderr: ${stderr}`);
         return;
       }
-      resolve(stdout.trim());
+      try {
+        const result = JSON.parse(stdout);
+        resolve(result);
+      }
+      catch (e) {
+        reject(`Failed to parse output: ${stdout}`);
+      }
     });
   });
 }

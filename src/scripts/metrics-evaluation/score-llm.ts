@@ -5,6 +5,7 @@ import { hideBin } from "yargs/helpers"
 const main = async () => {
     const { input, metric } = await yargs(hideBin(process.argv))
     .option("input", {
+        alias: "i",
         type: "string",
         description: "Input table .txt file to score",
         demandOption: true

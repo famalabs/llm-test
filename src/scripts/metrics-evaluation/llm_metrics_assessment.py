@@ -76,7 +76,7 @@ def main():
             
             response = mistral_client.chat.parse(
                 temperature=0, 
-                model='mistral-small-latest',
+                model='mistral-medium-latest',
                 messages=[
                     {"role": "user", "content": prompt}
                 ],
@@ -127,8 +127,11 @@ def main():
         else:
             store_in_metrics_results(raw_scores, metric)
 
-    os.makedirs('output/evaluations/metrics/v2', exist_ok=True)
-    with open(f'output/evaluations/metrics/v2/results{"-main-sub-merged" if merge_main_sub else ""}-llm.json', 'w') as f:
+    base_dir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
+    output_dir = os.path.normpath(os.path.join(base_dir, 'output', 'evaluations', 'metrics', 'v2'))
+    os.makedirs(output_dir, exist_ok=True)
+    results_path = os.path.normpath(os.path.join(output_dir, f'results{"-main-sub-merged" if merge_main_sub else ""}-llm.json'))
+    with open(results_path, 'w') as f:
         json.dump({"metrics": metrics_results, "meta": metrics_meta}, f, indent=4)
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ import yargs from 'yargs';
 import { createClient, RedisClientType, SCHEMA_FIELD_TYPE, SCHEMA_VECTOR_FIELD_ALGORITHM } from "redis";
 import "dotenv/config";
 import { randomUnitVector } from '../../utils';
+import path from 'path';
 import { hideBin } from 'yargs/helpers';
 
 const EMBEDDING_DIMENSION = 1024;
@@ -65,7 +66,7 @@ const main = async () => {
     xs: 'extra-small', s: 'small', m: 'medium', l: 'large'
   };
 
-  const filePath = `output/vector-store/fake-data/fake-patients-data-${scaleName[scale!]}.json`;
+  const filePath = path.join('output','vector-store','fake-data', `fake-patients-data-${scaleName[scale!]}.json`);
   console.log(`Loading fake data from ${filePath}...`);
   const raw = await readFile(filePath, 'utf-8');
   const fakeData: { metadata: Record<string, any>; chunk: string }[] = JSON.parse(raw);

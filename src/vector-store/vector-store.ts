@@ -53,11 +53,11 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
             }
         }
 
-        if (/^-?\d+(\.\d+)?$/.test(value)) {
+        if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(value)) {
             try {
                 const num = parseFloat(value);
                 if (!Number.isNaN(num)) return num;
-            } catch { }
+            } catch {}
         }
 
         return value;

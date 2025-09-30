@@ -1,4 +1,7 @@
-shallower_reinforcement_on_0 = "Remember: If the given answer include false information, its score is 0."
+# Reinforced attention on 0
+
+shallower_reinforcement_on_0 = """Remember: If the given answer include false information, its score is 0."""
+reinforced_attention_on_0 = """Be meticoulous and check every detail of the GIVEN ANSWER. Even a small mistake or omission w.r.t. the EXPECTED ANSWERS lead to a score of 0."""
 
 PROMPT_CONFIGS = {
         "llm_full": {
@@ -107,31 +110,30 @@ Score: 4 // All key pieces of information (eight planets and their names) are pr
         
         },
         
-        
-        "llm_sub": {
-            "task_description": "Your task is to compare the provided answer with the answer containing both key and optional informations.",
-            "expected_output": """You're expected to compare only the GIVEN ANSWER against the EXPECTED FULL ANSWER.
-You're expected to provide:
-1. A Correctness Score (0 to 4, in increments of 1) comparing the QUERY with the EXPECTED FULL ANSWER (the EXPECTED KEY ANSWER must be used just for the context).
-2. A brief explanation (1-3 sentences) justifying your score.""",
-            "score_criteria": """Correctness Score (0 to 4, in increments of 1):
-    0 = Incorrect or fabricated information (regardless of the presence of key or optional information)
-    1 = Absence of both key and optional information (generic information without informative content)
-    2 = Somewhere between 0% and 50% of optional pieces of information are present.
-    3 = Somewhere between 50% and 100% of optional pieces of information are present.
-    4 = All optional pieces of information are present.""",
+"llm_sub": {
+    "task_description": "Your task is to compare the provided answer with the answer containing BOTH the key and the optional information, focusing on how well it covers the optional details while remaining factually correct on the key points.",
     
-            "instructions": """1. Read the QUERY, EXPECTED FULL ANSWER, and the GIVEN ANSWER carefully.
-2. Evaluate the GIVEN ANSWER against the EXPECTED FULL ANSWER based on Accuracy, Completeness, and Relevance.
-3. Assign a Correctness Score (0-4) with one decimal place.
-4. Provide a short explanation (1-3 sentences) justifying your score.""",
+    "expected_output": """You're expected to compare the GIVEN ANSWER against the EXPECTED FULL ANSWER.
+You're expected to provide:
+1. A Correctness Score (0 to 4, in increments of 1) comparing the GIVEN ANSWER with the EXPECTED FULL ANSWER.
+2. A brief explanation (1-3 sentences) justifying your score.""",
 
-            "few_shots" : """Example:
+    "score_criteria": """Correctness Score (0 to 4, in increments of 1):
+    0 = The answer contains incorrect or fabricated information (key or optional) OR is completely unrelated.
+    1 = The answer contains almost no optional information (it might only state a generic fact, but still factually correct on key points).
+    2 = The answer contains some optional details, roughly up to 50% of those in the expected full answer.
+    3 = The answer contains most of the optional details, roughly between 50% and 100% (not all).
+    4 = The answer contains all or nearly all optional details from the expected full answer, with no factual errors.""",
+
+    "instructions": """1. Read the QUERY, EXPECTED FULL ANSWER, and the GIVEN ANSWER carefully.
+2. First check factual correctness: if the GIVEN ANSWER contains false information (even about key facts), assign score 0.
+3. Otherwise, evaluate how completely the GIVEN ANSWER matches the EXPECTED FULL ANSWER, with emphasis on the optional details (since key information is already expected to be correct).
+4. Assign a Correctness Score (0-4).
+5. Provide a short explanation (1-3 sentences) justifying your score.""",
+
+    "few_shots" : """Example:
 QUERY:
 Quanti pianeti ci sono nel sistema solare e quali sono i loro nomi?
------------
-EXPECTED KEY ANSWER:
-Ci sono otto pianeti nel sistema solare. I loro nomi sono: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno.
 -----------
 EXPECTED FULL ANSWER:
 Nel nostro sistema solare, ci sono otto pianeti principali. Questi includono Mercurio, il pianeta più vicino al Sole, seguito da Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno. Ognuno di questi pianeti ha caratteristiche uniche e orbita intorno al Sole a diverse distanze.
@@ -139,23 +141,38 @@ Nel nostro sistema solare, ci sono otto pianeti principali. Questi includono Mer
 GIVEN ANSWER:
 Ci sono tre pianeti nel sistema solare: Terra, Marte e Venere.
 -----------
-Score: 0 // False information.
+Score: 0 // False information about the number of planets.
 
 
 // Another GIVEN ANSWER
 GIVEN ANSWER:
 Ci sono otto pianeti nel sistema solare.
 -----------
-Score: 1 // Very few optional information. Optional in this case are all the details about each planet, which are all missing.
+Score: 1 // Only the bare key fact is present, no optional details (e.g., names or descriptions).
+
 
 // Another GIVEN ANSWER
 GIVEN ANSWER:
 Ci sono otto pianeti nel sistema solare: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno.
 -----------
-Score: 2 // Few optional information.
+Score: 2 // Includes key facts and names, but no optional descriptions about the planets.
+
+
+// Another GIVEN ANSWER
+GIVEN ANSWER:
+Ci sono otto pianeti nel sistema solare: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno. Mercurio è il pianeta più vicino al Sole.
+-----------
+Score: 3 // Includes key facts, names, and part of the optional information (one description).
+
+
+// Another GIVEN ANSWER
+GIVEN ANSWER:
+Ci sono otto pianeti nel sistema solare: Mercurio, Venere, Terra, Marte, Giove, Saturno, Urano e Nettuno. Mercurio è il pianeta più vicino al Sole, ognuno ha caratteristiche uniche e orbita a diverse distanze.
+-----------
+Score: 4 // Includes all key facts, names, and essentially all optional details.
 """
-        },
-        
+},
+
         
         "llm_main_sub": {
             "task_description": """Your task is to compare the provided answer with BOTH:
@@ -259,8 +276,10 @@ Instructions:
 {config['instructions']}
 
 {shallower_reinforcement_on_0}
+{reinforced_attention_on_0}
 
 {''.join(input_blocks)}
 """.strip()
 
     return prompt_template
+

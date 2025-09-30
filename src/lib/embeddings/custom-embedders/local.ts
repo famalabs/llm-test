@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { pipeline } from "@huggingface/transformers";
 import { exec } from "child_process";
+import os from "os";
 
 class LocalEmbeddings {
     private model: string;
@@ -34,7 +35,22 @@ print(json.dumps(embeddings.tolist()))
         `.trim();
 
         return new Promise((resolve, reject) => {
-            exec(`source .venv/bin/activate && python -c "${pythonCode.replace(/"/g, '\\"')}"`, (error, stdout, stderr) => {
+
+            let command:any;
+
+            const platform = os.platform();
+
+            if (platform === 'win32') {
+                // x EMA
+            } 
+            else if (platform == 'darwin' || platform == 'linux') {
+                command = `source .venv/bin/activate && python -c "${pythonCode.replace(/"/g, '\\"')}"`;
+            }
+            else {
+                return reject(new Error(`Unsupported platform: ${platform}`));
+            }
+
+            exec(command, (error, stdout, stderr) => {
                 if (error) {
                     console.error(`Error executing Python script:`, error);
                     return reject(error);

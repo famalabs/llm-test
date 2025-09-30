@@ -2,8 +2,9 @@ import { createClient } from "redis";
 import yargs from "yargs";
 import { readFile } from "fs/promises";
 import { writeFile } from "fs/promises";
-import { mean, stddev, percentile, randomUnitVector } from "../../utils";
+import { mean, stddev, percentile, randomUnitVector, createOutputFolderIfNeeded } from "../../utils";
 import { hideBin } from "yargs/helpers";
+import path from 'path';
 
 const EMBEDDING_DIMENSION = 1024;
 const NUM_QUERIES = 100;
@@ -60,7 +61,7 @@ const main = async () => {
   };
 
   const indexName = `patients_${scaleName[scale!]}`.replace(/-/g, "_");
-  const filePath = `output/vector-store/fake-data/fake-patients-data-${scaleName[scale!]}.json`;
+  const filePath = path.join('output','vector-store','fake-data',`fake-patients-data-${scaleName[scale!]}.json`);
   const raw = await readFile(filePath, "utf-8");
   const fakeData = JSON.parse(raw);
 
@@ -149,8 +150,9 @@ const main = async () => {
   output += "-------------------------------------------------------------------------------\n";
 
   console.log(output);
-  const txtFile = `output/vector-store/benchmark-${K}-${scaleName[scale!]}-${ALGORITHM.toLocaleLowerCase()}.txt`;
-  const jsonFile = `output/vector-store/benchmark-${K}-${scaleName[scale!]}-${ALGORITHM.toLocaleLowerCase()}.json`;
+  const outDir = createOutputFolderIfNeeded('output','vector-store');
+  const txtFile = path.join(outDir, `benchmark-${K}-${scaleName[scale!]}-${ALGORITHM.toLocaleLowerCase()}.txt`);
+  const jsonFile = path.join(outDir, `benchmark-${K}-${scaleName[scale!]}-${ALGORITHM.toLocaleLowerCase()}.json`);
 
   await writeFile(txtFile, output);
   await writeFile(jsonFile, JSON.stringify(jsonResult, null, 2));

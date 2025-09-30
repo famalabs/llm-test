@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import yargs from 'yargs';
 import { writeFile } from 'fs/promises';
 import { createOutputFolderIfNeeded } from '../../utils';
+import path from 'path';
 import { hideBin } from 'yargs/helpers';
 
 const docTypes = ['therapy_plan', 'log', 'faq', 'instruction', 'chat_summary'];
@@ -43,7 +44,7 @@ const main = async () => {
         l: 'large',
     }
 
-    const fileName = `${createOutputFolderIfNeeded('output/vector-store/fake-data')}/fake-patients-data-${scaleName[scale!]}.json`;
+    const fileName = path.join(createOutputFolderIfNeeded('output','vector-store','fake-data'), `fake-patients-data-${scaleName[scale!]}.json`);
     const patients = [];
     for (let i = 0; i < numPatients; i++) {
         const metadata = {

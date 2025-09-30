@@ -1,6 +1,7 @@
 import { createOutputFolderIfNeeded, getFileExtension } from '../../utils';
 import { generateObject, ModelMessage } from 'ai';
 import { readFile, writeFile } from "fs/promises";
+import path from 'path';
 import { tableQAPrompt } from '../../lib/prompt';
 import { hideBin } from 'yargs/helpers';
 import { parseDoc } from '../../lib/ingestion';
@@ -55,7 +56,8 @@ const main = async () => {
 
     if (!parsed) { throw new Error('No conversion result returned.') };
 
-    await writeFile(`${createOutputFolderIfNeeded('output/document-ingestion/table')}/raw-table.${format}`, parsed);
+    const outDir = createOutputFolderIfNeeded('output','document-ingestion','table');
+    await writeFile(path.join(outDir, `raw-table.${format}`), parsed);
 
     let output = '=============== RAG Table Extraction and QA ===============\n\n';
     output += '========================================================\n\n';
@@ -68,7 +70,7 @@ const main = async () => {
         output += '========================================================\n\n';
     }
 
-    await writeFile(`${createOutputFolderIfNeeded('output/document-ingestion/table')}/table-extraction-${format}-${llm}.txt`, output);
+    await writeFile(path.join(outDir, `table-extraction-${format}-${llm}.txt`), output);
 }
 
 

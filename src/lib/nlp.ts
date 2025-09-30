@@ -1,6 +1,6 @@
 import keywordExtractor from 'keyword-extractor';
 
-export const PATH_NORMALIZATION_MARK = '::';
+export const PATH_NORMALIZATION_MARK = '+';
 
 export const splitTextIntoSentences = (text: string, language: 'it'): string[] => {
     const segmenter = new Intl.Segmenter(language, { granularity: 'sentence' });
@@ -8,7 +8,6 @@ export const splitTextIntoSentences = (text: string, language: 'it'): string[] =
 };
 
 export const addLineNumbers = (text: string): string => {
-    console.log(text);
     return text.split('\n').map((line, idx) => `${idx}: ${line}`).join('\n');
 };
 

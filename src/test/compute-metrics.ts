@@ -4,6 +4,7 @@ import yargs from "yargs";
 import { customLLMAsAJudge, meteor, rouge1 } from "../scripts/evaluations/metrics";
 import { createOutputFolderIfNeeded, mean } from '../utils';
 import { hideBin } from "yargs/helpers";
+import path from 'path';
 const allMetrics = { customLLMAsAJudge, meteor, rouge1 };
 
 const main = async () => {
@@ -12,8 +13,10 @@ const main = async () => {
         .help()
         .parse();
 
-    const resultsContent = JSON.parse(await readFile(input!, 'utf-8'));
-    const outputFileName =  input!.split('/').slice(-1)[0].split('.').slice(0, -1).join('.') + '.csv';
+    const normalizedInputPath = path.normalize(input!);
+    const resultsContent = JSON.parse(await readFile(normalizedInputPath, 'utf-8'));
+    const baseName = path.basename(normalizedInputPath, path.extname(normalizedInputPath));
+    const outputFileName = `${baseName}.csv`;
 
     const evaluations : Record<string, number[]> = {};
 
@@ -41,7 +44,7 @@ const main = async () => {
         out += `${i + 1},"${question.replaceAll('"', '""')}","${reference.replaceAll('"', '""')}","${candidate.replaceAll('"', '""')}",${evaluations['llm-as-a-judge'][i]},${evaluations['meteor'][i]},${evaluations['rouge1'][i]}\n`;
     }
 
-    const fileName = `${createOutputFolderIfNeeded('output/scores')}/${outputFileName}`;
+    const fileName = path.join(createOutputFolderIfNeeded('output','scores'), outputFileName);
     await writeFile(fileName, out);
     console.log('Report written to', fileName);
 

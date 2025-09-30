@@ -5,6 +5,7 @@ import ragTestSuiteQuestions from '../../../data/rag-test-suite.json';
 import { createOutputFolderIfNeeded } from "../../utils";
 import { hideBin } from "yargs/helpers";
 import Redis from "ioredis";
+import path from 'path';
 import { VectorStore, ensureIndex } from "../../vector-store";
 import { Chunk } from "../../lib/chunks";
 
@@ -48,7 +49,7 @@ const main = async () => {
 
     console.log('-----------------------------------\n');
 
-    const fileName = `${createOutputFolderIfNeeded('output/evaluations/qualitative')}/qualitative-evaluation-${Date.now()}.txt`;
+    const fileName = path.join(createOutputFolderIfNeeded('output','evaluations','qualitative'), `qualitative-evaluation-${Date.now()}.txt`);
     await writeFile(fileName, reportFile);
     console.log('Report written to', fileName);
 }

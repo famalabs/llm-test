@@ -243,7 +243,10 @@ def main():
             print(output)
             result_str += output + '\n'
         
-    with open(f'output/evaluations/metrics/v2/final_results.txt', 'w') as f:
+    out_dir = os.path.normpath(os.path.join('output', 'evaluations', 'metrics', 'v2'))
+    os.makedirs(out_dir, exist_ok=True)
+    final_path = os.path.join(out_dir, 'final_results.txt')
+    with open(final_path, 'w', encoding='utf-8') as f:
         f.write(result_str)
 
 if __name__ == "__main__":

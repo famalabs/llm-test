@@ -29,7 +29,7 @@ const cacheStore = new VectorStore<RagAnswer>({
 const rag = new Rag({
     provider: 'mistral',
     llm: 'mistral-medium-latest',
-    numResults: 5,
+    numResults: 10,
     reasoningEnabled: true,
     includeCitations: false,
     fewShotsEnabled: false,
@@ -38,6 +38,18 @@ const rag = new Rag({
     semanticCache: {
         cacheStore,
         distanceThreshold: 0.2,
+    },
+    chunkFiltering: {
+        thresholdMultiplier: 0.7,
+        baseThreshold: 0.12,
+    },
+    reranking: {
+        llm: 'mistral-small-latest',
+        provider: 'mistral',
+        llmEvaluationWeight: 0.5,
+        batchSize: 5,
+        reasoningEnabled: false,
+        fewShotsEnabled: false,
     }
 });
 
@@ -68,12 +80,14 @@ const main = async () => {
                     inputSchema: z.object({
                         medicineName: z.string().describe('the name of the medicine, e.g., Aspirina'),
                         textualQuery: z.string().describe('the information to search for, e.g., What are the side effects?'),
+                        useLatestInfo: z.boolean().optional().describe('whether to use the latest information available (default: false)'),
                     }),
-                    execute: async ({ medicineName, textualQuery }) => {
+                    execute: async ({ medicineName, textualQuery, useLatestInfo }) => {
                         let out = 'No answer could be found.';
                         try {
                             const { answer, citations, reasoning, chunks } = await rag.search(
-                                `Informazioni sul farmaco ${medicineName}: ${textualQuery}`
+                                `Informazioni sul farmaco ${medicineName}: ${textualQuery}`, 
+                                useLatestInfo
                             );
                             out = `Answer: ${answer}\n\n` + 
                             (citations && citations.length > 0 ? 'Citations:\n' + await resolveCitations(citations, chunks) + '\n\n' : '') +

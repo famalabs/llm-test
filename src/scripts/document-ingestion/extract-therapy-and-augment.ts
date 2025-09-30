@@ -5,6 +5,7 @@ import { generateObject, ModelMessage } from 'ai';
 import { parseDoc, parseDocx } from '../../lib/ingestion';
 import { createOutputFolderIfNeeded, getFileExtension } from '../../utils';
 import { readFile, writeFile } from "fs/promises";
+import path from 'path';
 import { PATH_NORMALIZATION_MARK } from "../../lib/nlp";
 import 'dotenv/config';
 import { hideBin } from 'yargs/helpers';
@@ -60,7 +61,8 @@ const main = async () => {
     console.log('Extracting therapy...');
     const rawTherapy = await extractTherapy(text);
 
-    let outputFile = `${createOutputFolderIfNeeded('output/document-ingestion/therapy')}/therapy-${source!.replaceAll('/', PATH_NORMALIZATION_MARK)}.md`;
+    const outDir = createOutputFolderIfNeeded('output','document-ingestion','therapy');
+    let outputFile = path.join(outDir, `therapy-${source!.replaceAll('/', PATH_NORMALIZATION_MARK)}.md`);
     await writeFile(outputFile, rawTherapy);
     console.log('Extracted therapy written to:', outputFile);
 }

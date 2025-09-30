@@ -2,6 +2,7 @@ import { readFile, writeFile } from "fs/promises";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import path from 'path';
 
 const main = async () => {
 
@@ -26,12 +27,12 @@ const main = async () => {
 
     for (const scale of scales) {
         const flatResults = await readFile(
-            `output/vector-store/benchmark-${scale}-flat.json`,
+            path.join('output','vector-store', `benchmark-${scale}-flat.json`),
             "utf-8"
         ).then(r => JSON.parse(r));
 
         const hnswResults = await readFile(
-            `output/vector-store/benchmark-${scale}-hnsw.json`,
+            path.join('output','vector-store', `benchmark-${scale}-hnsw.json`),
             "utf-8"
         ).then(r => JSON.parse(r));
 
@@ -84,7 +85,7 @@ const main = async () => {
         };
 
         const buffer = await chartJSNodeCanvas.renderToBuffer(configuration);
-        const outFile = `output/vector-store/algorithm-comparison-${K}-${scale}.png`;
+    const outFile = path.join('output','vector-store', `algorithm-comparison-${K}-${scale}.png`);
         await writeFile(outFile, buffer);
         console.log(`Chart saved to ${outFile}`);
     }

@@ -53,7 +53,7 @@ export class Rag {
                 if (typeof value === 'object' && value !== null && getObjectLength(value) > 0) {
                     result += `${indent}${fmtKey(key)}:\n`;
                     result += formatConfig(value, indent + '\t');
-                } 
+                }
                 else {
                     if (typeof value == 'object') { continue }
                     result += `${indent}${fmtKey(key)}: ${value}\n`;
@@ -106,15 +106,42 @@ export class Rag {
                     throw new Error("Chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
                 }
             }
+            else {
+                throw new Error("Chunk filtering is enabled, but thresholdMultiplier is not set.");
+            }
+
+            if (chunkFiltering?.baseThreshold != undefined) {
+                const baseVal = chunkFiltering?.baseThreshold;
+                if (baseVal < 0 || baseVal >= 1) {
+                    throw new Error("Chunk filtering baseThreshold must be between 0 (inclusive) and 1 (exclusive).");
+                }
+            }
+            else {
+                throw new Error("Chunk filtering is enabled, but baseThreshold is not set.");
+            }
         }
 
         if (getObjectLength(reranking) > 0) {
             if (getObjectLength(reranking?.chunkFiltering)) {
-                if (reranking?.chunkFiltering?.thresholdMultiplier != undefined) {
+                if (reranking?.chunkFiltering?.thresholdMultiplier != undefined && reranking?.chunkFiltering?.baseThreshold != undefined) {
                     const val = reranking?.chunkFiltering?.thresholdMultiplier;
                     if (val <= 0 || val >= 1) {
                         throw new Error("Reranking chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
                     }
+                }
+
+                else {
+                    throw new Error("Reranking chunk filtering is enabled, but thresholdMultiplier or baseThreshold is not set.");
+                }
+
+                if (reranking?.chunkFiltering?.baseThreshold != undefined) {
+                    const baseVal = reranking?.chunkFiltering?.baseThreshold;
+                    if (baseVal < 0 || baseVal >= 1) {
+                        throw new Error("Reranking chunk filtering baseThreshold must be between 0 (inclusive) and 1 (exclusive).");
+                    }
+                }
+                else {
+                    throw new Error("Reranking chunk filtering is enabled, but baseThreshold is not set.");
                 }
             }
 
@@ -179,7 +206,7 @@ export class Rag {
 
     private async storeToCache(queryEmbeddings: number[], ragAnswer: RagAnswer): Promise<void> {
         if (!this.cacheStore) return;
-        
+
         // Adding here the EMBEDDING_FIELD prevent re-compuation of the queryEmbeddings.
         const doc = { ...ragAnswer, [EMBEDDING_FIELD]: queryEmbeddings };
         if (this.config.semanticCache?.ttl) {
@@ -222,22 +249,26 @@ export class Rag {
         return { ...result, chunks };
     }
 
-    public async search(query: string): Promise<RagAnswer> {
+    public async search(query: string, skipCache: boolean = false): Promise<RagAnswer> {
         if (!this.isInitialized) {
             throw new Error("Rag instance is not initialized. Please call the init() method first.");
         }
 
         const queryEmbedding = await this.docStore.embedQuery(query);
 
-        const cachedAnswer = await this.checkCache(queryEmbedding);
-        if (cachedAnswer) return cachedAnswer;
+        if (!skipCache) {
+            const cachedAnswer = await this.checkCache(queryEmbedding);
+            if (cachedAnswer) return cachedAnswer;
+        }
 
         let chunks = await this.docStore.retrieve(queryEmbedding, this.config.numResults);
 
-        if (getObjectLength(this.config.chunkFiltering) > 0 && this.config?.chunkFiltering?.thresholdMultiplier) {
+        if (getObjectLength(this.config.chunkFiltering) > 0 && this.config?.chunkFiltering?.thresholdMultiplier && this.config?.chunkFiltering?.baseThreshold) {
+            this.log("Applying chunk filtering...");
             chunks = applyChunkFiltering(
                 chunks,
-                this.config.chunkFiltering.thresholdMultiplier
+                this.config.chunkFiltering.thresholdMultiplier,
+                this.config.chunkFiltering.baseThreshold
             );
         }
 
@@ -267,14 +298,16 @@ export class Rag {
             batchSize,
             llmEvaluationWeight,
             reasoningEnabled,
-            fewShotsEnabled
+            fewShotsEnabled,
         } = this.config.reranking;
 
         this.log('Running reranking on', chunks.length, 'chunks...');
 
         const groupedChunks: Chunk[][] = [];
+
         for (let i = 0; i < chunks.length; i += batchSize!) {
-            groupedChunks.push(chunks.slice(i, i + batchSize!));
+            const chunkGroup = chunks.slice(i, i + batchSize!);
+            groupedChunks.push(chunkGroup);
         }
 
         for (const group of groupedChunks) {
@@ -318,10 +351,12 @@ export class Rag {
 
         let rerankedResults = [...groupedChunks.flat()].sort((a, b) => a.distance - b.distance);
 
-        if (getObjectLength(this.config.reranking.chunkFiltering) > 0 && this.config.reranking.chunkFiltering?.thresholdMultiplier) {
+        if (getObjectLength(this.config.reranking.chunkFiltering) > 0 && this.config.reranking.chunkFiltering?.thresholdMultiplier && this.config.reranking.chunkFiltering?.baseThreshold) {
+            this.log("Applying chunk filtering after reranking...");
             rerankedResults = applyChunkFiltering(
                 rerankedResults,
-                this.config.reranking.chunkFiltering.thresholdMultiplier
+                this.config.reranking.chunkFiltering?.thresholdMultiplier, 
+                this.config.reranking.chunkFiltering?.baseThreshold
             );
         }
 

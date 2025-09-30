@@ -18,7 +18,8 @@ SCRIPT:
 */
 
 import 'dotenv/config';
-import { createOutputFolderIfNeeded, escapeText, sleep, checkCallFromRoot, lemmatizeQuery } from "../utils";
+import { createOutputFolderIfNeeded, escapeText, sleep, checkCallFromRoot, lemmatize } from "../utils";
+import path from 'path';
 import { readFile, writeFile } from "fs/promises";
 import { createEmbedder } from "../lib/embeddings";
 import { hideBin } from "yargs/helpers";
@@ -74,33 +75,23 @@ const main = async () => {
   const matrices: Record<string, number[][]> = {};
   const groupQueries: Record<string, string[]> = {};
 
+  // ------ aggiunto questo -----
+  const uniqueQueries: string[] = Object.values(inputData).flat() as string[];
+  const processedUniqueQueries = lemmatization ? await lemmatize(uniqueQueries) : uniqueQueries;
+
+  const embeddings = await embedder.embedDocuments(processedUniqueQueries);
+  
+  for (let i = 0; i < uniqueQueries.length; i++) {
+    const q = uniqueQueries[i];
+    embeddingsCache[q] = embeddings[i];
+    lemmatizationCache[q] = processedUniqueQueries[i];
+  }
+
   for (const group in inputData) {
     const queries: string[] = inputData[group];
-    if (lemmatization) {
-      console.log(`Lemmatizing ${queries.length} queries for group "${group}"...`);
-      for (let i = 0; i < queries.length; i++) {
-        const original = queries[i];
-        if (original in lemmatizationCache) {
-          queries[i] = lemmatizationCache[original];
-        } else {
-          const lemmatized = await lemmatizeQuery(original);
-          lemmatizationCache[original] = lemmatized;
-          queries[i] = lemmatized;
-        }
-      }
-    }
-    groupQueries[group] = queries;
-    const embeddings: number[][] = [];
-    for (const q of queries) {
-      if (q in embeddingsCache) {
-        embeddings.push(embeddingsCache[q]);
-        continue;
-      }
-      const embedding = await embedder.embedQuery(q);
-      embeddingsCache[q] = embedding;
-      embeddings.push(embedding);
-      if (provider == 'voyage') await sleep(30);
-    }
+    groupQueries[group] = queries.map(q => lemmatization ? lemmatizationCache[q] : q);
+    const embeddings: number[][] = queries.map(q => embeddingsCache[q]);
+    
     const matrix: number[][] = [];
 
     for (let i = 0; i < embeddings.length; i++) {
@@ -296,9 +287,12 @@ document.addEventListener('DOMContentLoaded', function(){
 
   html += `</body></html>`;
 
-  const outputFile = `${createOutputFolderIfNeeded(
-    "output/embeddings-comparison"
-  )}/${input.split("/").slice(-1)[0].split(".").slice(0, -1).join(".")}-${model.replace('/', '-')}-${provider}-lemmatization=${lemmatization.toString()}-similarity-matrix.html`;
+  const baseName = input.split(/[/\\]/).slice(-1)[0].split('.').slice(0,-1).join('.')
+  const outputDir = createOutputFolderIfNeeded('output','embeddings-comparison');
+  const outputFile = path.join(
+    outputDir,
+    `${baseName}-${model.replace('/', '-')}-${provider}-lemmatization=${lemmatization.toString()}-similarity-matrix.html`
+  );
   await writeFile(outputFile, html);
   console.log("Output written to", outputFile);
 };

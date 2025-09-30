@@ -2,12 +2,44 @@ import { VectorStore } from '../vector-store';
 import { Chunk, Citation } from '../lib/chunks';
 
 export interface RagAnswer {
+    /**
+     * The generated answer text.
+    */
     answer: string;
+
+    /**
+     * The list of source chunks used to generate the answer.
+     */
     chunks: Chunk[];
+
+    /**
+     * Citations corresponding to the source chunks, if citations are enabled.
+     */
     citations?: Citation[];
+
+    /**
+     * Optional reasoning provided by the LLM, if reasoning is enabled.
+     */
     reasoning?: string;
+
+    /**
+     * Distance score of the answer, used for ranking.
+     */
     distance?: number;
 }
+
+export interface ChunkFilteringConfig {
+    /**
+     * Multiplier that determines the filtering threshold relative to average similarity.
+     */
+    thresholdMultiplier: number;
+
+    /**
+     * Base flat threshold for distance scores to consider a chunk for reranking. Optional.
+     * E.g. 0.4 means only chunks with distance <= 0.4 will be considered for reranking.
+     */
+    baseThreshold: number;
+};
 
 export interface RerankingConfig {
     /** 
@@ -43,12 +75,7 @@ export interface RerankingConfig {
     /** 
      * Configuration for filtering chunks before reranking. Optional.
      */
-    chunkFiltering?: {
-        /**
-         * Multiplier that determines the filtering threshold relative to average similarity.
-         */
-        thresholdMultiplier: number;
-    };
+    chunkFiltering?: ChunkFilteringConfig;
 }
 
 export interface ParentPageRetrievalConfig {
@@ -100,12 +127,7 @@ export interface RagConfig {
     /**
      * Configuration for filtering chunks based on similarity score.
      */
-    chunkFiltering?: {
-        /**
-         * Multiplier that determines the global filtering threshold.
-         */
-        thresholdMultiplier?: number;
-    };
+    chunkFiltering?: ChunkFilteringConfig;
 
     /**
      * Configuration for reranking retrieved results.

@@ -4,6 +4,7 @@ import { readdir, readFile, writeFile } from "fs/promises";
 import { PATH_NORMALIZATION_MARK } from "../lib/nlp";
 import { hideBin } from "yargs/helpers";
 import yargs from "yargs";
+import path from 'path';
 
 const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
   const renderValue = (value: any): string => {
@@ -80,13 +81,14 @@ const main = async () => {
 
   const normalizedInput = input.replaceAll("/", PATH_NORMALIZATION_MARK);
 
-  const allFiles = (await readdir("output/scores")).filter(
+  const scoresDir = path.join('output','scores');
+  const allFiles = (await readdir(scoresDir)).filter(
     (f) => f.split("_")[0] === normalizedInput
   );
 
   const allData = await Promise.all(
     allFiles.map(async (file) => {
-      const csvRaw = await readFile("output/scores/" + file, "utf-8");
+  const csvRaw = await readFile(path.join(scoresDir, file), "utf-8");
       const [meanScoresText, ...csvLines] = csvRaw.split("\n");
       const [llm, llmValue, meteor, meteorValue, rouge1, rouge1Value] =
         meanScoresText.split(",");
@@ -96,7 +98,7 @@ const main = async () => {
         [rouge1.trim()]: parseFloat(rouge1Value),
       };
 
-      const jsonPath = "output/candidates/" + file.replace(".csv", ".json");
+  const jsonPath = path.join('output','candidates', file.replace(".csv", ".json"));
       let config = {};
       try {
         config = JSON.parse(await readFile(jsonPath, "utf-8")).config ?? {};
@@ -231,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 </body></html>`;
 
-  const fileName = `${createOutputFolderIfNeeded('output/test_results')}/${normalizedInput}.html`;
+  const fileName = path.join(createOutputFolderIfNeeded('output','test_results'), `${normalizedInput}.html`);
   await writeFile(fileName, html);
   console.log("Report written to", fileName);
 };

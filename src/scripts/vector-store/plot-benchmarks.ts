@@ -2,6 +2,7 @@ import { readFile, writeFile } from "fs/promises";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import path from 'path';
 
 
 const main = async () => {
@@ -27,7 +28,7 @@ const main = async () => {
     const all: Record<string, Record<string, { mean_ms: number; p95_ms: number; p99_ms: number; qps: number }>> = {};
 
     for (const scale of scales) {
-        const jsonResult = await readFile(`output/vector-store/benchmark-${K}-${scale}-${ALGORITHM.toLocaleLowerCase()}.json`, "utf-8")
+        const jsonResult = await readFile(path.join('output','vector-store', `benchmark-${K}-${scale}-${ALGORITHM.toLocaleLowerCase()}.json`), "utf-8")
             .then(r => JSON.parse(r));
         all[scale] = jsonResult;
     }
@@ -66,7 +67,7 @@ const main = async () => {
     };
 
     const buffer = await chartJSNodeCanvas.renderToBuffer(configuration);
-    const outputFile = `output/vector-store/benchmark-summary-${K}-${ALGORITHM.toLocaleLowerCase()}.png`;
+    const outputFile = path.join('output','vector-store', `benchmark-summary-${K}-${ALGORITHM.toLocaleLowerCase()}.png`);
     await writeFile(outputFile, buffer);
     console.log(`Benchmark summary chart saved to ${outputFile}`);
 };

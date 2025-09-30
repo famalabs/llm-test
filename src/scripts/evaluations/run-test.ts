@@ -6,6 +6,7 @@ import { PATH_NORMALIZATION_MARK } from "../../lib/nlp";
 import { createOutputFolderIfNeeded } from "../../utils";
 import { hideBin } from "yargs/helpers";
 import Redis from "ioredis";
+import path from 'path';
 import { VectorStore, ensureIndex } from "../../vector-store";
 import { Chunk } from "../../lib/chunks";
 
@@ -24,8 +25,10 @@ const main = async () => {
         throw new Error('Filenames cannot contain underscores or colons');
     }
 
-    const test: { questions: { question: string; expectedAnswer: string }[] } = await JSON.parse(await readFile(testFile!, 'utf-8'));
-    const config = await JSON.parse(await readFile(configFile!, 'utf-8'));
+    const normalizedTestPath = path.normalize(testFile!);
+    const normalizedConfigPath = path.normalize(configFile!);
+    const test: { questions: { question: string; expectedAnswer: string }[] } = await JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
+    const config = await JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
     const docStoreRedisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
     await ensureIndex(docStoreRedisClient, indexName!, [
         "pageContent", "TEXT",
@@ -55,10 +58,10 @@ const main = async () => {
         output.results.push({ question, reference, candidate });
     }
 
-    const normalizedTestFile = (testFile!).replaceAll('/', PATH_NORMALIZATION_MARK);
-    const normalizedConfigFile = (configFile!).replaceAll('/', PATH_NORMALIZATION_MARK);
+    const normalizedTestFile = normalizedTestPath.replaceAll(path.sep, PATH_NORMALIZATION_MARK);
+    const normalizedConfigFile = normalizedConfigPath.replaceAll(path.sep, PATH_NORMALIZATION_MARK);
 
-    const fileName = `${createOutputFolderIfNeeded('output/candidates')}/${normalizedTestFile}_${normalizedConfigFile}.json`;
+    const fileName = path.join(createOutputFolderIfNeeded('output','candidates'), `${normalizedTestFile}_${normalizedConfigFile}.json`);
     await writeFile(fileName, JSON.stringify(output, null, 2));
     console.log('Report written to', fileName);
 }
