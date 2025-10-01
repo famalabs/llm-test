@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import { pipeline } from "@huggingface/transformers";
-import { exec } from "child_process";
+import { exec, execFile } from "child_process";
 import os from "os";
+import path from "path";
 
 class LocalEmbeddings {
     private model: string;
@@ -30,27 +31,35 @@ class LocalEmbeddings {
 from sentence_transformers import SentenceTransformer
 import json
 model = SentenceTransformer("${this.model}")
-embeddings = model.encode(${JSON.stringify(textsArray)}, prompt_name="query")
+embeddings = model.encode(${JSON.stringify(textsArray)}) # , prompt_name="query")
 print(json.dumps(embeddings.tolist()))
         `.trim();
-
+        
         return new Promise((resolve, reject) => {
 
-            let command:any;
+            let commandFunction: (callback: (error: Error | null, stdout: string, stderr: string) => void) => void;
 
             const platform = os.platform();
 
             if (platform === 'win32') {
-                // x EMA
+                const venvPython = path.join(process.cwd(), ".venv", "Scripts", "python.exe");
+                commandFunction = (callback: (error: Error | null, stdout: string, stderr: string) => void) => {
+                    execFile(
+                        venvPython, ['-u', '-c', pythonCode], 
+                        { maxBuffer: textsArray.length * 1024 * 24 }, 
+                        callback);
+                }
             } 
             else if (platform == 'darwin' || platform == 'linux') {
-                command = `source .venv/bin/activate && python -c "${pythonCode.replace(/"/g, '\\"')}"`;
+                commandFunction = (callback: (error: Error | null, stdout: string, stderr: string) => void) => {
+                    exec(`source .venv/bin/activate && python -c "${pythonCode.replace(/"/g, '\\"')}"`, callback);
+                }
             }
             else {
                 return reject(new Error(`Unsupported platform: ${platform}`));
             }
 
-            exec(command, (error, stdout, stderr) => {
+            commandFunction((error, stdout, stderr) => {
                 if (error) {
                     console.error(`Error executing Python script:`, error);
                     return reject(error);

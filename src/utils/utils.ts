@@ -1,7 +1,7 @@
 import csv from 'csv-parser';
 import { existsSync, mkdirSync } from 'fs';
 import * as readline from 'node:readline/promises';
-import { exec } from 'node:child_process';
+import { exec, execFile } from 'node:child_process';
 import path from 'path';
 import os from 'os';
 
@@ -93,20 +93,28 @@ export const float32Buffer = (arr: number[]) => {
 export const lemmatize = (text: string | string[]) => {
   const code = `import spacy; import json; nlp = spacy.load("it_core_news_lg"); texts = ${JSON.stringify(text)}; lem = [" ".join(doc.lemma_ if isinstance(doc, spacy.tokens.Token) else [t.lemma_ for t in doc]) for doc in nlp.pipe(texts)]; print(json.dumps(lem))`;
   return new Promise<string[]>((resolve, reject) => {
-    let command: any;
+    let commandFunction: (callback: (error: Error | null, stdout: string, stderr: string) => void) => void;
 
     const platform = os.platform();
 
     if (platform === 'win32') {
-      // x EMA
+      const venvPython = path.join(process.cwd(), ".venv", "Scripts", "python.exe");
+      commandFunction = (callback: (error: Error | null, stdout: string, stderr: string) => void) => {
+        execFile(
+          venvPython, ['-u', '-c', code], 
+          { maxBuffer: JSON.stringify(text).length + 1024 }, 
+          callback);
+      }
     }
     else if (platform == 'darwin' || platform == 'linux') {
-      command = 'source .venv/bin/activate && python -c ' + JSON.stringify(code);
+      commandFunction = (callback: (error: Error | null, stdout: string, stderr: string) => void) => {
+        exec('source .venv/bin/activate && python -c ' + JSON.stringify(code), callback);
+      }
     }
     else {
       return reject(new Error(`Unsupported platform: ${platform}`));
     }
-    exec(command, (error, stdout, stderr) => {
+    commandFunction((error, stdout, stderr) => {
       if (error) {
         reject(`Error: ${error.message}`);
         return;
