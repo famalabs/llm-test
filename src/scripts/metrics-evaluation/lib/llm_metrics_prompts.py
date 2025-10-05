@@ -1,17 +1,36 @@
-# Reinforced attention on 0
+# 24: No information treatment. 
+
+core_philosophy = """
+**Guiding Principle: Evaluating Answers on a Spectrum of Quality**
+
+You will be assessing an answer based on two reference points:
+1.  **EXPECTED KEY ANSWER**: This contains the absolute essential, non-negotiable facts. It's the baseline for a correct but minimal answer.
+2.  **EXPECTED FULL ANSWER**: This is the ideal, "gold standard" answer. It includes all the key information plus additional context, details, and better phrasing.
+
+Your evaluation process must always follow two steps:
+1.  **Factual Correctness Check**: First, verify if the GIVEN ANSWER contains any information that is factually incorrect or contradicts the references. If it does, the score is always 0, regardless of any other correct information it might contain.
+2.  **Completeness Assessment**: If the answer is factually correct, you will then score its completeness based on the specific criteria for the task, comparing it against the KEY and/or FULL answers. Rephrasing is acceptable and should not be penalized if the meaning is preserved.
+3.  **Truth Check**: Always ensure that the GIVEN ANSWER does not introduce any general false information (e.g. a false fact, like "sky's color is green" => 0). If it does, the score must be 0, even if it contains some correct information.
+4.  **Speculation Penalty**: Penalize the model whenever it introduces speculative or assumptive content that is not supported by — or contradicts — the reference answers => score = 0.
+5.  ***No Information Available**: If the EXPECTED ANSWERS says that no information is available, but the GIVEN ANSWER provides some information, the score must be 0.
+"""
+
 
 shallower_reinforcement_on_0 = """Remember: If the given answer include false information, its score is 0."""
-reinforced_attention_on_0 = """Be meticoulous and check every detail of the GIVEN ANSWER. Even a small mistake or omission w.r.t. the EXPECTED ANSWERS lead to a score of 0."""
+attention_on_0 = """Check every detail of the GIVEN ANSWER and meticoulously compare it to the EXPECTED ANSWERS. A fake information (temporal / factual etc..) lead to a score of 0 [!]."""
+dangerous_info_warning ="""The answers are medically related. If the GIVEN ANSWER contains wrong medical indication with respect to the EXPECTED ANSWERS, the score must be 0."""
+attention_on_rephrases = """But, be aware of rephrases: if the GIVEN ANSWER is a rephrase of the EXPECTED ANSWER, it should not be penalized."""
 
 PROMPT_CONFIGS = {
         "llm_full": {
             
-            "task_description": "Your task is to compare the provided answer with two answers: One contains only key informations, the other contains both key and optional informations.",
+            "task_description": "Your task is to compare the provided answer (GIVEN ANSWER) with two answers: One contains only key informations (EXPECTED KEY ANSWER), the other contains both key and optional (EXPECTED FULL ANSWER) informations.",
             
             "expected_output": """1. A Correctness Score (0 to 1, in increments of 0.1).
 2. A brief explanation (1-3 sentences) justifying your score.""",
+
             "score_criteria": """Correctness Score (0 to 1, in increments of 0.1):
-    0 = Incorrect or fabricated information (regardless of the presence of key or optional information)
+    0 = Incorrect or fabricated information (regardless of the presence of key or optional information) [BE VERY METICOULOUS ON THIS POINT! LOOK @ THE WARNING AT THE END OF THIS PROMPT].
     0.1 = Absence of both key and optional information (generic information without informative content)
     0.2 = Absence of key information but contains some optional information
     0.3 = Many key pieces of information are missing and many or all optional pieces are missing
@@ -27,7 +46,7 @@ PROMPT_CONFIGS = {
 2. Evaluate the GIVEN ANSWER against the EXPECTED ANSWERS based on Accuracy, Completeness, and Relevance.
 3. Assign a Correctness Score (0-1) with one decimal place.
 4. Provide a short explanation (1-3 sentences) justifying your score.""",
-        
+
             "few_shots": """Example:
 QUERY:
 Quanti pianeti ci sono nel sistema solare e quali sono i loro nomi?
@@ -42,7 +61,6 @@ GIVEN ANSWER:
 Ci sono tre pianeti nel sistema solare: Terra, Marte e Venere.
 -----------
 Score: 0 // False information.
-
 
 // Another GIVEN ANSWER
 GIVEN ANSWER:
@@ -61,15 +79,15 @@ Score: 0.7 // All and only the key pieces of information (eight planets and thei
         
         
         "llm_main": {
-        
-            "task_description": "Your task is to compare the provided answer with the answer containing only key informations.",
-        
+
+            "task_description": "Your task is to compare the provided answer (GIVEN ANSWER) with the answer containing only key informations (EXPECTED KEY ANSWER). The EXPECTED FULL ANSWER, it contains both key and optional informations, must be used just for the context - you have to consider ONLY the information within the EXPECTED KEY ANSWER!.",
+
             "expected_output": """You're expected to compare only the GIVEN ANSWER against the EXPECTED KEY ANSWER, using the QUERY and the EXPECTED FULL ANSWER just for the context.
 
 You're expected to provide:
-1. A Correctness Score (0 to 4, in increments of 1) comparing the QUERY with the EXPECTED KEY ANSWER (the EXPECTED FULL ANSWER must be used just for the context).
+1. A Correctness Score (0 to 4, in increments of 1 - important: increments of 1 only) comparing the QUERY with the EXPECTED KEY ANSWER (the EXPECTED FULL ANSWER must be used just for the context).
 2. A brief explanation (1-3 sentences) justifying your score.""",
-            "score_criteria": """Correctness Score (0 to 4, in increments of 1):
+            "score_criteria": """Correctness Score (0 to 4, in increments of 1 - important: increments of 1 only):
     0 = Incorrect or fabricated information (regardless of the presence of key or optional information)
     1 = Absence of key information (generic information without informative content)
     2 = Somewhere between 0% and 50% (included) of key pieces of information are present.
@@ -111,19 +129,22 @@ Score: 4 // All key pieces of information (eight planets and their names) are pr
         },
         
 "llm_sub": {
-    "task_description": "Your task is to compare the provided answer with the answer containing BOTH the key and the optional information, focusing on how well it covers the optional details while remaining factually correct on the key points.",
+    "task_description": "Your task is to compare the provided answer (GIVEN ANSWER) with the answer containing BOTH the key and the optional information (EXPECTED FULL ANSWER), focusing on how well it covers the optional details while remaining factually correct on the key points.",
     
     "expected_output": """You're expected to compare the GIVEN ANSWER against the EXPECTED FULL ANSWER.
 You're expected to provide:
-1. A Correctness Score (0 to 4, in increments of 1) comparing the GIVEN ANSWER with the EXPECTED FULL ANSWER.
+1. A Correctness Score (0 to 4, in increments of 1 - important: increments of 1 only) comparing the GIVEN ANSWER with the EXPECTED FULL ANSWER.
 2. A brief explanation (1-3 sentences) justifying your score.""",
 
-    "score_criteria": """Correctness Score (0 to 4, in increments of 1):
+    "score_criteria": """Correctness Score (0 to 4, in increments of 1 - important: increments of 1 only):
     0 = The answer contains incorrect or fabricated information (key or optional) OR is completely unrelated.
     1 = The answer contains almost no optional information (it might only state a generic fact, but still factually correct on key points).
     2 = The answer contains some optional details, roughly up to 50% of those in the expected full answer.
     3 = The answer contains most of the optional details, roughly between 50% and 100% (not all).
-    4 = The answer contains all or nearly all optional details from the expected full answer, with no factual errors.""",
+    4 = The answer contains all or nearly all optional details from the expected full answer, with no factual errors.
+    
+Medical proactivity (medical consultancy if no information available, ecc...) should be rewarded, but only if the provided answer is factually correct with respect to the expected full answer.
+    """,
 
     "instructions": """1. Read the QUERY, EXPECTED FULL ANSWER, and the GIVEN ANSWER carefully.
 2. First check factual correctness: if the GIVEN ANSWER contains false information (even about key facts), assign score 0.
@@ -179,11 +200,11 @@ Score: 4 // Includes all key facts, names, and essentially all optional details.
 - The answer containing only key information (EXPECTED KEY ANSWER).
 - The answer containing both key and optional information (EXPECTED FULL ANSWER).""",
             "expected_output": """You're expected to provide:
-1. TWO Correctness Scores (0 to 4, in increments of 1): 
+1. TWO Correctness Scores (0 to 4, in increments of 1  - important: increments of 1 only): 
     * The first score is based on comparison with the EXPECTED KEY ANSWER.
     * The second score is based on comparison with the EXPECTED FULL ANSWER.
 2. A brief explanation (1-3 sentences) justifying both scores.""",
-            "score_criteria": """Correctness Score (0 to 4, in increments of 1):
+            "score_criteria": """Correctness Score (0 to 4, in increments of 1 - important: increments of 1 only):
     0 = Incorrect or fabricated information (regardless of the presence of key or optional information)
     1 = Absence of the relevant information (generic information without informative content)
     2 = Somewhere between 0% and 50% of the relevant information is present.
@@ -260,6 +281,9 @@ def build_prompt(type, query, expected_key_answer, expected_full_answer, provide
     
     prompt_template = f"""
 You're an expert evaluator for assessing the correctness of answers provided by a question-answering system. 
+
+{core_philosophy}
+
 {config['task_description']}
 Considering also the query, you will assign a correctness score based on the following criteria:
 - Accuracy: Check if the given answer accurately reflects the information in the expected answers without introducing any false or misleading information.
@@ -276,7 +300,10 @@ Instructions:
 {config['instructions']}
 
 {shallower_reinforcement_on_0}
-{reinforced_attention_on_0}
+{attention_on_0}
+{dangerous_info_warning}
+
+{attention_on_rephrases}
 
 {''.join(input_blocks)}
 """.strip()

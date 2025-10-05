@@ -27,7 +27,7 @@ import { cosineSimilarity } from "ai";
 import yargs from "yargs";
 
 const main = async () => {
-  const { input, tooltip, provider, model, lemmatization } = await yargs(hideBin(process.argv))
+  const { input, tooltip, provider, model, lemmatization, embeddingDim } = await yargs(hideBin(process.argv))
     .option("input", {
       alias: "i",
       type: "string",
@@ -46,6 +46,11 @@ const main = async () => {
       demandOption: true,
       choices: ["mistral", "openai", "voyage", "local", "huggingface", "google"],
       describe: "Provider to use for embeddings",
+    })
+    .option("embeddingDim", {
+      alias: "e",
+      type: "number",
+      describe: "Embedding dimension. If not set, use the default for the model",
     })
     .option("model", {
       alias: "m",
@@ -66,7 +71,7 @@ const main = async () => {
     console.log('Lemmatization is enabled. Make sure you created a venv named .venv in llm-test/ and you installed spacy and ran python -m spacy download it_core_news_lg');
   }
 
-  const embedder = createEmbedder(model, provider as "mistral" | "openai");
+  const embedder = createEmbedder(model, provider as  "mistral" | "openai" | "voyage" | "local" | "huggingface" | "google", embeddingDim);
   const embeddingsCache: Record<string, number[]> = {};
   const lemmatizationCache: Record<string, string> = {};
 
@@ -75,11 +80,11 @@ const main = async () => {
   const matrices: Record<string, number[][]> = {};
   const groupQueries: Record<string, string[]> = {};
 
-  // ------ aggiunto questo -----
   const uniqueQueries: string[] = Object.values(inputData).flat() as string[];
   const processedUniqueQueries = lemmatization ? await lemmatize(uniqueQueries) : uniqueQueries;
 
   const embeddings = await embedder.embedDocuments(processedUniqueQueries);
+  console.log('Embedding dimension:', embeddings[0]?.length);
   
   for (let i = 0; i < uniqueQueries.length; i++) {
     const q = uniqueQueries[i];

@@ -90,16 +90,16 @@
       },
       {
         "Candidate": "L’aspirina è una compressa bianca.",
-        "MainCategory": 1,
-        "SubCategory": 1,
-        "Continuous": 0.1,
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
         "Binary": 0
       },
       {
         "Candidate": "L’aspirina può non essere tollerata da tutti.",
-        "MainCategory": 0,
-        "SubCategory": 0,
-        "Continuous": 0.0,
+        "MainCategory": 1,
+        "SubCategory": 1,
+        "Continuous": 0.1,
         "Binary": 0
       },
       {
@@ -161,21 +161,21 @@
       {
         "Candidate": "Non ho informazioni sulla batteria",
         "MainCategory": 1,
-        "SubCategory": 4,
+        "SubCategory": 1,
         "Continuous": 0.1,
         "Binary": 0
       },
       {
         "Candidate": "Non so dirti quante ore dura la batteria",
         "MainCategory": 1,
-        "SubCategory": 4,
+        "SubCategory": 1,
         "Continuous": 0.1,
         "Binary": 0
       },
       {
         "Candidate": "La batteria dura ore",
         "MainCategory": 1,
-        "SubCategory": 4,
+        "SubCategory": 1,
         "Continuous": 0.1,
         "Binary": 0
       },
@@ -266,7 +266,7 @@
       {
         "Candidate": "Stamattina prendi una bustina di tachipirina 500 e dopo pranzo una compressa di Clavulin.",
         "MainCategory": 3,
-        "SubCategory": 4,
+        "SubCategory": 3,
         "Continuous": 0.6,
         "Binary": 0
       },
@@ -447,9 +447,9 @@
       },
       {
         "Candidate": "Gli ingredienti della pizza sono impasto e condimenti.",
-        "MainCategory": 2,
+        "MainCategory": 1,
         "SubCategory": 1,
-        "Continuous": 0.2,
+        "Continuous": 0.1,
         "Binary": 0
       },
       {
@@ -769,9 +769,9 @@
       },
       {
         "Candidate": "Per un bambino di 25 kg, il dosaggio raccomandato di Oki è compreso tra 1 e 2 mg/kg per somministrazione. Pertanto, il dosaggio massimo giornaliero sarebbe di 2 mg/kg, 3 volte al giorno. Quindi, per un bambino di 25 kg, il dosaggio massimo giornaliero sarebbe: 2 mg/kg * 25 kg * 3 = 150 mg al giorno.",
-        "MainCategory": 2,
-        "SubCategory": 2,
-        "Continuous": 0.3,
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
         "Binary": 0
       },
       {
@@ -853,9 +853,9 @@
       },
       {
         "Candidate": "OKI è controindicato nel terzo mese di gravidanza, in quanto ci sono rischi sia per la madre che per il feto.",
-        "MainCategory": 2,
-        "SubCategory": 2,
-        "Continuous": 0.3,
+        "MainCategory": 0,
+        "SubCategory": 0,
+        "Continuous": 0.0,
         "Binary": 0
       },
       {

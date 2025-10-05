@@ -1,18 +1,20 @@
 import z from "zod";
 import { Metric } from "./interfaces";
-import { sleep } from "langchain/util/time";
+import { sleep } from "../../../utils";
 import { generateObject } from "ai";
 import { mistral } from "@ai-sdk/mistral";
 import { llmAsAJudgePrompt } from "../../../lib/prompt"
 
 const execute = async ({
     prediction,
-    reference,
+    keyRef,
+    fullRef,
     query,
     llm
 }: {
     prediction: string,
-    reference: string,
+    keyRef: string,
+    fullRef: string,
     query?: string,
     llm?: string
 }) => {
@@ -26,12 +28,12 @@ const execute = async ({
         explanation: z.string()
     });
 
-    const prompt = llmAsAJudgePrompt(query, /*expectedAnswer*/ reference, /*givenAnswer*/ prediction);
+    const prompt = llmAsAJudgePrompt(query, keyRef, fullRef, prediction);
     const getResponse = async () => {
         const { object: result } = await generateObject({
             model: mistral(llm),
             prompt,
-            temperature:0,
+            temperature: 0,
             seed: 42,
             schema
         });

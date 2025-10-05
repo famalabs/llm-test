@@ -2,30 +2,41 @@ import 'dotenv/config';
 
 class VoyageAIEmbeddings {
     private apiKey: string;
+    private output_dimension: number | undefined = undefined;
     private model: string;
     private baseUrl = "https://api.voyageai.com/v1/embeddings";
 
-    constructor({ model }: { model: string }) {
+    constructor({ model, dimensions }: { model: string, dimensions?: number }) {
         this.apiKey = process.env.VOYAGE_API_KEY!;
         if (!this.apiKey) {
             throw new Error("VOYAGE_API_KEY environment variable is not set.");
+        }
+        if (dimensions) {
+            this.output_dimension = dimensions;
         }
         this.model = model;
     }
 
     private async requestEmbeddings(input: string | string[]): Promise<any> {
         try {
+
+            const body: any = {
+                input,
+                model: this.model,
+                input_type: "document"
+            };
+
+            if (this.output_dimension) {
+                body.output_dimension = this.output_dimension;
+            }
+
             const response = await fetch(this.baseUrl, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${this.apiKey}`
                 },
-                body: JSON.stringify({
-                    input,
-                    model: this.model,
-                    input_type: "document"
-                })
+                body: JSON.stringify(body)
             });
 
             if (!response.ok) {

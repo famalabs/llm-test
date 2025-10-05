@@ -1,25 +1,16 @@
 {
+    "provider": "mistral",
     "llm": "mistral-small-latest",
-    "numResults": 30,
-    "output": {
-        "reasoningEnabled": true,
-        "chunksOrAnswerFormat": "answer",
-        "fewShotsEnabled": true
-    },
-    "reranking": {
-        "enabled": true,
-        "llm": "mistral-small-latest",
-        "fewShotsEnabled": true,
-        "batchSize": 5,
-        "llmEvaluationWeight": 0.7,
-        "reasoningEnabled": true,
-        "chunkFiltering": {
-            "enabled": true,
-            "thresholdMultiplier": 0.66
-        }
+    "numResults": 10,
+    "chunkFiltering": {
+        "thresholdMultiplier": 0.7,
+        "baseThreshold": 0.35
     },
     "parentPageRetrieval": {
-        "enabled": true,
         "offset": 3
-    }
+    },
+    "reasoningEnabled": true,
+    "includeCitations": true,
+    "fewShotsEnabled": true,
+    "verbose": true
 }

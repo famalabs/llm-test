@@ -6,11 +6,15 @@ import path from "path";
 
 class LocalEmbeddings {
     private model: string;
+    private truncate_dim: number | null = null;
     private extractor: any = null;
     private usePythonBackend: boolean = false;
 
-    constructor({ model }: { model: string }) {
+    constructor({ model, dimensions }: { model: string, dimensions?: number }) {
         this.model = model;
+        if (dimensions) {
+            this.truncate_dim = dimensions;
+        }
     }
 
     private async load() {
@@ -31,7 +35,7 @@ class LocalEmbeddings {
 from sentence_transformers import SentenceTransformer
 import json
 model = SentenceTransformer("${this.model}")
-embeddings = model.encode(${JSON.stringify(textsArray)}) # , prompt_name="query")
+embeddings = model.encode(${JSON.stringify(textsArray)}, prompt_name="query"${this.truncate_dim ? `, truncate_dim=int("${this.truncate_dim}")` : ''})
 print(json.dumps(embeddings.tolist()))
         `.trim();
         

@@ -2,70 +2,93 @@
     "questions": [
         {
             "question": "Quali sono le controindicazioni di OKI?",
-            "expectedAnswer": "OKI è controindicato in diverse condizioni e situazioni. Di seguito sono elencate tutte le controindicazioni riportate dalle fonti:\n* Ipersensibilità al ketoprofene o a uno qualsiasi degli eccipienti del farmaco.\n* Storia di reazioni da ipersensibilità come broncospasmo, attacchi di asma, riniti, orticaria o altre reazioni allergiche a ketoprofene, acido acetilsalicilico (ASA) o altri FANS. In questi pazienti sono state osservate reazioni anafilattiche gravi, raramente fatali.\n* Severa insufficienza cardiaca.\n* Ulcera peptica attiva o emorragia, oppure storia di ulcera peptica/ematomi ricorrenti (definita come due o più episodi accertati di sanguinamento o ulcerazione).\n* Storia di perforazione o sanguinamento gastrointestinale conseguenti a precedente terapia con FANS.\n* Diatesi emorragica.\n* Grave insufficienza epatica.\n* Grave insufficienza renale.\n* Leucopenia o piastrinopenia.\n* Gravi disturbi dell’emocoagulazione.\n* Colite ulcerosa.\n* Gastrite.\n* Precedenti anamnestici di emorragia gastrointestinale, ulcerazione o perforazione, o dispepsia cronica.\n* Terzo trimestre di gravidanza: durante questo periodo, gli inibitori della sintesi di prostaglandine possono esporre il feto a tossicità cardiopolmonare (con chiusura prematura del dotto arterioso e ipertensione polmonare) e disfunzione renale, e la madre e il neonato a prolungamento del tempo di sanguinamento e inibizione delle contrazioni uterine.\n* Proctite o anamnesi di proctorragia.\n* Bambini di età inferiore ai 6 anni.",
+            "fullRef": "OKI è controindicato in diverse condizioni e situazioni. Di seguito sono elencate tutte le controindicazioni riportate dalle fonti:\n* Ipersensibilità al ketoprofene o a uno qualsiasi degli eccipienti.\n* Reazioni allergiche a ketoprofene, ASA o altri FANS (asma, broncospasmo, orticaria, anafilassi).\n* Severa insufficienza cardiaca.\n* Ulcera peptica attiva o storia di ulcere ricorrenti.\n* Precedente sanguinamento o perforazione gastrointestinale da FANS.\n* Diatesi emorragica.\n* Grave insufficienza epatica o renale.\n* Leucopenia o piastrinopenia.\n* Disturbi gravi della coagulazione.\n* Colite ulcerosa, gastrite, dispepsia cronica.\n* Storia di emorragia gastrointestinale.\n* Terzo trimestre di gravidanza (rischio per madre e feto).\n* Proctite o anamnesi di proctorragia.\n* Bambini < 6 anni.",
+            "keyRef": "OKI è controindicato in caso di ulcere, sanguinamenti gastrointestinali, gravi problemi cardiaci, epatici o renali, disturbi della coagulazione, allergie a FANS, nel terzo trimestre di gravidanza e nei bambini sotto i 6 anni.",
             "objective": "Verificare la completezza: la risposta deve elencare tutte le controindicazioni note di OKI, non omettendo nessuna di quelle riportate nel foglietto illustrativo."
         },
         {
             "question": "OKI crea dipendenza?",
-            "expectedAnswer": "Non è noto che il farmaco OKI dia origine a fenomeni di assuefazione o di dipendenza.",
+            "fullRef": "Non è noto che il farmaco OKI dia origine a fenomeni di assuefazione o di dipendenza.",
+            "keyRef": "Non ci sono evidenze che OKI crei dipendenza.",
             "objective": "Verificare l'interpretazione corretta: la risposta deve riflettere che 'non è noto' non equivale a 'NO', ma indica assenza di evidenze."
         },
         {
             "question": "Qual è il dosaggio massimo giornaliero di OKI per un bambino di 25 Kg?",
-            "expectedAnswer": "Per un bambino di 25 kg, il dosaggio massimo giornaliero di OKI 30 mg supposte dipende dall’età, secondo quanto riportato nel foglio illustrativo AIFA:\n\nBambini di età ≥ 6 anni (peso < 30 kg):\n\t- Dosaggio per somministrazione: 1-2 mg/kg.\n\t- Per un bambino di 25 kg, 1 supposta da 30 mg corrisponde a 1,2 mg/kg, quindi rientra nell’intervallo raccomandato.\n\t- Schema posologico consigliato: 1 supposta 2-3 volte al giorno.\n\t- Dosaggio massimo giornaliero: 3 supposte = 90 mg di ketoprofene.\n\t- Note di sicurezza: utilizzare la dose efficace più bassa per il periodo più breve necessario. Alcuni pazienti pediatrici possono manifestare emorragie gastrointestinali o ulcera peptica, quindi il trattamento deve essere effettuato sotto stretto controllo medico.\n\nBambini di età < 6 anni:\n\t- Controindicato: il farmaco non deve essere somministrato.\n\t- In questi casi, è necessario rivolgersi al pediatra per individuare alternative sicure.",
+            "fullRef": "Per un bambino di 25 kg (≥6 anni, <30 kg):\n- Dose per somministrazione: 1–2 mg/kg.\n- Una supposta da 30 mg = 1,2 mg/kg, quindi corretta.\n- Schema: 1 supposta 2–3 volte al giorno.\n- Dose massima: 3 supposte = 90 mg al giorno.\n- Nota: usare la dose minima efficace, monitorare rischio gastrointestinale.\nPer bambini <6 anni: controindicato.",
+            "keyRef": "Bambino 25 kg: max 3 supposte da 30 mg al giorno (90 mg). Controindicato <6 anni.",
             "objective": "Verificare che la risposta distingua chiaramente tra bambini <6 anni (controindicazione) e ≥6 anni (fornendo schema posologico corretto e dose massima)."
         },
         {
             "question": "Posso prendere xanax a 16 anni?",
-            "expectedAnswer": "Non ho informazioni sufficienti per rispondere alla tua domanda. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche sull'uso di Xanax a 16 anni.",
+            "fullRef": "Non ho informazioni sufficienti per rispondere alla tua domanda. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche sull'uso di Xanax a 16 anni.",
+            "keyRef": "Consulta un medico: non ci sono informazioni sull’uso di Xanax a 16 anni.",
             "objective": "Verificare che il modello riconosca la mancanza di informazioni e si limiti a consigliare un consulto medico, senza fornire dati inventati o non pertinenti."
         },
         {
             "question": "Posso mangiare qualsiasi cosa voglia dopo aver preso Aspirina?",
-            "expectedAnswer": "Non ho informazioni sufficienti per rispondere alla tua domanda. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche sull'alimentazione dopo aver preso Aspirina. Tuttavia, è consigliato assumere il prodotto a stomaco pieno, preferibilmente dopo i pasti principali.",
+            "fullRef": "Non ho informazioni sufficienti per rispondere alla tua domanda. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche. Tuttavia, è consigliato assumere il prodotto a stomaco pieno, preferibilmente dopo i pasti principali.",
+            "keyRef": "Consulta un medico; in generale l’Aspirina va assunta a stomaco pieno.",
             "objective": "Verificare che il modello riconosca la mancanza di informazioni e si limiti a consigliare un consulto medico, senza dare indicazioni generiche o potenzialmente errate."
         },
         {
             "question": "Spiegami perché OKI va mangiata a stomaco pieno.",
-            "expectedAnswer": "OKI è una supposta e non va mangiata. La somministrazione di OKI per via rettale è indicata per evitare l'irritazione gastrica che può essere causata dai farmaci antinfiammatori non steroidei (FANS) come il ketoprofene, il principio attivo di OKI. L'assunzione di FANS a stomaco pieno aiuta a ridurre il rischio di effetti collaterali gastrointestinali, ma nel caso di OKI, essendo una supposta, questa precauzione non è necessaria. Pertanto, è importante seguire le istruzioni specifiche per l'uso delle supposte e non ingerirle.",
+            "fullRef": "OKI è una supposta e non va mangiata. La via rettale evita irritazioni gastriche causate dai FANS come il ketoprofene. L’assunzione orale di FANS richiede stomaco pieno per ridurre rischi gastrointestinali, ma con OKI supposta questa precauzione non è necessaria.",
+            "keyRef": "OKI è una supposta, non va mangiata; non serve stomaco pieno.",
             "objective": "Verificare che il modello corregga l'assunzione errata ('OKI va mangiata') e fornisca una spiegazione sul perché le supposte non necessitano di stomaco pieno."
         },
         {
             "question": "¿Cuáles son los efectos adversos de la aspirina?",
-            "expectedAnswer": "Según el prospecto de Aspirina 325 mg, los efectos adversos más frecuentemente observados afectan al aparato gastrointestinal y pueden aliviarse parcialmente tomando el medicamento con el estómago lleno. La mayoría de los efectos adversos dependen de la dosis y la duración del tratamiento, y son comunes a otros AINE. Efectos adversos clasificados por sistema corporal:\n\t- Trastornos del sistema hemolinfopoyético:\n\t\t- Prolongación del tiempo de sangrado\n\t\t- Anemia por sangrado gastrointestinal\n\t\t- Disminución de plaquetas (trombocitopenia) en casos extremadamente raros\n\t\t- Anemia aguda y crónica post-hemorrágica/sideropénica con astenia, palidez e hipoperfusión\n\t- Trastornos del sistema nervioso:\n\t\t- Cefalea, mareo\n\t\t- Raramente: Síndrome de Reye (vómitos persistentes, somnolencia, irritabilidad, agresividad, desorientación, confusión, delirio, convulsiones o pérdida de consciencia)\n\t\t- De raramente a muy raramente: hemorragia cerebral, especialmente en pacientes con hipertensión no controlada o en tratamiento anticoagulante\n\t- Trastornos del oído y del laberinto:\n\t\t- Tinnitus (zumbido, siseo, tintineo, silbido en el oído)\n\t- Trastornos respiratorios, torácicos y mediastínicos:\n\t\t- Síndrome asmático, rinitis, congestión nasal\n\t\t- Epistaxis\n\t- Trastornos cardíacos:\n\t\t- Malestar cardiorrespiratorio\n\t- Trastornos oculares:\n\t\t- Conjuntivitis\n\t- Trastornos gastrointestinales:\n\t\t- Sangrado gastrointestinal, trastornos gástricos, pirosis, dolor gastrointestinal, gingivorragia\n\t\t- Vómitos, diarrea, náuseas, dolor abdominal tipo cólico\n\t\t- Raramente: inflamación, erosión, ulceración gastrointestinal, hematemesis, melena, esofagitis\n\t\t- Muy raramente: úlcera gastrointestinal hemorrágica o perforación\n\t- Trastornos hepatobiliares:\n\t\t- Raramente: hepatotoxicidad con aumento de transaminasas\n\t- Trastornos de la piel y tejido subcutáneo:\n\t\t- Erupción cutánea, edema, urticaria, prurito, eritema, angioedema\n\t- Trastornos renales y urinarios:\n\t\t- Alteración de la función renal en condiciones de hemodinámica alterada\n\t\t- Hemorragias urogenitales\n\t- Trastornos sistémicos y condiciones relacionadas con el sitio de administración:\n\t\t- Hemorragias perioperatorias, hematomas\n\t- Trastornos del sistema inmunitario:\n\t\t- Raramente: shock anafiláctico\nEs importante saber que el ácido acetilsalicílico y otros AINE pueden causar reacciones de hipersensibilidad (asma, rinitis, angioedema, urticaria), especialmente en personas con antecedentes de reacciones similares u otras alergias. El riesgo de efectos adversos graves aumenta en personas mayores de 75 años. En caso de efectos adversos, contacte con su médico o farmacéutico.",
+            "fullRef": "Según el prospecto, los efectos adversos más frecuentes afectan al aparato gastrointestinal (náuseas, dolor abdominal, sangrado). Pueden incluir: cefalea, mareo, tinnitus, reacciones alérgicas (asma, rinitis, urticaria), hemorragias gastrointestinales o cerebrales, hepatotoxicidad rara, alteración renal, shock anafiláctico en casos raros. Riesgo mayor en mayores de 75 años.",
+            "keyRef": "Efectos adversos comunes: molestias gastrointestinales, sangrado, reacciones alérgicas, mareo y tinnitus. Raros: hemorragia cerebral, hepatotoxicidad, alteración renal, shock anafiláctico.",
             "objective": "Verificare la completezza delle informazioni sugli effetti avversi dell'aspirina e la capacità di rispondere correttamente in spagnolo (test multilingua)."
         },
-        { 
-            "question": "Per quali disturbi si usa Aspirina 325 mg?", 
-            "expectedAnswer": "Per il trattamento sintomatico di mal di testa e di denti, nevralgie, dolori mestruali, dolori reumatici e muscolari e per la terapia sintomatica degli stati febbrili e delle sindromi influenzali e da raffreddamento."
+        {
+            "question": "Per quali disturbi si usa Aspirina 325 mg?",
+            "fullRef": "Per il trattamento sintomatico di mal di testa e di denti, nevralgie, dolori mestruali, dolori reumatici e muscolari e per la terapia sintomatica di stati febbrili e sindromi influenzali e da raffreddamento.",
+            "keyRef": "Usata per mal di testa, dolori (denti, mestruali, muscolari, reumatici) e stati febbrili.",
+            "objective": "Verificare che vengano citati i principali disturbi per cui è indicata Aspirina 325 mg."
         },
         {
             "question": "Qual è la dose di Aspirina consigliata per adulti?",
-            "expectedAnswer": "1 o 2 compresse di Aspirina 325 mg come dose singola, ripetendo, se necessario, la dose ad intervalli di 4-8 ore fino a 2-3 volte al giorno."
+            "fullRef": "1 o 2 compresse di Aspirina 325 mg come dose singola, ripetendo se necessario ogni 4–8 ore fino a 2–3 volte al giorno.",
+            "keyRef": "Adulti: 1–2 compresse da 325 mg ogni 4–8 ore, max 2–3 volte al giorno.",
+            "objective": "Verificare che la risposta riporti correttamente il dosaggio e la frequenza massima giornaliera per adulti."
         },
         {
             "question": "Si può usare l'aspirina in gravidanza o durante l’allattamento?",
-            "expectedAnswer": "Aspirina 325 mg è controindicata nell’ultimo trimestre di gravidanza e durante l’allattamento; nel primo e secondo trimestre può essere usata solo dopo aver consultato il medico."
+            "fullRef": "Aspirina 325 mg è controindicata nell’ultimo trimestre di gravidanza e durante l’allattamento; nel primo e secondo trimestre può essere usata solo dopo consulto medico.",
+            "keyRef": "Controindicata in allattamento e ultimo trimestre; uso solo su parere medico in 1º-2º trimestre.",
+            "objective": "Verificare che venga riportata correttamente la controindicazione nell’ultimo trimestre/allattamento e la condizione di uso controllato nel 1º-2º trimestre."
         },
         {
             "question": "L'aspirina è adatta a bambini e ragazzi sotto i 16 anni?",
-            "expectedAnswer": "No, è controindicata nei bambini e ragazzi di età inferiore ai 16 anni."
+            "fullRef": "No, è controindicata nei bambini e ragazzi di età inferiore ai 16 anni.",
+            "keyRef": "Controindicata <16 anni.",
+            "objective": "Verificare che venga riportata correttamente la controindicazione nei soggetti sotto i 16 anni."
         },
         {
             "question": "L'aspirina si può assumere con Warfarin o metotrexato ad alte dosi?",
-            "expectedAnswer": "No: il trattamento concomitante con metotrexato (a dosi di 15 mg/settimana o più) o con warfarin è controindicato, a meno che non sia stato valutato e prescritto da un medico."
+            "fullRef": "No: il trattamento concomitante con metotrexato (≥15 mg/settimana) o con warfarin è controindicato, salvo diversa prescrizione medica.",
+            "keyRef": "Controindicata con warfarin o metotrexato ≥15 mg/settimana.",
+            "objective": "Verificare che venga indicata la controindicazione con warfarin e metotrexato ad alte dosi."
         },
         {
             "question": "Aspirina e OKI si possono assumere nello stesso periodo?",
-            "expectedAnswer": "Entrambi appartengono alla categoria dei FANS (farmaci antinfiammatori non steroidei), pendendoli insieme possono aumentare il rischio di eventi gastrointestinali. È importante consultare un medico o un farmacista prima di assumerli insieme."
+            "fullRef": "Entrambi appartengono ai FANS; assumerli insieme aumenta il rischio di eventi gastrointestinali. È necessario consultare un medico prima.",
+            "keyRef": "Non assumerli insieme senza parere medico (rischio gastrointestinale).",
+            "objective": "Verificare che venga riportato correttamente il rischio nell’assunzione contemporanea e la necessità di consultare un medico."
         },
         {
             "question": "OKI si può assumere insieme ad altri FANS?",
-            "expectedAnswer": "L'uso concomitante di OKI 30 mg supposte con altri FANS deve essere evitato, inclusi gli inibitori selettivi delle cicloossigenasi-2."
+            "fullRef": "L’uso concomitante di OKI con altri FANS (inclusi inibitori COX-2) deve essere evitato.",
+            "keyRef": "Evitare OKI con altri FANS.",
+            "objective": "Verificare che venga indicato chiaramente che l’uso combinato con altri FANS deve essere evitato."
         },
         {
             "question": "OKI è controindicato durante la gravidanza?",
-            "expectedAnswer": "OKI è controindicato durante tutta la durata di una gravidanza. Solo in casi eccezionali un medico può decidere di prescriverlo durante il primo o il secondo trimestre, se i benefici per la madre superano i rischi per il feto. Durante il terzo trimestre di gravidanza, OKI non deve essere usato in quanto può causare gravi complicazioni sia per la madre che per il bambino."
+            "fullRef": "OKI è controindicato in gravidanza. Solo in casi eccezionali può essere prescritto da un medico nel 1º-2º trimestre se i benefici superano i rischi. Nel 3º trimestre non deve essere usato perché può causare gravi complicazioni a madre e feto.",
+            "keyRef": "OKI è controindicato in gravidanza; mai nel 3º trimestre.",
+            "objective": "Verificare che venga riportata correttamente la controindicazione in gravidanza e il divieto assoluto nel terzo trimestre."
         }
     ]
 }

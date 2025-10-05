@@ -1,5 +1,5 @@
 import { VectorStoreConfig } from "./interfaces";
-import { createEmbedder, Embedder } from "../lib/embeddings";
+import { createEmbedder, Embedder, EMBEDDING_DIMENSION } from "../lib/embeddings";
 import { resolveConfig } from "./vector-store.config";
 import { float32Buffer } from "../utils";
 import { randomUUID } from "crypto";
@@ -17,7 +17,7 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
     constructor(config: VectorStoreConfig) {
         this.config = resolveConfig(config);
         this.client = this.config.client;
-        this.embedder = createEmbedder(this.config.embeddingsModel!, this.config.embeddingsProvider!);
+        this.embedder = createEmbedder(this.config.embeddingsModel!, this.config.embeddingsProvider!, EMBEDDING_DIMENSION);
     }
 
     public async load() {

@@ -5,10 +5,7 @@ import { exec, execFile } from 'node:child_process';
 import path from 'path';
 import os from 'os';
 
-const terminal = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
+let terminal: readline.Interface | null = null;
 
 export const sleep = (seconds: number) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
 
@@ -83,6 +80,12 @@ export const getObjectLength = (obj: Record<string, any> | null | undefined) => 
 }
 
 export const getUserInput = async (prompt: string) => {
+  if (!terminal) {
+    terminal = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+  }
   return await terminal.question(prompt)
 }
 
@@ -101,8 +104,8 @@ export const lemmatize = (text: string | string[]) => {
       const venvPython = path.join(process.cwd(), ".venv", "Scripts", "python.exe");
       commandFunction = (callback: (error: Error | null, stdout: string, stderr: string) => void) => {
         execFile(
-          venvPython, ['-u', '-c', code], 
-          { maxBuffer: JSON.stringify(text).length + 1024 }, 
+          venvPython, ['-u', '-c', code],
+          { maxBuffer: JSON.stringify(text).length + 1024 },
           callback);
       }
     }

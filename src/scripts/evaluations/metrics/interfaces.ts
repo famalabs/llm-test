@@ -1,5 +1,6 @@
 export interface MetricArguments {
-    reference: string,
+    keyRef: string,
+    fullRef: string,
     prediction: string,
     query?: string,
     llm?: string,
@@ -7,5 +8,5 @@ export interface MetricArguments {
 
 export interface Metric {
     name: string,
-    execute: ({ reference, prediction }: MetricArguments) => Promise<{ score: number }>,
+    execute: ({ query, keyRef, fullRef, prediction }: MetricArguments) => Promise<{ score: number }>,
 }

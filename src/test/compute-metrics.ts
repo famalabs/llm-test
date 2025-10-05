@@ -1,11 +1,11 @@
 import { readFile, writeFile } from "fs/promises"
 import { tqdm } from "node-console-progress-bar-tqdm";
 import yargs from "yargs";
-import { customLLMAsAJudge, meteor, rouge1 } from "../scripts/evaluations/metrics";
+import { customLLMAsAJudge } from "../scripts/evaluations/metrics";
 import { createOutputFolderIfNeeded, mean } from '../utils';
 import { hideBin } from "yargs/helpers";
 import path from 'path';
-const allMetrics = { customLLMAsAJudge, meteor, rouge1 };
+const allMetrics = { customLLMAsAJudge };
 
 const main = async () => {
     const { input } = await yargs(hideBin(process.argv))
@@ -23,8 +23,12 @@ const main = async () => {
     for (const metric of tqdm(Object.keys(allMetrics))) {
         const { name, execute } = (allMetrics)[metric as keyof typeof allMetrics];
         const scores: number[] = [];
-        for (const { reference, candidate } of resultsContent.results) {
-            const args: { reference: string; prediction: string; query?: string; llm?: string } = { reference, prediction: candidate };
+        for (const { candidate, fullRef, keyRef } of resultsContent.results) {
+            const args: { fullRef: string; keyRef: string; prediction: string; query?: string; llm?: string } = { 
+                fullRef, 
+                keyRef,  
+                prediction: candidate,
+            };
 
             if (name === 'llm-as-a-judge') {
                 args.query = resultsContent.results[0].question;
@@ -37,11 +41,11 @@ const main = async () => {
         evaluations[name] = scores;
     }
 
-    let out = `llm, ${mean(evaluations['llm-as-a-judge'])}, meteor, ${mean(evaluations['meteor'])}, rouge1, ${mean(evaluations['rouge1'])}\n`;
-    out += "#,query,reference,candidate,llm,meteor,rouge1\n";
+    let out = `llm, ${mean(evaluations['llm-as-a-judge'])}\n`;
+    out += "#,query,fullref,keyref,candidate,llm\n";
     for (let i = 0; i < resultsContent.results.length; i++) {
-        const { question, reference, candidate } = resultsContent.results[i];
-        out += `${i + 1},"${question.replaceAll('"', '""')}","${reference.replaceAll('"', '""')}","${candidate.replaceAll('"', '""')}",${evaluations['llm-as-a-judge'][i]},${evaluations['meteor'][i]},${evaluations['rouge1'][i]}\n`;
+        const { question, fullRef, keyRef, candidate } = resultsContent.results[i];
+        out += `${i + 1},"${question.replaceAll('"', '""')}","${fullRef.replaceAll('"', '""')}","${keyRef.replaceAll('"', '""')}","${candidate.replaceAll('"', '""')}",${evaluations['llm-as-a-judge'][i]}\n`;
     }
 
     const fileName = path.join(createOutputFolderIfNeeded('output','scores'), outputFileName);

@@ -8,7 +8,7 @@ import { hideBin } from "yargs/helpers";
 import Redis from "ioredis";
 import path from 'path';
 import { VectorStore, ensureIndex } from "../../vector-store";
-import { Chunk } from "../../lib/chunks";
+import { Chunk, Citation } from "../../lib/chunks";
 
 const main = async () => {
     const { test: testFile, config: configFile, indexName } = await yargs(hideBin(process.argv))
@@ -27,7 +27,7 @@ const main = async () => {
 
     const normalizedTestPath = path.normalize(testFile!);
     const normalizedConfigPath = path.normalize(configFile!);
-    const test: { questions: { question: string; expectedAnswer: string }[] } = await JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
+    const test: { questions: { question: string; fullRef: string, keyRef:string }[] } = await JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
     const config = await JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
     const docStoreRedisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
     await ensureIndex(docStoreRedisClient, indexName!, [
@@ -46,16 +46,16 @@ const main = async () => {
     await rag.init();
 
     const output: {
-        results: { question: string; reference: string; candidate: string }[],
+        results: { question: string; keyRef: string; fullRef: string; candidate: string, citations: Citation[], chunks: Chunk[] }[],
         config: object
     } = {
         results: [],
         config
     }
 
-    for (const { question, expectedAnswer: reference } of tqdm(test.questions)) {
-        const { answer: candidate } = await rag.search(question);
-        output.results.push({ question, reference, candidate });
+    for (const { question, keyRef, fullRef } of tqdm(test.questions)) {
+        const { answer: candidate, citations, chunks } = await rag.search(question);
+        output.results.push({ question, keyRef, fullRef, candidate, citations: citations ?? [], chunks });
     }
 
     const normalizedTestFile = normalizedTestPath.replaceAll(path.sep, PATH_NORMALIZATION_MARK);

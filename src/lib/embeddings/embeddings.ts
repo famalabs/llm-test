@@ -1,42 +1,50 @@
 import { Embedder } from "./interfaces";
-const cachedImports: { [key: string]: (id: string) => Embedder } = {};
+const cachedImports: { [key: string]: (args: { model: string, dimensions?: number }) => Embedder } = {};
 
 export const EMBEDDING_DIMENSION = 1024; // mistral-embed output dimension
 
-export function createEmbedder(model: string, provider: "mistral" | "google" | "openai" | "voyage" | "local" | "huggingface"): Embedder {
+export function createEmbedder(model: string, provider: "mistral" | "google" | "openai" | "voyage" | "local" | "huggingface", embeddingDim?: number): Embedder {
+
+    const args = { model };
+
+    if (embeddingDim) {
+        (args as any).dimensions = embeddingDim;
+    }
 
     if (cachedImports[provider]) {
-        return cachedImports[provider](model);
+        return cachedImports[provider](args);
     }
 
     switch (provider) {
-        case "mistral":
-            const { MistralAIEmbeddings } = require("@langchain/mistralai");
-            cachedImports[provider] = (model: string) => new MistralAIEmbeddings({ model });
-            break;
-        case "openai":
-            const { OpenAIEmbeddings } = require("@langchain/openai");
-            cachedImports[provider] = (model: string) => new OpenAIEmbeddings({ model });
-            break;
         case "voyage":
             const { VoyageAIEmbeddings } = require("./custom-embedders/voyage");
-            cachedImports[provider] = (model: string) => new VoyageAIEmbeddings({ model });
+            cachedImports[provider] = (args: { model: string, dimensions?: number }) => new VoyageAIEmbeddings(args);
             break;
         case "local":
             const { LocalEmbeddings } = require("./custom-embedders/local");
-            cachedImports[provider] = (model: string) => new LocalEmbeddings({ model });
+            if (embeddingDim) console.warn("Local embeddings do not support dimension reduction. The provided dimension will be used to truncate the embeddings.");
+            cachedImports[provider] = (args: { model: string, dimensions?: number }) => new LocalEmbeddings(args);
             break;
         case "huggingface":
             const { HuggingFaceInferenceEmbeddings } = require("@langchain/community/embeddings/hf");
-            cachedImports[provider] = (model: string) => new HuggingFaceInferenceEmbeddings({ model });
+            if (embeddingDim) console.warn("There's not a direct way to set output dimensions for HuggingFace embeddings. The provided dimension will be ignored.");
+            cachedImports[provider] = (args: { model: string, dimensions?: number }) => new HuggingFaceInferenceEmbeddings({ model: args.model });
+            break;
+        case "mistral":
+            const { AiSdkEmbeddings : MistralAIEmbeddings } = require("./custom-embedders/ai-sdk");
+            cachedImports[provider] = (args: { model: string, dimensions?: number }) => new MistralAIEmbeddings({ model: args.model, providerName: "mistral" });
+            break;
+        case "openai":
+            const { AiSdkEmbeddings : OpenAIEmbeddings } = require("./custom-embedders/ai-sdk");
+            cachedImports[provider] = (args: { model: string, dimensions?: number }) => new OpenAIEmbeddings({...args, providerName: "openai" });
             break;
         case "google":
-            const { GoogleGenerativeAIEmbeddings } = require('./custom-embedders/google');
-            cachedImports[provider] = (model: string) => new GoogleGenerativeAIEmbeddings({ model });
+            const { AiSdkEmbeddings : GoogleGenerativeAIEmbeddings } = require("./custom-embedders/ai-sdk");
+            cachedImports[provider] = (args: { model: string, dimensions?: number }) => new GoogleGenerativeAIEmbeddings({...args, providerName: "google" });
             break;
         default:
             throw new Error(`Unsupported embedding provider: ${provider}`);
     }
 
-    return cachedImports[provider](model);
+    return cachedImports[provider](args);
 }

@@ -1,7 +1,7 @@
 import { writeFileSync } from 'fs';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs';
-import { readFile } from 'fs/promises';
+import { readdir, readFile } from 'fs/promises';
 const separator = '\t';
 const nextline = '\n';
 
@@ -23,8 +23,14 @@ const merged = new Map<string, Record<string, any>>();
 async function printTable() {
 
 
-
-    const { mainSubMerged } = await yargs(hideBin(process.argv))
+    const { mainSubMerged, version } = await yargs(hideBin(process.argv))
+        .version(false)
+        .option("version", {
+            demandOption: true,
+            alias: "v",
+            type: "string",
+            describe: "Version of the metrics",
+        })
         .option("mainSubMerged", {
             alias: "m",
             type: "boolean",
@@ -34,7 +40,19 @@ async function printTable() {
         .parse();
 
 
-    const path = `output/evaluations/metrics/v2/results${mainSubMerged ? '-main-sub-merged' : ''}-llm.json`;
+    // find -{v}-llm.json insisde the folder, then check if mainSubMerged is true or false to find the right file
+    const files = await readdir('output/evaluations/metrics/v2');
+    const matchedFiles = files.filter(f => f.includes(`${mainSubMerged ? '-main-sub-merged' : ''}-v=${version}-llm.json`));
+    if (matchedFiles.length === 0) {
+        console.error(`No files found for version ${version}`);
+        process.exit(1);
+    }
+    if (matchedFiles.length > 1) {
+        console.error(`Multiple files found for version ${version}: ${matchedFiles.join(', ')}`);
+        process.exit(1);
+    }
+
+    const path = `output/evaluations/metrics/v2/${matchedFiles[0]}`;
     const data = JSON.parse(await readFile(path, "utf-8"));
 
     const keyOf = (x: any) => `${x.group}||${x.test}||${x.candidate}`;
@@ -79,8 +97,8 @@ async function printTable() {
         table += nextline;
     }
 
-    writeFileSync(`output/evaluations/metrics/v2/metrics-table-llm-merged=${mainSubMerged}.txt`, table);
-    console.log(`Output written in output/evaluations/metrics/v2/metrics-table-llm-merged=${mainSubMerged}.txt`);
+    writeFileSync(`output/evaluations/metrics/v2/metrics-table-llm-merged=${mainSubMerged}-${version}.txt`, table);
+    console.log(`Output written in output/evaluations/metrics/v2/metrics-table-llm-merged=${mainSubMerged}-${version}.txt`);
 }
 
 printTable();

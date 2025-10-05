@@ -4,6 +4,8 @@ export interface Citation {
     chunkIndex: number;
     startLine: number;
     endLine: number;
+    source?: string;
+    lines?: { from?: number; to?: number; };
 }
 
 export declare type Chunk = Document & { 
