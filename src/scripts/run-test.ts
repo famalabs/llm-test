@@ -1,14 +1,13 @@
+import { createOutputFolderIfNeeded, PATH_NORMALIZATION_MARK } from "../utils";
+import { VectorStore, ensureIndex } from "../vector-store";
 import { readFile, writeFile } from "fs/promises"
-import yargs from "yargs"
-import { Rag } from "../../rag";
+import { Chunk, Citation } from "../lib/chunks";
 import { tqdm } from "node-console-progress-bar-tqdm";
-import { PATH_NORMALIZATION_MARK } from "../../lib/nlp";
-import { createOutputFolderIfNeeded } from "../../utils";
 import { hideBin } from "yargs/helpers";
+import { Rag } from '../rag';
 import Redis from "ioredis";
+import yargs from "yargs"
 import path from 'path';
-import { VectorStore, ensureIndex } from "../../vector-store";
-import { Chunk, Citation } from "../../lib/chunks";
 
 const main = async () => {
     const { test: testFile, config: configFile, indexName } = await yargs(hideBin(process.argv))
@@ -27,7 +26,7 @@ const main = async () => {
 
     const normalizedTestPath = path.normalize(testFile!);
     const normalizedConfigPath = path.normalize(configFile!);
-    const test: { questions: { question: string; fullRef: string, keyRef:string }[] } = await JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
+    const test: { questions: { question: string; fullRef: string, keyRef: string }[] } = await JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
     const config = await JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
     const docStoreRedisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
     await ensureIndex(docStoreRedisClient, indexName!, [
@@ -41,7 +40,7 @@ const main = async () => {
         indexName
     });
 
-    const rag = new Rag({...config, docStore});
+    const rag = new Rag({ ...config, docStore });
 
     await rag.init();
 
@@ -61,7 +60,7 @@ const main = async () => {
     const normalizedTestFile = normalizedTestPath.replaceAll(path.sep, PATH_NORMALIZATION_MARK);
     const normalizedConfigFile = normalizedConfigPath.replaceAll(path.sep, PATH_NORMALIZATION_MARK);
 
-    const fileName = path.join(createOutputFolderIfNeeded('output','candidates'), `${normalizedTestFile}_${normalizedConfigFile}.json`);
+    const fileName = path.join(createOutputFolderIfNeeded('output', 'candidates'), `${normalizedTestFile}_${normalizedConfigFile}.json`);
     await writeFile(fileName, JSON.stringify(output, null, 2));
     console.log('Report written to', fileName);
 }

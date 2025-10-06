@@ -2,17 +2,12 @@ import { readFile } from 'fs/promises';
 import yargs from 'yargs';
 import { createClient, RedisClientType, SCHEMA_FIELD_TYPE, SCHEMA_VECTOR_FIELD_ALGORITHM } from "redis";
 import "dotenv/config";
-import { randomUnitVector } from '../../utils';
+import { randomUnitVector, float32Buffer } from '../../utils';
 import path from 'path';
 import { hideBin } from 'yargs/helpers';
 
 const EMBEDDING_DIMENSION = 1024;
 let ALGORITHM: 'FLAT' | 'HNSW' | null = null;
-
-// Serve per convertire un array di numeri in un Buffer Float32, necessario per Redis
-function float32Buffer(arr: number[]) {
-  return Buffer.from(new Float32Array(arr).buffer);
-}
 
 
 async function createIndex(client: RedisClientType, indexName: string) {

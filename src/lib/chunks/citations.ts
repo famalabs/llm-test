@@ -4,7 +4,7 @@ in caso la rag fosse configurata dall'utente per non ritonare le citazioni.
 */
 
 
-import { readDocument } from "../../utils/documents";
+import { readDocument } from "../../utils/files";
 import { Citation, Chunk } from "./interfaces";
 export const resolveCitations = async (citations: Citation[], retrievedChunks: Chunk[]):Promise<string> => {
     let output = '\n[=== Citations ===]\n';

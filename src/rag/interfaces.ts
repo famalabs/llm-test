@@ -1,6 +1,20 @@
 import { VectorStore } from '../vector-store';
 import { Chunk, Citation } from '../lib/chunks';
 
+export type LLMConfigProvider = 'mistral' | 'google' | 'openai';
+
+export interface LLMConfig {
+    /**
+     * Name of the main LLM used for generating answers.
+     */
+    model: string;
+
+    /**
+     * Name of the LLM provider.
+     */
+    provider: LLMConfigProvider;
+}
+
 export interface RagAnswer {
     /**
      * The generated answer text.
@@ -42,15 +56,10 @@ export interface ChunkFilteringConfig {
 };
 
 export interface RerankingConfig {
-    /** 
-     * Name of the LLM used for reranking.
-     */
-    llm: string;
-
     /**
-     * Provider of the LLM used for reranking.
+     * Configuration for the LLM used in reranking.
      */
-    provider: 'mistral' | 'google' | 'openai';
+    llmConfig: LLMConfig;
 
     /** 
      * Enables few-shot examples to improve reranking quality.
@@ -105,14 +114,10 @@ export interface SemanticCacheConfig {
 
 export interface RagConfig {
     /**
-     * Name of the LLM provider. Defaults to 'mistral'.
+     * Configuration for the LLM used in reranking.
+     * Defaults to { provider: 'mistral', model: 'mistral-small-latest' }.
      */
-    provider: 'mistral' | 'google' | 'openai';
-
-    /**
-     * Name of the main LLM used for generating answers. Defaults to 'mistral-small-latest'.
-     */
-    llm: string;
+    llmConfig: LLMConfig;
 
     /**
      * Instance of the document store (vector database) used for retrieval.

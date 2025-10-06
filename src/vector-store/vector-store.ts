@@ -24,9 +24,9 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         if (this.loaded) return;
         try {
             await this.client.call("FT.INFO", this.config.indexName);
-        } 
+        }
         catch (e: any) {
-            if (e?.message?.includes("Unknown Index name")) {
+            if (e?.message?.toLowerCase().includes("unknown index name")) {
                 throw new Error(`Index "${this.config.indexName}" does not exist. Create it with ensureIndex() before using VectorStore.`);
             }
             throw e;
@@ -57,13 +57,14 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
             try {
                 const num = parseFloat(value);
                 if (!Number.isNaN(num)) return num;
-            } catch {}
+            } catch { }
         }
 
         return value;
     }
 
-    public async add(documents: (ReturnDocumentType & { ttl?: number })[]) {
+    public async add(documents: ReturnDocumentType[], options: { ttl? : number } = {}): Promise<void> {
+        await this.load();
         const fieldToEmbed = this.config.fieldToEmbed;
         let vectors: number[][] = [];
 
@@ -88,12 +89,13 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
             }
             const value = { ...doc, [EMBEDDING_FIELD]: float32Buffer(vectors[i]!) };
             pipeline.hset(key, value);
-            if (doc.ttl && doc.ttl > 0) pipeline.expire(key, doc.ttl);
+            if (options.ttl && options.ttl > 0) pipeline.expire(key, options.ttl);
         }
         await pipeline.exec();
     }
 
     public async retrieveFromText(text: string, numResults = 3, filter?: string): Promise<ReturnDocumentType[]> {
+        await this.load();
         const queryEmbedding = await this.embedQuery(text);
         return this.retrieve(queryEmbedding, numResults, filter);
     }
@@ -104,6 +106,7 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         filter?: string,
         returnFields?: string[]
     ): Promise<ReturnDocumentType[]> {
+        await this.load();
         const filterQuery = filter ?? "*";
         const blob = float32Buffer(queryEmbedding);
         const knnQuery = `${filterQuery}=>[KNN ${numResults} @${EMBEDDING_FIELD} $BLOB AS distance]`;
@@ -137,6 +140,7 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
     }
 
     public async deleteByFilter(filter: string): Promise<number> {
+        await this.load();
         const { indexName } = this.config;
         let totalDeleted = 0;
         const PAGE = 1000;
@@ -158,7 +162,7 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
             const pipeline = this.client.multi();
             for (const key of keys) pipeline.call("FT.DEL", indexName, key, "DD");
             await pipeline.exec();
-            
+
             totalDeleted += keys.length;
 
             offset += PAGE;
@@ -169,16 +173,32 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
     }
 
     public async wipe(): Promise<void> {
+        await this.load();
         const { indexName } = this.config;
         try {
             await this.client.call("FT.DROPINDEX", indexName, "DD");
             this.loaded = false;
-        } 
+        }
         catch (e: any) {
             if (e?.message?.includes("Unknown Index name")) {
                 return;
             }
             throw e;
         }
+    }
+
+    public async query(filter: string): Promise<{ total: number, keys: string[] }> {
+        await this.load();
+        const { indexName } = this.config;
+        const res = await this.client.call(
+            "FT.SEARCH",
+            indexName,
+            filter,
+            "NOCONTENT",
+            "LIMIT", "0", "10000",  // MAX REDIS LIMIT for FT.SEARCH: 10k results
+            "DIALECT", "2"
+        );
+        const [total, ...keys] = res as [number, ...string[]];
+        return { total, keys };
     }
 }

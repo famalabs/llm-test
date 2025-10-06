@@ -1,8 +1,9 @@
 import { LanguageModel } from "ai";
+import { LLMConfigProvider } from "./interfaces";
 
 const cachedImports: { [key: string]: (id: string) => LanguageModel } = {};
 
-export const getLLMProvider = async (provider: "mistral" | "google" | "openai") => {
+export const getLLMProvider = async (provider: LLMConfigProvider) => {
     if (cachedImports[provider]) {
         return cachedImports[provider];
     }

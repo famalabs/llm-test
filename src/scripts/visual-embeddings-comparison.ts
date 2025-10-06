@@ -17,17 +17,17 @@ SCRIPT:
 
 */
 
-import 'dotenv/config';
-import { createOutputFolderIfNeeded, escapeText, sleep, checkCallFromRoot, lemmatize } from "../utils";
-import path from 'path';
+import { createOutputFolderIfNeeded, escapeText, computeVectorNorm } from "../utils";
 import { readFile, writeFile } from "fs/promises";
 import { createEmbedder } from "../lib/embeddings";
 import { hideBin } from "yargs/helpers";
 import { cosineSimilarity } from "ai";
 import yargs from "yargs";
+import path from 'path';
+import 'dotenv/config';
 
 const main = async () => {
-  const { input, tooltip, provider, model, lemmatization, embeddingDim } = await yargs(hideBin(process.argv))
+  const { input, tooltip, provider, model, embeddingDim } = await yargs(hideBin(process.argv))
     .option("input", {
       alias: "i",
       type: "string",
@@ -44,7 +44,7 @@ const main = async () => {
       alias: "p",
       type: "string",
       demandOption: true,
-      choices: ["mistral", "openai", "voyage", "local", "huggingface", "google"],
+      choices: ["mistral", "openai", "local", "google"],
       describe: "Provider to use for embeddings",
     })
     .option("embeddingDim", {
@@ -58,22 +58,10 @@ const main = async () => {
       demandOption: true,
       describe: "Model to use for embeddings",
     })
-    .option("lemmatization", {
-      alias: "l",
-      type: "boolean",
-      demandOption: true,
-      describe: "If true, lemmatize queries before embedding",
-    })
     .parse();
 
-  if (lemmatization) {
-    checkCallFromRoot();
-    console.log('Lemmatization is enabled. Make sure you created a venv named .venv in llm-test/ and you installed spacy and ran python -m spacy download it_core_news_lg');
-  }
-
-  const embedder = createEmbedder(model, provider as  "mistral" | "openai" | "voyage" | "local" | "huggingface" | "google", embeddingDim);
+  const embedder = createEmbedder(model, provider as "mistral" | "openai" | "local" | "google", embeddingDim);
   const embeddingsCache: Record<string, number[]> = {};
-  const lemmatizationCache: Record<string, string> = {};
 
   const inputData = JSON.parse(await readFile(input, "utf-8"));
 
@@ -81,22 +69,28 @@ const main = async () => {
   const groupQueries: Record<string, string[]> = {};
 
   const uniqueQueries: string[] = Object.values(inputData).flat() as string[];
-  const processedUniqueQueries = lemmatization ? await lemmatize(uniqueQueries) : uniqueQueries;
 
-  const embeddings = await embedder.embedDocuments(processedUniqueQueries);
+  const embeddings = await embedder.embedDocuments(uniqueQueries);
+
+  console.log('Total embeddings', embeddings.length);
   console.log('Embedding dimension:', embeddings[0]?.length);
-  
+  for (const embedding of embeddings) {
+    const norm = computeVectorNorm(embedding);
+    if (Math.abs(norm - 1) > 1e-6) {
+      console.warn('⚠️ NORM:', norm);
+    }
+  }
+
   for (let i = 0; i < uniqueQueries.length; i++) {
     const q = uniqueQueries[i];
     embeddingsCache[q] = embeddings[i];
-    lemmatizationCache[q] = processedUniqueQueries[i];
   }
 
   for (const group in inputData) {
     const queries: string[] = inputData[group];
-    groupQueries[group] = queries.map(q => lemmatization ? lemmatizationCache[q] : q);
+    groupQueries[group] = queries;
     const embeddings: number[][] = queries.map(q => embeddingsCache[q]);
-    
+
     const matrix: number[][] = [];
 
     for (let i = 0; i < embeddings.length; i++) {
@@ -245,19 +239,16 @@ function updateColors() {
     cell.style.backgroundColor = getHeatmapColor(value, minSim, useAsThreshold);
     cell.style.color = getTextColor(value, minSim);
 
-    // Count hits: value strictly greater than threshold, excluding diagonal
     if (!isDiagonal && value > minSim) {
       aboveThresholdCount += 1;
     }
   });
 
-  // Divide by two to account for symmetric duplicates (i,j) and (j,i)
   const uniquePairs = Math.floor(aboveThresholdCount / 2);
   const hitsEl = document.getElementById("hitsCount");
   if (hitsEl) hitsEl.textContent = String(uniquePairs);
 }
 
-// sincronizza slider e input
 document.getElementById("minSimRange").addEventListener("input", (e) => {
   document.getElementById("minSim").value = e.target.value;
   updateColors();
@@ -292,11 +283,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
   html += `</body></html>`;
 
-  const baseName = input.split(/[/\\]/).slice(-1)[0].split('.').slice(0,-1).join('.')
-  const outputDir = createOutputFolderIfNeeded('output','embeddings-comparison');
+  const baseName = input.split(/[/\\]/).slice(-1)[0].split('.').slice(0, -1).join('.')
+  const outputDir = createOutputFolderIfNeeded('output', 'embeddings-comparison');
   const outputFile = path.join(
     outputDir,
-    `${baseName}-${model.replace('/', '-')}-${provider}-lemmatization=${lemmatization.toString()}-similarity-matrix.html`
+    `${baseName}-${model.replace('/', '-')}-${provider}-similarity-matrix.html`
   );
   await writeFile(outputFile, html);
   console.log("Output written to", outputFile);

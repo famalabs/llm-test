@@ -12,7 +12,7 @@ export const ensureIndex = async (client: Redis, indexName: string, indexSchema:
         await client.call('FT.INFO', indexName);
         return; // exists
     } catch (e: any) {
-        if (!e?.message?.includes('Unknown Index name')) throw e;
+        if (!e?.message?.toLowerCase().includes('unknown index name')) throw e;
     }
     console.log(`Creating index ${indexName} ...`);
     const args: (string | number)[] = [

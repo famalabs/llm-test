@@ -1,13 +1,12 @@
 import { applyChunkFiltering, retrieveParentPage, Chunk, PromptDocument, Citation } from "../lib/chunks";
-import { EMBEDDING_FIELD, VectorStore } from "../vector-store";
-import { generateObject } from "ai";
-import { RagConfig, RagAnswer } from "./interfaces";
-import { resolveConfig } from "./rag.config";
 import { ragCorpusInContext, rerankingPrompt } from "../lib/prompt";
-import { getObjectLength } from "../utils";
+import { EMBEDDING_FIELD, VectorStore } from "../vector-store";
+import { RagConfig, RagAnswer } from "./interfaces";
+import { addLineNumbers } from "../lib/nlp";
+import { generateObject } from "ai";
+import { resolveConfig } from "./rag.config";
 import { getLLMProvider } from "./factory";
 import z, { ZodType } from "zod";
-import { addLineNumbers } from "../lib/nlp";
 
 export class Rag {
     private readonly config: RagConfig;
@@ -19,7 +18,7 @@ export class Rag {
         this.config = resolveConfig(ragConfig);
         this.docStore = this.config.docStore;
 
-        if (getObjectLength(this.config.semanticCache) > 0 && this.config.semanticCache?.cacheStore) {
+        if (this.config.semanticCache && this.config.semanticCache.cacheStore) {
             this.cacheStore = this.config.semanticCache.cacheStore;
         }
     }
@@ -50,7 +49,7 @@ export class Rag {
                     continue;
                 }
                 const value = obj[key];
-                if (typeof value === 'object' && value !== null && getObjectLength(value) > 0) {
+                if (typeof value == 'object' && value) {
                     result += `${indent}${fmtKey(key)}:\n`;
                     result += formatConfig(value, indent + '\t');
                 }
@@ -99,9 +98,9 @@ export class Rag {
             throw new Error(`Invalid numResults value: ${numResults}. It must be at least 1.`);
         }
 
-        if (getObjectLength(chunkFiltering) > 0) {
-            if (chunkFiltering?.thresholdMultiplier != undefined) {
-                const val = chunkFiltering?.thresholdMultiplier;
+        if (chunkFiltering) {
+            if (chunkFiltering.thresholdMultiplier != undefined) {
+                const val = chunkFiltering.thresholdMultiplier;
                 if (val <= 0 || val >= 1) {
                     throw new Error("Chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
                 }
@@ -110,8 +109,8 @@ export class Rag {
                 throw new Error("Chunk filtering is enabled, but thresholdMultiplier is not set.");
             }
 
-            if (chunkFiltering?.baseThreshold != undefined) {
-                const baseVal = chunkFiltering?.baseThreshold;
+            if (chunkFiltering.baseThreshold != undefined) {
+                const baseVal = chunkFiltering.baseThreshold;
                 if (baseVal < 0 || baseVal >= 1) {
                     throw new Error("Chunk filtering baseThreshold must be between 0 (inclusive) and 1 (exclusive).");
                 }
@@ -121,10 +120,10 @@ export class Rag {
             }
         }
 
-        if (getObjectLength(reranking) > 0) {
-            if (getObjectLength(reranking?.chunkFiltering)) {
-                if (reranking?.chunkFiltering?.thresholdMultiplier != undefined && reranking?.chunkFiltering?.baseThreshold != undefined) {
-                    const val = reranking?.chunkFiltering?.thresholdMultiplier;
+        if (reranking) {
+            if (reranking.chunkFiltering) {
+                if (reranking.chunkFiltering.thresholdMultiplier != undefined && reranking.chunkFiltering.baseThreshold != undefined) {
+                    const val = reranking.chunkFiltering.thresholdMultiplier;
                     if (val <= 0 || val >= 1) {
                         throw new Error("Reranking chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
                     }
@@ -134,8 +133,8 @@ export class Rag {
                     throw new Error("Reranking chunk filtering is enabled, but thresholdMultiplier or baseThreshold is not set.");
                 }
 
-                if (reranking?.chunkFiltering?.baseThreshold != undefined) {
-                    const baseVal = reranking?.chunkFiltering?.baseThreshold;
+                if (reranking.chunkFiltering.baseThreshold != undefined) {
+                    const baseVal = reranking.chunkFiltering.baseThreshold;
                     if (baseVal < 0 || baseVal >= 1) {
                         throw new Error("Reranking chunk filtering baseThreshold must be between 0 (inclusive) and 1 (exclusive).");
                     }
@@ -145,11 +144,11 @@ export class Rag {
                 }
             }
 
-            if (reranking?.batchSize && reranking.batchSize < 1) {
+            if (reranking.batchSize && reranking.batchSize < 1) {
                 throw new Error("Reranking batch size must be at least 1.");
             }
 
-            if (reranking?.llmEvaluationWeight != undefined) {
+            if (reranking.llmEvaluationWeight != undefined) {
                 const val = reranking.llmEvaluationWeight;
                 if (val < 0 || val > 1) {
                     throw new Error("Reranking LLM evaluation weight must be between 0 and 1.");
@@ -157,20 +156,20 @@ export class Rag {
             }
         }
 
-        if (getObjectLength(parentPageRetrieval) > 0) {
-            if (parentPageRetrieval?.offset != undefined && parentPageRetrieval?.offset < 0) {
-                throw new Error(`Invalid parent page retrieval offset: ${parentPageRetrieval.offset}. It cannot be negative.`);
+        if (parentPageRetrieval) {
+            if (parentPageRetrieval.offset != undefined && parentPageRetrieval.offset <= 0) {
+                throw new Error(`Invalid parent page retrieval offset: ${parentPageRetrieval.offset}. It must be a positive number.`);
             }
         }
 
-        if (getObjectLength(semanticCache) > 0) {
-            if (!semanticCache?.cacheStore) {
+        if (semanticCache) {
+            if (!semanticCache.cacheStore) {
                 throw new Error("Semantic cache is enabled, but cacheStore is not configured.");
             }
-            if (semanticCache?.distanceThreshold != undefined && semanticCache.distanceThreshold <= 0) {
+            if (semanticCache.distanceThreshold != undefined && semanticCache.distanceThreshold <= 0) {
                 throw new Error("Semantic cache distanceThreshold must be a positive number.");
             }
-            if (semanticCache?.ttl != undefined && semanticCache.ttl <= 0) {
+            if (semanticCache.ttl != undefined && semanticCache.ttl <= 0) {
                 throw new Error("Semantic cache ttl must be a positive number.");
             }
         }
@@ -179,7 +178,7 @@ export class Rag {
     }
 
     private async checkCache(queryEmbeddings: number[]): Promise<RagAnswer | null> {
-        if (!this.cacheStore || !this.config.semanticCache?.distanceThreshold) {
+        if (!this.cacheStore || !this.config.semanticCache || !this.config.semanticCache.distanceThreshold) {
             return null;
         }
 
@@ -209,7 +208,7 @@ export class Rag {
 
         // Adding here the EMBEDDING_FIELD prevent re-compuation of the queryEmbeddings.
         const doc = { ...ragAnswer, [EMBEDDING_FIELD]: queryEmbeddings };
-        if (this.config.semanticCache?.ttl) {
+        if (this.config.semanticCache && this.config.semanticCache.ttl) {
             (doc as Record<string, any>)['ttl'] = this.config.semanticCache.ttl;
         }
 
@@ -218,7 +217,7 @@ export class Rag {
     }
 
     private async generateAnswer(query: string, chunks: Chunk[]): Promise<RagAnswer> {
-        const { fewShotsEnabled, includeCitations, reasoningEnabled } = this.config;
+        const { fewShotsEnabled, includeCitations, reasoningEnabled, llmConfig: { model, provider } } = this.config;
 
         const responseSchema: Record<string, ZodType> = {
             answer: z.string(),
@@ -235,7 +234,7 @@ export class Rag {
         if (!reasoningEnabled) delete responseSchema.reasoning;
 
         const { object: result } = await generateObject({
-            model: (await getLLMProvider(this.config.provider!))(this.config.llm!),
+            model: (await getLLMProvider(provider))(model),
             prompt: ragCorpusInContext(
                 chunks.map((document) => ({
                     ...document,
@@ -263,7 +262,7 @@ export class Rag {
 
         let chunks = await this.docStore.retrieve(queryEmbedding, this.config.numResults);
 
-        if (getObjectLength(this.config.chunkFiltering) > 0 && this.config?.chunkFiltering?.thresholdMultiplier && this.config?.chunkFiltering?.baseThreshold) {
+        if (this.config.chunkFiltering && this.config.chunkFiltering.thresholdMultiplier && this.config.chunkFiltering.baseThreshold) {
             this.log("Applying chunk filtering...");
             chunks = applyChunkFiltering(
                 chunks,
@@ -272,11 +271,11 @@ export class Rag {
             );
         }
 
-        if (getObjectLength(this.config.reranking) > 0) {
+        if (this.config.reranking) {
             chunks = await this.rerankChunks(query, chunks);
         }
 
-        if (getObjectLength(this.config.parentPageRetrieval) > 0 && this.config.parentPageRetrieval?.offset) {
+        if (this.config.parentPageRetrieval && this.config.parentPageRetrieval.offset) {
             chunks = await retrieveParentPage(chunks, this.config.parentPageRetrieval.offset);
         }
 
@@ -293,8 +292,7 @@ export class Rag {
         }
 
         const {
-            llm,
-            provider,
+            llmConfig: { model, provider },
             batchSize,
             llmEvaluationWeight,
             reasoningEnabled,
@@ -329,7 +327,7 @@ export class Rag {
             }
 
             const { object: result } = await generateObject({
-                model: (await getLLMProvider(provider!))(llm!),
+                model: (await getLLMProvider(provider))(model),
                 prompt,
                 schema: z.object({
                     rankings: z.array(
@@ -351,12 +349,12 @@ export class Rag {
 
         let rerankedResults = [...groupedChunks.flat()].sort((a, b) => a.distance - b.distance);
 
-        if (getObjectLength(this.config.reranking.chunkFiltering) > 0 && this.config.reranking.chunkFiltering?.thresholdMultiplier && this.config.reranking.chunkFiltering?.baseThreshold) {
+        if (this.config.reranking.chunkFiltering && this.config.reranking.chunkFiltering.thresholdMultiplier && this.config.reranking.chunkFiltering.baseThreshold) {
             this.log("Applying chunk filtering after reranking...");
             rerankedResults = applyChunkFiltering(
                 rerankedResults,
-                this.config.reranking.chunkFiltering?.thresholdMultiplier, 
-                this.config.reranking.chunkFiltering?.baseThreshold
+                this.config.reranking.chunkFiltering.thresholdMultiplier,
+                this.config.reranking.chunkFiltering.baseThreshold
             );
         }
 

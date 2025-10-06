@@ -1,10 +1,11 @@
+import { customLLMAsAJudge } from "../test/evaluations/llm-as-a-judge";
 import { readDocument } from "../utils";
 import { addLineNumbers } from "../lib/nlp";
 import { ragCorpusInContext } from "../lib/prompt";
 import { getLLMProvider } from "./factory";
 import { generateObject } from "ai";
 import z from "zod";
-import { customLLMAsAJudge } from '../scripts/evaluations/metrics';
+import 'dotenv/config';
 
 jest.setTimeout(30 * 1000);
 

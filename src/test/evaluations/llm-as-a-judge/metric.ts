@@ -1,9 +1,8 @@
 import z from "zod";
-import { Metric } from "./interfaces";
 import { sleep } from "../../../utils";
 import { generateObject } from "ai";
 import { mistral } from "@ai-sdk/mistral";
-import { llmAsAJudgePrompt } from "../../../lib/prompt"
+import { llmAsAJudgePrompt } from "./prompt";
 
 const execute = async ({
     prediction,
@@ -53,7 +52,7 @@ const execute = async ({
     return { score };
 }
 
-export const customLLMAsAJudge: Metric = {
+export const customLLMAsAJudge = {
     name: 'llm-as-a-judge',
     execute,
 }

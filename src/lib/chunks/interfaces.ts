@@ -1,5 +1,3 @@
-import { Document } from 'langchain/document';
-
 export interface Citation {
     chunkIndex: number;
     startLine: number;
@@ -8,7 +6,7 @@ export interface Citation {
     lines?: { from?: number; to?: number; };
 }
 
-export declare type Chunk = Document & { 
+export declare type Chunk = { 
     pageContent: string;
     metadata: { 
         source: string;

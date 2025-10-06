@@ -1,15 +1,14 @@
-import { z } from 'zod';
-import { mistral } from '@ai-sdk/mistral';
-import yargs from "yargs";
-import { generateObject, ModelMessage } from 'ai';
-import { parseDoc, parseDocx } from '../../lib/ingestion';
-import { createOutputFolderIfNeeded, getFileExtension } from '../../utils';
-import { readFile, writeFile } from "fs/promises";
-import path from 'path';
-import { PATH_NORMALIZATION_MARK } from "../../lib/nlp";
-import 'dotenv/config';
-import { hideBin } from 'yargs/helpers';
+import { createOutputFolderIfNeeded, getFileExtension, PATH_NORMALIZATION_MARK } from '../../utils';
 import { therapyExtractionPrompt } from '../../lib/prompt';
+import { parseDoc, parseDocx } from '../../lib/ingestion';
+import { generateObject, ModelMessage } from 'ai';
+import { readFile, writeFile } from "fs/promises";
+import { mistral } from '@ai-sdk/mistral';
+import { hideBin } from 'yargs/helpers';
+import { z } from 'zod';
+import yargs from "yargs";
+import path from 'path';
+import 'dotenv/config';
 
 const extractTherapy = async (text: string) => {
     const { object: result } = await generateObject({

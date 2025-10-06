@@ -1,13 +1,13 @@
 import { ModelMessage, stepCountIs, streamText, tool } from 'ai';
-import { ragChatbotSystemPrompt } from './lib/prompt';
-import { getUserInput } from './utils';
-import { mistral } from '@ai-sdk/mistral';
-import { sleep } from './utils';
-import { Rag, RagAnswer } from './rag';
-import Redis from 'ioredis';
-import z from 'zod';
 import { VectorStore, ensureIndex } from './vector-store';
 import { Chunk, resolveCitations } from './lib/chunks';
+import { ragChatbotSystemPrompt } from './lib/prompt';
+import { getLLMProvider } from './rag/factory';
+import { Rag, RagAnswer } from './rag';
+import { getUserInput } from './utils';
+import { sleep } from './utils';
+import Redis from 'ioredis';
+import z from 'zod';
 
 const docStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 const docStoreIndexName = 'vector_store_index_fixed_size';
@@ -27,8 +27,10 @@ const cacheStore = new VectorStore<RagAnswer>({
 });
 
 const rag = new Rag({
-    provider: 'mistral',
-    llm: 'mistral-medium-latest',
+    llmConfig: {
+        provider: 'mistral',
+        model: 'mistral-small-latest',
+    },
     numResults: 10,
     reasoningEnabled: true,
     includeCitations: false,
@@ -43,14 +45,6 @@ const rag = new Rag({
         thresholdMultiplier: 0.7,
         baseThreshold: 0.12,
     },
-    reranking: {
-        llm: 'mistral-small-latest',
-        provider: 'mistral',
-        llmEvaluationWeight: 0.5,
-        batchSize: 5,
-        reasoningEnabled: false,
-        fewShotsEnabled: false,
-    }
 });
 
 const messages: ModelMessage[] = [];
@@ -63,6 +57,8 @@ const main = async () => {
     await rag.init();
     rag.printSummary();
 
+    const ragConfig = rag.getConfig();
+
     while (true) {
         const userQuery = await getUserInput('>> ');
         messages.push({ role: 'user', content: userQuery });
@@ -70,7 +66,7 @@ const main = async () => {
         const start = performance.now();
 
         const result = streamText({
-            model: mistral(rag.getConfig().llm!),
+            model: (await getLLMProvider(ragConfig.llmConfig.provider))(ragConfig.llmConfig.model),
             messages,
             temperature: 0,
             system: ragChatbotSystemPrompt,

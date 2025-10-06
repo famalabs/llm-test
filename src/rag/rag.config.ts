@@ -1,8 +1,11 @@
+import { openai } from "@ai-sdk/openai";
 import { RagConfig } from "./interfaces";
 
 const DEFAULT_CONFIG: Omit<RagConfig, 'docStore' | 'semanticCache'> = {
-    provider: 'mistral',
-    llm: "mistral-small-latest",
+    llmConfig: {
+        provider: 'mistral',
+        model: "mistral-small-latest",
+    },
     numResults: 10,
     reasoningEnabled: false,
     includeCitations: false,
@@ -14,5 +17,9 @@ export const resolveConfig = (ragConfig: RagConfig): RagConfig => {
     return {
         ...DEFAULT_CONFIG,
         ...ragConfig,
+        llmConfig: {
+            ...DEFAULT_CONFIG.llmConfig,
+            ...ragConfig.llmConfig,
+        }
     };
 }

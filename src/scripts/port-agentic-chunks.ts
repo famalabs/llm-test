@@ -1,5 +1,4 @@
 import { VectorStore, ensureIndex } from '../vector-store';
-import { Document } from 'langchain/document';
 import { readFile } from 'fs/promises';
 import { Chunk } from '../lib/chunks';
 import Redis from 'ioredis';
@@ -43,19 +42,17 @@ async function main() {
                 const toLine = globalLineOffset + lineCount - 1;
 
                 docs.push({
-                    ... new Document({
-                        pageContent: chunkText,
-                        metadata: {
-                            source,
-                            chunkIndex: i,
-                            loc: {
-                                lines: {
-                                    from: fromLine,
-                                    to: toLine
-                                }
+                    pageContent: chunkText,
+                    metadata: {
+                        source,
+                        chunkIndex: i,
+                        loc: {
+                            lines: {
+                                from: fromLine,
+                                to: toLine
                             }
-                        },
-                    }),
+                        }
+                    },
                     distance: 0
                 });
 

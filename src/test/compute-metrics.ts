@@ -1,10 +1,11 @@
-import { readFile, writeFile } from "fs/promises"
-import { tqdm } from "node-console-progress-bar-tqdm";
-import yargs from "yargs";
-import { customLLMAsAJudge } from "../scripts/evaluations/metrics";
 import { createOutputFolderIfNeeded, mean } from '../utils';
+import { readFile, writeFile } from "fs/promises"
+import { customLLMAsAJudge } from './evaluations/llm-as-a-judge';
+import { tqdm } from "node-console-progress-bar-tqdm";
 import { hideBin } from "yargs/helpers";
+import yargs from "yargs";
 import path from 'path';
+
 const allMetrics = { customLLMAsAJudge };
 
 const main = async () => {

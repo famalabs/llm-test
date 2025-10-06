@@ -1,12 +1,10 @@
-import { escapeText, escapeAttrQuotesOnly, getHeatmapColor, getTextColor } from "../utils";
-import { createOutputFolderIfNeeded, parseCSV } from "../utils";
+import { escapeText, escapeAttrQuotesOnly, createOutputFolderIfNeeded, parseCSV, PATH_NORMALIZATION_MARK } from "../utils";
+import { resolveCitations, Chunk, Citation } from "../lib/chunks";
 import { readdir, readFile, writeFile } from "fs/promises";
-import { PATH_NORMALIZATION_MARK } from "../lib/nlp";
 import { hideBin } from "yargs/helpers";
 import yargs from "yargs";
 import path from "path";
 
-import { resolveCitations, type Chunk, type Citation } from "../lib/chunks";
 
 type JSONResult = {
   question?: string;
@@ -15,6 +13,22 @@ type JSONResult = {
   candidate?: string;
   citations?: Citation[];
   chunks?: Chunk[];
+};
+
+export const getHeatmapColor = (value: number) => {
+  const v = Math.max(0, Math.min(1, value));
+  const r = Math.round(255 * (1 - v));
+  const g = Math.round(255 * v);
+  return `rgb(${r},${g},0)`;
+};
+
+export const getTextColor = (value: number) => {
+  const v = Math.max(0, Math.min(1, value));
+  const r = 255 * (1 - v),
+    g = 255 * v,
+    b = 0;
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 140 ? "#111827" : "#FFFFFF";
 };
 
 const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
@@ -77,22 +91,20 @@ const buildQueryRefsTooltipHTML = (query: string, keyRef?: string, fullRef?: str
       <div class="font-semibold text-sm mb-1">Query</div>
       <div class="text-sm leading-snug">${escapeText(query)}</div>
     </div>
-    ${
-      keyRef
-        ? `<div>
+    ${keyRef
+    ? `<div>
              <div class="font-semibold text-sm mb-1">Key reference</div>
              <div class="text-sm leading-snug whitespace-pre-wrap">${escapeText(keyRef)}</div>
            </div>`
-        : ""
-    }
-    ${
-      fullRef
-        ? `<div>
+    : ""
+  }
+    ${fullRef
+    ? `<div>
              <div class="font-semibold text-sm mb-1">Full reference</div>
              <div class="text-sm leading-snug whitespace-pre-wrap">${escapeText(fullRef)}</div>
            </div>`
-        : ""
-    }
+    : ""
+  }
   </div>`;
 
 const encodeForDataAttr = (s: string) => encodeURIComponent(s);
@@ -107,8 +119,8 @@ const buildCandidateTooltipHTML = (
       ? `<div class="text-xs text-gray-400">Nessuna citazione.</div>`
       : `<ul class="mt-1 space-y-1">
           ${items
-            .map(
-              (it) => `
+        .map(
+          (it) => `
             <li class="grid grid-cols-[1fr_auto] items-center gap-3">
               <span class="font-mono truncate">${escapeText(it.sourceName)}</span>
               <button
@@ -118,8 +130,8 @@ const buildCandidateTooltipHTML = (
                 aria-label="Apri citazione risolta"
               >${escapeText(it.spanLabel)}</button>
             </li>`
-            )
-            .join("")}
+        )
+        .join("")}
         </ul>`;
 
   return `
@@ -135,7 +147,6 @@ const buildCandidateTooltipHTML = (
   </div>`;
 };
 
-// Crea HTML per tooltip delle citazioni (pre + monospaced), poi lo codifica.
 const buildResolvedCitationEncoded = async (c: Citation, chunks?: Chunk[]): Promise<string> => {
   try {
     const resolved = await resolveCitations([c], chunks ?? []);
@@ -237,7 +248,6 @@ const main = async () => {
 <h1 class="text-3xl flex items-center gap-2 font-bold mb-6"><span>Risultati della valutazione per</span><code 
 class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${input}</code></h1>`;
 
-  // Score medi
   html += `<h2 class="text-xl font-semibold mb-3">Score medi</h2>`;
   html += `<table class="table-fixed border-collapse border border-gray-300 w-full mb-8 text-sm">
   <thead><tr class="bg-gray-200">
@@ -326,7 +336,7 @@ class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${input}<
   html += `</tbody></table>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
-  // Tooltip principali (celle, config, header, ecc.)
+
   tippy('[data-tippy-content]', {
     theme: 'fg',
     allowHTML: true,
@@ -339,7 +349,6 @@ document.addEventListener('DOMContentLoaded', function(){
     zIndex: 9998
   });
 
-  // Tooltip SOLO per i badge delle linee (hover -> mostra citazione risolta)
   tippy.delegate(document.body, {
     target: '.citation-badge',
     theme: 'fg',

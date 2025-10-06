@@ -1,6 +1,5 @@
 import { RecursiveCharacterTextSplitter, TextSplitter } from 'langchain/text_splitter';
 import { VectorStore, ensureIndex, normalizeIndexName } from "../vector-store";
-import { Document } from 'langchain/document';
 import { hideBin } from 'yargs/helpers';
 import { readFile } from 'fs/promises';
 import Redis from 'ioredis';
@@ -12,7 +11,7 @@ async function main() {
         .option('chunking', { alias: 'c', type: 'string', choices: ['fixed-size', 'agentic'], demandOption: true, description: 'Chunking strategy' })
         .help()
         .parse();
-        
+
     const { files, chunking } = argv;
     const filesPath = files!.split(',');
     let splitter: TextSplitter;
@@ -21,7 +20,7 @@ async function main() {
         const tokenLength = 300;
         const tokenOverlap = 50;
         const tokenToCharRatio = 4; // approx
-        
+
         splitter = new RecursiveCharacterTextSplitter({
             chunkSize: tokenLength * tokenToCharRatio,
             chunkOverlap: tokenOverlap * tokenToCharRatio,
@@ -50,23 +49,25 @@ async function main() {
     const vectorStore = new VectorStore({
         client,
         indexName,
-        fieldToEmbed : 'pageContent',
+        fieldToEmbed: 'pageContent',
     });
     await vectorStore.load();
 
     const docs = await Promise.all(
         filesPath.map(async (path) => {
             const content = await readFile(path, 'utf-8');
-            return new Document({
+            return {
                 pageContent: content,
-                metadata: { source: path }
-            });
+                metadata: {
+                    source: path
+                }
+            };
         })
     );
 
-    const allSplits = await splitter.splitDocuments(docs);    
-    
-    await vectorStore.add(allSplits);
+    const allSplits = await splitter.splitDocuments(docs);
+
+   await vectorStore.add(allSplits);
 
     console.log(allSplits.length, 'document chunks embedded and stored');
 }

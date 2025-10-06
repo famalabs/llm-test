@@ -1,4 +1,4 @@
-import { readDocument } from "../../utils/documents";
+import { readDocument } from "../../utils/files";
 import { Chunk } from "./interfaces";
 
 const mergeLineIntervals = (chunks: Chunk[]): Chunk[] => {
