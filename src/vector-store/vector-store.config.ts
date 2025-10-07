@@ -1,9 +1,9 @@
 import { VectorStoreConfig } from "./interfaces";
 
 const DEFAULT_CONFIG: Omit<VectorStoreConfig, 'indexName' | 'indexSchema'| 'client'> = {
-    distanceMetric: "COSINE",
-    embeddingsProvider: "mistral",
-    embeddingsModel: "mistral-embed",
+    distanceMetric: "IP", // since now embeddings are normalized
+    embeddingsProvider: "openai",
+    embeddingsModel: "text-embedding-3-large",
 };
 
 export const resolveConfig = (vectorStoreConfig: VectorStoreConfig): VectorStoreConfig => {

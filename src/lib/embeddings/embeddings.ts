@@ -1,7 +1,7 @@
 import { Embedder, EmbeddingProvider } from "./interfaces";
 const cachedImports: { [key: string]: (args: { model: string, dimensions?: number }) => Embedder } = {};
 
-export const EMBEDDING_DIMENSION = 1024; // mistral-embed output dimension
+export const EMBEDDING_DIMENSION = 768;
 
 export function createEmbedder(model: string, provider: EmbeddingProvider, embeddingDim?: number): Embedder {
 

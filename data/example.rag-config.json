@@ -1,16 +1,21 @@
 {
-    "provider": "mistral",
-    "llm": "mistral-small-latest",
-    "numResults": 10,
-    "chunkFiltering": {
-        "thresholdMultiplier": 0.7,
-        "baseThreshold": 0.35
+    "rag": {
+        "provider": "mistral",
+        "llm": "mistral-small-latest",
+        "numResults": 10,
+        "chunkFiltering": {
+            "thresholdMultiplier": 0.7,
+            "baseThreshold": 0.35
+        },
+        "parentPageRetrieval": {
+            "offset": 3
+        },
+        "reasoningEnabled": true,
+        "includeCitations": true,
+        "fewShotsEnabled": true,
+        "verbose": true
     },
-    "parentPageRetrieval": {
-        "offset": 3
-    },
-    "reasoningEnabled": true,
-    "includeCitations": true,
-    "fewShotsEnabled": true,
-    "verbose": true
+    "docStore": {
+        "indexName": "vector_store_index_fixed_size"
+    }
 }

@@ -1,13 +1,15 @@
 import { embed, embedMany, Provider } from 'ai';
+import { EmbeddingProvider } from '../interfaces';
 import 'dotenv/config';
 
 class AiSdkEmbeddings {
-    private providerName: 'mistral' | 'openai' | 'google';
+    private providerName: Omit<EmbeddingProvider, 'local'>;
     private provider: Provider;
     private dimensions: number | undefined = undefined;
     private model: string;
+    private shouldNormalizeEmbeddings = false;
 
-    constructor({ model, dimensions, providerName }: { model: string, dimensions?: number, providerName: 'mistral' | 'openai' | 'google' }) {
+    constructor({ model, dimensions, providerName }: { model: string, dimensions?: number, providerName: Omit<EmbeddingProvider, 'local'> }) {
         switch (providerName) {
             case 'mistral':
                 if (dimensions) console.warn("Mistral embeddings have a fixed dimension of 1024. The provided dimension will be ignored.");
@@ -29,8 +31,20 @@ class AiSdkEmbeddings {
         if (dimensions) {
             this.dimensions = dimensions;
         }
+
+        if (providerName == 'google' && dimensions) { // mistral does not support dimension reduction, openai already normalizes embeddings
+            this.shouldNormalizeEmbeddings = true;
+        }
+
         this.model = model;
         this.providerName = providerName;
+    }
+
+    private normalizeEmbeddings(embedding: number[][]): number[][] {
+        return embedding.map(vec => {
+            const norm = Math.sqrt(vec.reduce((sum, val) => sum + val * val, 0));
+            return vec.map(val => val / norm);
+        });
     }
 
     private addDimensionsArg(args: Record<string, any>) {
@@ -52,6 +66,11 @@ class AiSdkEmbeddings {
         this.addDimensionsArg(args);
 
         const { embedding } = await embed(args);
+
+        if (this.shouldNormalizeEmbeddings) {
+            return this.normalizeEmbeddings([embedding])[0];
+        }
+
         return embedding;
     }
 
@@ -64,6 +83,10 @@ class AiSdkEmbeddings {
         this.addDimensionsArg(args);
 
         const { embeddings } = await embedMany(args);
+
+        if (this.shouldNormalizeEmbeddings) {
+            return this.normalizeEmbeddings(embeddings);
+        }
 
         return embeddings;
     }

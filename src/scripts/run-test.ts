@@ -10,10 +10,9 @@ import yargs from "yargs"
 import path from 'path';
 
 const main = async () => {
-    const { test: testFile, config: configFile, indexName } = await yargs(hideBin(process.argv))
+    const { test: testFile, config: configFile } = await yargs(hideBin(process.argv))
         .option('test', { alias: 't', type: 'string', demandOption: true, description: 'Path to evaluation test JSON' })
-        .option('config', { alias: 'c', type: 'string', demandOption: true, description: 'Path to RAG config JSON' })
-        .option('indexName', { alias: 'i', type: 'string', demandOption: true, description: 'Name of the index of the document store' })
+        .option('config', { alias: 'c', type: 'string', demandOption: true, description: 'Path to RAG/docStore config JSON' })
         .help()
         .parse();
 
@@ -27,12 +26,21 @@ const main = async () => {
     const normalizedTestPath = path.normalize(testFile!);
     const normalizedConfigPath = path.normalize(configFile!);
     const test: { questions: { question: string; fullRef: string, keyRef: string }[] } = await JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
-    const config = await JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
+    const joinedConfig = await JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
+    const { rag: ragConfig, docStore: docStoreConfig } = joinedConfig;
+    if (!ragConfig || !docStoreConfig) {
+        throw new Error('Config file must contain both "rag" and "docStore" sections');
+    }
+
+    const indexName = docStoreConfig.indexName;
+    if (!indexName) {
+        throw new Error('docStore config must contain an indexName');
+    }
+
     const docStoreRedisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
-    await ensureIndex(docStoreRedisClient, indexName!, [
+    await ensureIndex(docStoreRedisClient, docStoreConfig.indexName, [
         "pageContent", "TEXT",
-        "source", "TAG",
-        "metadata", "TEXT",
+        "source", "TAG"
     ]);
     const docStore = new VectorStore<Chunk>({
         client: docStoreRedisClient,
@@ -40,16 +48,18 @@ const main = async () => {
         indexName
     });
 
-    const rag = new Rag({ ...config, docStore });
+    const rag = new Rag({ ...ragConfig, docStore });
 
     await rag.init();
 
     const output: {
         results: { question: string; keyRef: string; fullRef: string; candidate: string, citations: Citation[], chunks: Chunk[] }[],
-        config: object
+        ragConfig: object,
+        docStoreConfig: object 
     } = {
         results: [],
-        config
+        ragConfig,
+        docStoreConfig
     }
 
     for (const { question, keyRef, fullRef } of tqdm(test.questions)) {

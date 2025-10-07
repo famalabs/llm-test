@@ -20,6 +20,10 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         this.embedder = createEmbedder(this.config.embeddingsModel!, this.config.embeddingsProvider!, EMBEDDING_DIMENSION);
     }
 
+    public getConfig(): VectorStoreConfig {
+        return { ...this.config };
+    }
+
     public async load() {
         if (this.loaded) return;
         try {

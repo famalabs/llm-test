@@ -1,0 +1,156 @@
+[
+    {
+        "sentence": "Non capisci niente di quello che dico, è inutile parlare con te.",
+        "polarity": -1,
+        "involvement": -0.2,
+        "energy": -0.7,
+        "temper": -0.9,
+        "mood": -0.8,
+        "empathy": -0.9,
+        "tone": -0.5,
+        "registry": 0.4
+    },
+    {
+        "sentence": "Non ne posso più, questo dolore non passa e nessuno riesce a dirmi cosa ho.",
+        "polarity": -1,
+        "involvement": 0.4,
+        "energy": -0.8,
+        "temper": -0.6,
+        "mood": -0.9,
+        "empathy": -0.7,
+        "tone": -0.4,
+        "registry": 0.2
+    },
+    {
+        "sentence": "Non so, mi sembra che tu non stia davvero capendo cosa mi preoccupa.",
+        "polarity": -0.3,
+        "involvement": 0.2,
+        "energy": -0.4,
+        "temper": -0.2,
+        "mood": -0.4,
+        "empathy": -0.3,
+        "tone": -0.2,
+        "registry": 0.3
+    },
+    {
+        "sentence": "Non so se fidarmi davvero di quello che mi stai dicendo… sembra un po’ troppo vago per una risposta medica.",
+        "polarity": -0.3,
+        "involvement": 0.2,
+        "energy": -0.2,
+        "temper": 0.1,
+        "mood": -0.4,
+        "empathy": -0.3,
+        "tone": -0.2,
+        "registry": 0.3
+    },
+    {
+        "sentence": "Onestamente non mi sei stato molto utile finora… mi aspettavo risposte un po’ più chiare.",
+        "polarity": -0.6,
+        "involvement": 0.2,
+        "energy": -0.4,
+        "temper": -0.5,
+        "mood": -0.6,
+        "empathy": -0.3,
+        "tone": -0.2,
+        "registry": 0.4
+    },
+    {
+        "sentence": "Non mi stai aiutando per niente… è la terza volta che mi dai una dose sbagliata rispetto a quella che mi ha prescritto il medico.",
+        "polarity": -0.6,
+        "involvement": 0.4,
+        "energy": -0.7,
+        "temper": -0.8,
+        "mood": -0.6,
+        "empathy": -0.7,
+        "tone": -0.3,
+        "registry": 0.5
+    },
+    {
+        "sentence": "Non saprei, ultimamente i farmaci mi fanno sentire strano, ma forse è solo suggestione… tu che ne pensi?",
+        "polarity": 0,
+        "involvement": 0.3,
+        "energy": -0.2,
+        "temper": 0.5,
+        "mood": -0.1,
+        "empathy": 0.2,
+        "tone": 0.4,
+        "registry": 0.6
+    },
+    {
+        "sentence": "Non so bene se quello che mi hai prescritto funzioni davvero, ma voglio capire meglio prima di iniziare la terapia.",
+        "polarity": 0,
+        "involvement": 0.3,
+        "energy": 0,
+        "temper": 0.2,
+        "mood": 0,
+        "empathy": 0.1,
+        "tone": 0.1,
+        "registry": 0.2
+    },
+    {
+        "sentence": "Non mi sento ancora del tutto meglio, ma almeno i sintomi sembrano un po’ migliorati rispetto a ieri.",
+        "polarity": 0.3,
+        "involvement": 0.2,
+        "energy": -0.1,
+        "temper": 0.6,
+        "mood": 0.2,
+        "empathy": 0.4,
+        "tone": 0.1,
+        "registry": 0.2
+    },
+    {
+        "sentence": "Non mi sento benissimo oggi, ma almeno i sintomi sembrano un po’ più lievi rispetto a ieri.",
+        "polarity": 0.3,
+        "involvement": 0.2,
+        "energy": -0.2,
+        "temper": 0.7,
+        "mood": 0.1,
+        "empathy": 0.3,
+        "tone": 0.2,
+        "registry": 0.4
+    },
+    {
+        "sentence": "Mi sento un po’ meglio oggi, grazie per il consiglio di ieri — sembra che il trattamento stia iniziando a funzionare.",
+        "polarity": 0.6,
+        "involvement": 0.7,
+        "energy": 0.5,
+        "temper": 0.9,
+        "mood": 0.7,
+        "empathy": 0.8,
+        "tone": 0.3,
+        "registry": 0.4
+    },
+    {
+        "sentence": "Mi sento decisamente meglio oggi, grazie per il supporto — credo che la terapia stia iniziando a funzionare.",
+        "polarity": 0.6,
+        "involvement": 0.7,
+        "energy": 0.6,
+        "temper": 0.9,
+        "mood": 0.7,
+        "empathy": 0.8,
+        "tone": 0.4,
+        "registry": 0.3
+    },
+    {
+        "sentence": "Grazie davvero per il consiglio, mi sento già più tranquillo sapendo che posso gestire la terapia in questo modo!",
+        "polarity": 1,
+        "involvement": 0.9,
+        "energy": 0.8,
+        "temper": 1,
+        "mood": 0.9,
+        "empathy": 0.8,
+        "tone": 0.6,
+        "registry": 0.5
+    },
+    {
+        "sentence": "Grazie per il consiglio, mi sento davvero più tranquillo ora che so come gestire correttamente la mia terapia!",
+        "polarity": 1,
+        "involvement": 0.9,
+        "energy": 0.7,
+        "temper": 0.9,
+        "mood": 0.9,
+        "empathy": 0.8,
+        "tone": 0.6,
+        "registry": 0.5
+    }
+]

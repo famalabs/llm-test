@@ -5,7 +5,6 @@ import { hideBin } from "yargs/helpers";
 import yargs from "yargs";
 import path from "path";
 
-
 type JSONResult = {
   question?: string;
   keyRef?: string;
@@ -31,6 +30,18 @@ export const getTextColor = (value: number) => {
   return yiq >= 140 ? "#111827" : "#FFFFFF";
 };
 
+const titleize = (s: string) =>
+  s
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/^./, (c) => c.toUpperCase());
+
+const normalizeConfigShape = (parsed: any): { rag: Record<string, any>; docStore: Record<string, any> } => {
+  return {
+    rag: parsed.ragConfig ?? {},
+    docStore: parsed.docStoreConfig ?? {}
+  }
+};
+
 const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
   const renderValue = (value: any): string => {
     if (typeof value === "boolean") {
@@ -41,7 +52,7 @@ const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
     if (typeof value === "object" && value !== null) {
       return `<div class="pl-4 mt-1 border-l border-gray-600">${renderConfigObject(value)}</div>`;
     }
-    return escapeText(value);
+    return escapeText(String(value));
   };
 
   const renderConfigObject = (obj: Record<string, any>): string =>
@@ -49,7 +60,7 @@ const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
       .map(
         ([key, value]) => `
         <div class="flex justify-between items-start space-x-4 py-1">
-          <span class="text-gray-400 whitespace-nowrap">${escapeText(key)}:</span>
+          <span class="text-gray-400 whitespace-nowrap">${escapeText(titleize(key))}:</span>
           <span class="font-mono text-right">${renderValue(value)}</span>
         </div>
       `
@@ -76,7 +87,7 @@ const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
 
   for (const [sectionTitle, sectionObject] of Object.entries(topLevelObjects)) {
     html += `<div class="bg-gray-700 p-2 rounded-md">
-      <div class="font-semibold text-sm mb-1 text-gray-200 capitalize">${escapeText(sectionTitle)}</div>
+      <div class="font-semibold text-sm mb-1 text-gray-200">${escapeText(titleize(sectionTitle))}</div>
       <div class="text-xs">${renderConfigObject(sectionObject as Record<string, any>)}</div>
     </div>`;
   }
@@ -92,24 +103,23 @@ const buildQueryRefsTooltipHTML = (query: string, keyRef?: string, fullRef?: str
       <div class="text-sm leading-snug">${escapeText(query)}</div>
     </div>
     ${keyRef
-    ? `<div>
+      ? `<div>
              <div class="font-semibold text-sm mb-1">Key reference</div>
              <div class="text-sm leading-snug whitespace-pre-wrap">${escapeText(keyRef)}</div>
            </div>`
-    : ""
-  }
+      : ""
+    }
     ${fullRef
-    ? `<div>
+      ? `<div>
              <div class="font-semibold text-sm mb-1">Full reference</div>
              <div class="text-sm leading-snug whitespace-pre-wrap">${escapeText(fullRef)}</div>
            </div>`
-    : ""
-  }
+      : ""
+    }
   </div>`;
 
 const encodeForDataAttr = (s: string) => encodeURIComponent(s);
 
-// Solo costruzione lista; il testo risolto è salvato URL-encoded in data-resolved-enc.
 const buildCandidateTooltipHTML = (
   candidate: string,
   items: Array<{ sourceName: string; spanLabel: string; resolvedEncoded: string }>
@@ -119,8 +129,8 @@ const buildCandidateTooltipHTML = (
       ? `<div class="text-xs text-gray-400">Nessuna citazione.</div>`
       : `<ul class="mt-1 space-y-1">
           ${items
-        .map(
-          (it) => `
+            .map(
+              (it) => `
             <li class="grid grid-cols-[1fr_auto] items-center gap-3">
               <span class="font-mono truncate">${escapeText(it.sourceName)}</span>
               <button
@@ -130,8 +140,8 @@ const buildCandidateTooltipHTML = (
                 aria-label="Apri citazione risolta"
               >${escapeText(it.spanLabel)}</button>
             </li>`
-        )
-        .join("")}
+            )
+            .join("")}
         </ul>`;
 
   return `
@@ -192,7 +202,8 @@ const main = async () => {
       let results: JSONResult[] | undefined = undefined;
       try {
         const parsed = JSON.parse(await readFile(jsonPath, "utf-8"));
-        config = parsed?.config ?? {};
+        const normalized = normalizeConfigShape(parsed);
+        config = normalized; // { rag: {...}, docStore: {...} }
         results = parsed?.results ?? undefined;
       } catch {
         console.warn(`⚠️ Nessuna config/results trovata per ${file}`);
@@ -241,6 +252,13 @@ const main = async () => {
       max-width: 520px;
       max-height:70vh;
       overflow:auto;
+    }
+    code.badge {
+      font-size: 0.70rem;
+      background: #e5e7eb;
+      padding: 2px 6px;
+      border-radius: 9999px;
+      margin-left: 6px;
     }
   </style>
 </head>
@@ -294,10 +312,11 @@ class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${input}<
 
   for (const { filePath, displayName, csvData, config, results } of allData) {
     const cfgTip = escapeAttrQuotesOnly(buildRagConfigTooltipHTML(filePath, config));
+    const dsName = config?.docStore?.indexName ? `<code class="badge" title="Doc Store indexName">${escapeText(config.docStore.indexName)}</code>` : "";
     html += `<tr>
       <td class="border border-gray-300 px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis">
         <span class="cursor-help underline decoration-dotted" data-tippy-content="${cfgTip}">
-          ${escapeText(displayName)}
+          ${escapeText(displayName)}${dsName}
         </span>
       </td>`;
 
@@ -365,7 +384,6 @@ document.addEventListener('DOMContentLoaded', function(){
       const enc = reference.getAttribute('data-resolved-enc');
       return enc ? decodeURIComponent(enc) : '<div class="text-xs text-gray-400">Nessun testo disponibile</div>';
     },
-    // Per usare il click invece dell'hover:
     // trigger: 'click',
   });
 });
