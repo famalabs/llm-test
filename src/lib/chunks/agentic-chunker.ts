@@ -15,11 +15,13 @@ INPUT
 ----------------
 OUTPUT (STRICT)
 ----------------
-Return ONLY a JSON array of objects:
-[
-  { "start": number, "end": number },
-  ...
-]
+Return ONLY a JSON object of arrays:
+{
+  "chunks": [
+    { "start": number, "end": number },
+    ...
+  ]
+}
 Rules:
 - Indices inclusive.
 - Chunks must:
@@ -70,10 +72,10 @@ Example 1 (list stays with heading):
 6: Tenere sotto 25°C.
 
 Output:
-[
+{"chunks": [
   { "start": 0, "end": 3 },
   { "start": 4, "end": 6 }
-]
+]}
 
 Example 2 (table/block kept intact with its intro):
 0: Posologia
@@ -83,10 +85,9 @@ Example 2 (table/block kept intact with its intro):
 4: Note: non superare 600mg/die.
 
 Output:
-[
+{"chunks": [
   { "start": 0, "end": 4 }
-]
-
+]}
 ----------------
 EMIT
 ----------------
@@ -185,21 +186,21 @@ export class AgenticChunker {
                             },
                             distance: 0,
                         });
-                    } 
-                    
+                    }
+
                     else { // small pending
                         bufferChunk.pageContent.push(...chunkLines);
                         bufferChunk.metadata.loc.lines.to = end;
                         flushBuffer();
                     }
-                } 
-                
+                }
+
                 else {
                     // small chunk -> buffer
                     if (emptyBuffer) {
                         startBuffer(start, end, chunkLines);
-                    } 
-                    
+                    }
+
                     else {
                         bufferChunk.pageContent.push(...chunkLines);
                         bufferChunk.metadata.loc.lines.to = end;

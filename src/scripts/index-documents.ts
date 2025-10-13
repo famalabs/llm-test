@@ -22,10 +22,11 @@ async function main() {
         .option('embeddingsModel', { type: 'string', description: 'Model to use for embeddings', demandOption: true })
         .option('embeddingsProvider', { type: 'string', choices: ['openai', 'mistral', 'google'], description: 'Provider for embeddings', demandOption: true })
         .option('debug', { alias: 'd', type: 'boolean', description: 'Enable debug mode to review chunks before storing', default: false })
+        .option('minChunkLines', { type: 'number', description: 'Minimum number of lines per chunk for agentic chunking (default: 0)', default: 0 })
         .help()
         .parse();
 
-    const { files, chunking, indexName, chunkerModel, chunkerProvider, embeddingsModel, embeddingsProvider, tokenLength, tokenOverlap } = argv;
+    const { files, chunking, indexName, chunkerModel, chunkerProvider, embeddingsModel, embeddingsProvider, tokenLength, tokenOverlap, minChunkLines } = argv;
     const filesPath = files!.split(',');
     let splitter: TextSplitter | AgenticChunker;
 
@@ -40,7 +41,7 @@ async function main() {
         splitter = new AgenticChunker({
             model: chunkerModel!,
             provider: chunkerProvider as LLMConfigProvider,
-            minChunkLines: 5,
+            minChunkLines: minChunkLines!,
         });
     }
 

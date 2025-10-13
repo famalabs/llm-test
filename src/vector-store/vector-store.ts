@@ -67,7 +67,7 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         return value;
     }
 
-    public async add(documents: ReturnDocumentType[], options: { ttl? : number } = {}): Promise<void> {
+    public async add(documents: ReturnDocumentType[], options: { ttl? : number, prefix?: (chunk: ReturnDocumentType) => string } = {}): Promise<void> {
         await this.load();
         const fieldToEmbed = this.config.fieldToEmbed;
         let vectors: number[][] = [];
@@ -80,7 +80,7 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         }
 
         else {
-            const contents = documents.map(d => d[fieldToEmbed] ?? "");
+            const contents = documents.map(d => (options.prefix ? options.prefix(d) : "") + d[fieldToEmbed]);
             vectors = await this.embedder.embedDocuments(contents);
         }
 
