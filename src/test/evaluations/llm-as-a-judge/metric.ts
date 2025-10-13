@@ -1,25 +1,27 @@
 import z from "zod";
 import { sleep } from "../../../utils";
 import { generateObject } from "ai";
-import { mistral } from "@ai-sdk/mistral";
 import { llmAsAJudgePrompt } from "./prompt";
+import { getLLMProvider, LLMConfigProvider } from "../../../llm";
 
 const execute = async ({
     prediction,
     keyRef,
     fullRef,
     query,
-    llm
+    model, 
+    provider
 }: {
     prediction: string,
     keyRef: string,
     fullRef: string,
     query?: string,
-    llm?: string
+    model?: string,
+    provider?: LLMConfigProvider
 }) => {
 
-    if (!query || !llm) {
-        throw new Error("Missing required arguments: query, llm");
+    if (!query || !model || !provider) {
+        throw new Error("Missing required arguments: query, model, provider");
     }
 
     const schema = z.object({
@@ -30,7 +32,7 @@ const execute = async ({
     const prompt = llmAsAJudgePrompt(query, keyRef, fullRef, prediction);
     const getResponse = async () => {
         const { object: result } = await generateObject({
-            model: mistral(llm),
+            model: (await getLLMProvider(provider))(model),
             prompt,
             temperature: 0,
             seed: 42,

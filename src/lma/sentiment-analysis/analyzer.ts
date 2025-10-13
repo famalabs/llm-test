@@ -1,7 +1,7 @@
 import z from "zod";
 import { generateObject } from "ai";
 import { sentimentAnalysisPrompt } from "./prompt";
-import { getLLMProvider, LLMConfigProvider } from "../../rag";
+import { getLLMProvider, LLMConfigProvider } from "../../llm";
 
 type SentimentAnalyzer = (args: {
     model: string;

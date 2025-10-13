@@ -1,6 +1,5 @@
 import { embed, embedMany, Provider } from 'ai';
 import { EmbeddingProvider } from '../interfaces';
-import 'dotenv/config';
 
 class AiSdkEmbeddings {
     private providerName: Omit<EmbeddingProvider, 'local'>;

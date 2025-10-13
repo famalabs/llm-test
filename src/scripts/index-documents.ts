@@ -1,26 +1,35 @@
 import { RecursiveCharacterTextSplitter, TextSplitter } from 'langchain/text_splitter';
-import { VectorStore, ensureIndex, normalizeIndexName } from "../vector-store";
+import { AgenticChunker } from '../lib/chunks/agentic-chunker';
+import { VectorStore, ensureIndex } from "../vector-store";
 import { hideBin } from 'yargs/helpers';
 import { readFile } from 'fs/promises';
 import Redis from 'ioredis';
 import yargs from 'yargs';
+import { LLMConfigProvider } from '../llm';
+import { getUserInput } from '../utils';
+
+const tokenToCharRatio = 4; // approx
 
 async function main() {
     const argv = await yargs(hideBin(process.argv))
         .option('files', { alias: 'f', type: 'string', demandOption: true, description: 'Comma-separated list of text file paths' })
         .option('chunking', { alias: 'c', type: 'string', choices: ['fixed-size', 'agentic'], demandOption: true, description: 'Chunking strategy' })
+        .option('indexName', { alias: 'i', type: 'string', description: 'Name of the vector store index', demandOption: true })
+        .option('chunkerModel', { type: 'string', demandOption: false, description: 'LLM to use for agentic chunking', default: 'mistral-small-latest' })
+        .option('chunkerProvider', { type: 'string', choices: ['openai', 'mistral', 'google'], demandOption: false, description: 'Provider for agentic chunking', default: 'mistral' })
+        .option('tokenLength', { alias: 't', type: 'number', description: 'Token length for fixed-size chunking (default: 300)', default: 300 })
+        .option('tokenOverlap', { alias: 'o', type: 'number', description: 'Token overlap for fixed-size chunking (default: 50)', default: 50 })
+        .option('embeddingsModel', { type: 'string', description: 'Model to use for embeddings', demandOption: true })
+        .option('embeddingsProvider', { type: 'string', choices: ['openai', 'mistral', 'google'], description: 'Provider for embeddings', demandOption: true })
+        .option('debug', { alias: 'd', type: 'boolean', description: 'Enable debug mode to review chunks before storing', default: false })
         .help()
         .parse();
 
-    const { files, chunking } = argv;
+    const { files, chunking, indexName, chunkerModel, chunkerProvider, embeddingsModel, embeddingsProvider, tokenLength, tokenOverlap } = argv;
     const filesPath = files!.split(',');
-    let splitter: TextSplitter;
+    let splitter: TextSplitter | AgenticChunker;
 
     if (chunking == 'fixed-size') {
-        const tokenLength = 300;
-        const tokenOverlap = 50;
-        const tokenToCharRatio = 4; // approx
-
         splitter = new RecursiveCharacterTextSplitter({
             chunkSize: tokenLength * tokenToCharRatio,
             chunkOverlap: tokenOverlap * tokenToCharRatio,
@@ -28,8 +37,11 @@ async function main() {
     }
 
     else if (chunking == 'agentic') {
-        // da vedere
-        throw new Error('AgenticChunking not implemented yet!')
+        splitter = new AgenticChunker({
+            model: chunkerModel!,
+            provider: chunkerProvider as LLMConfigProvider,
+            minChunkLines: 5,
+        });
     }
 
     else {
@@ -38,7 +50,6 @@ async function main() {
     }
 
     const client = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
-    const indexName = normalizeIndexName('vector_store_index_fixed_size');
     const indexSchema = [
         "pageContent", "TEXT",
         "source", "TAG",
@@ -50,6 +61,8 @@ async function main() {
         client,
         indexName,
         fieldToEmbed: 'pageContent',
+        embeddingsModel,
+        embeddingsProvider: embeddingsProvider as LLMConfigProvider
     });
     await vectorStore.load();
 
@@ -67,7 +80,21 @@ async function main() {
 
     const allSplits = await splitter.splitDocuments(docs);
 
-   await vectorStore.add(allSplits);
+    if (argv.debug) {
+        console.log(`Generated ${allSplits.length} chunks from ${docs.length} documents.`);
+
+        for (const split of allSplits) {
+            console.log(split.metadata.loc)
+            console.log('---');
+            console.log(split.pageContent);
+            console.log('======================');
+            await getUserInput('Press Enter to continue...');
+        }
+    }
+
+
+    await vectorStore.add(allSplits);
+
 
     console.log(allSplits.length, 'document chunks embedded and stored');
 }

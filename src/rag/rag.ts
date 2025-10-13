@@ -5,7 +5,7 @@ import { RagConfig, RagAnswer } from "./interfaces";
 import { addLineNumbers } from "../lib/nlp";
 import { generateObject } from "ai";
 import { resolveConfig } from "./rag.config";
-import { getLLMProvider } from "./factory";
+import { getLLMProvider } from "../llm";
 import z, { ZodType } from "zod";
 
 export class Rag {

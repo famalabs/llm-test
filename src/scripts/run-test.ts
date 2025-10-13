@@ -1,3 +1,8 @@
+/**
+ * Example use with glob:
+ * npx tsx src/scripts/run-test.ts -c "data/example.rag-config*" -t data/tests/rag-suite-01.json -i vector_store_index_fixed_size
+ */
+
 import { createOutputFolderIfNeeded, PATH_NORMALIZATION_MARK } from "../utils";
 import { VectorStore, ensureIndex } from "../vector-store";
 import { readFile, writeFile } from "fs/promises"
@@ -5,16 +10,12 @@ import { Chunk, Citation } from "../lib/chunks";
 import { tqdm } from "node-console-progress-bar-tqdm";
 import { hideBin } from "yargs/helpers";
 import { Rag } from '../rag';
+import { glob } from "glob";
 import Redis from "ioredis";
 import yargs from "yargs"
 import path from 'path';
 
-const main = async () => {
-    const { test: testFile, config: configFile } = await yargs(hideBin(process.argv))
-        .option('test', { alias: 't', type: 'string', demandOption: true, description: 'Path to evaluation test JSON' })
-        .option('config', { alias: 'c', type: 'string', demandOption: true, description: 'Path to RAG/docStore config JSON' })
-        .help()
-        .parse();
+async function runSingleTest(testFile: string, configFile: string) {
 
     if (
         testFile?.includes('_') || configFile?.includes('_') ||
@@ -55,7 +56,7 @@ const main = async () => {
     const output: {
         results: { question: string; keyRef: string; fullRef: string; candidate: string, citations: Citation[], chunks: Chunk[] }[],
         ragConfig: object,
-        docStoreConfig: object 
+        docStoreConfig: object
     } = {
         results: [],
         ragConfig,
@@ -73,6 +74,28 @@ const main = async () => {
     const fileName = path.join(createOutputFolderIfNeeded('output', 'candidates'), `${normalizedTestFile}_${normalizedConfigFile}.json`);
     await writeFile(fileName, JSON.stringify(output, null, 2));
     console.log('Report written to', fileName);
+}
+
+
+const main = async () => {
+    const { test: testFile, config: configFile } = await yargs(hideBin(process.argv))
+        .option('test', { alias: 't', type: 'string', demandOption: true, description: 'Path to evaluation test JSON' })
+        .option('config', { alias: 'c', type: 'string', demandOption: true, description: 'Path to RAG/docStore config JSON' })
+        .help()
+        .parse();
+
+    const multipleFiles = await glob(configFile!);
+    if (multipleFiles.length > 1) {
+        console.log(`Found ${multipleFiles.length} config files matching the pattern. Running tests for each file...`);
+        for (const file of multipleFiles) {
+            console.log(`\nRunning test for: ${file}`);
+            await runSingleTest(testFile!, file);
+        }
+        return;
+    }
+    console.log(multipleFiles)
+
+    await runSingleTest(testFile!, configFile!);
 }
 
 main().catch(console.error).then(_ => process.exit(0));

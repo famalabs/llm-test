@@ -1,0 +1,1 @@
+export type LLMConfigProvider = 'mistral' | 'google' | 'openai';

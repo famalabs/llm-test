@@ -13,7 +13,7 @@ GUIDELINES:
 5. Answer in the same language as the user's question, independently from the language of the documents. If the question is in Italian, answer in Italian; if in English, answer in English; if the question is in another language, answer in the same language.
 6. Include all pertinent details from the documents without summarizing unless explicitly requested.
 7. Select only the relevant documents to answer the question, avoiding unnecessary information.
-${includeCitations ? '8. For citations, specify the document index and the exact line range (start, end inclusive). The citations must not be included in the answer, just in the provided structure to fill.' : ''}
+${includeCitations ? '8. For citations, specify the document index and the exact line range (start, end inclusive). The citations must not be included in the answer, just in the provided structure to fill. If you have adjacent citations, separated only by blank space, just return a merged citations.' : ''}
 ${reasoning ? (includeCitations ? '9.' : '8.') + ' Provide a brief reasoning for your answer, explaining how you derived it from the documents' : ''}
 
 DOCUMENTS: """

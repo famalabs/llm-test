@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { pipeline } from "@huggingface/transformers";
 import { exec, execFile } from "child_process";
 import os from "os";

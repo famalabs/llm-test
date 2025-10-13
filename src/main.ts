@@ -2,7 +2,7 @@ import { ModelMessage, stepCountIs, streamText, tool } from 'ai';
 import { VectorStore, ensureIndex } from './vector-store';
 import { Chunk, resolveCitations } from './lib/chunks';
 import { ragChatbotSystemPrompt } from './lib/prompt';
-import { getLLMProvider } from './rag/factory';
+import { getLLMProvider } from './llm';
 import { Rag, RagAnswer } from './rag';
 import { getUserInput } from './utils';
 import { sleep } from './utils';

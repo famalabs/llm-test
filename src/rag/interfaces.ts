@@ -1,7 +1,6 @@
 import { VectorStore } from '../vector-store';
 import { Chunk, Citation } from '../lib/chunks';
-
-export type LLMConfigProvider = 'mistral' | 'google' | 'openai';
+import { LLMConfigProvider } from '../llm';
 
 export interface LLMConfig {
     /**

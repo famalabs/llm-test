@@ -2,7 +2,7 @@ import { customLLMAsAJudge } from "../test/evaluations/llm-as-a-judge";
 import { readDocument } from "../utils";
 import { addLineNumbers } from "../lib/nlp";
 import { ragCorpusInContext } from "../lib/prompt";
-import { getLLMProvider } from "./factory";
+import { getLLMProvider } from "../llm";
 import { generateObject } from "ai";
 import z from "zod";
 import 'dotenv/config';
@@ -58,7 +58,8 @@ async function testPrompt(idx: number) {
         keyRef: testData[idx].keyRef,
         fullRef: testData[idx].fullRef,
         prediction: answer,
-        llm: "mistral-small-latest",
+        model: "mistral-small-latest",
+        provider: "mistral",
     });
 
     expect(score).toBeGreaterThanOrEqual(0.8);

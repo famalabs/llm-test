@@ -3,7 +3,7 @@ import { analyzeSentiment } from "./sentiment-analysis";
 import { hideBin } from "yargs/helpers";
 import { tqdm } from 'node-console-progress-bar-tqdm';
 import { readFile, writeFile } from "fs/promises";
-import { LLMConfigProvider } from "../rag";
+import { LLMConfigProvider } from "../llm";
 import { createOutputFolderIfNeeded, PATH_NORMALIZATION_MARK } from "../utils";
 import path from "path";
 

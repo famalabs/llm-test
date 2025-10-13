@@ -6,6 +6,7 @@ import { hideBin } from "yargs/helpers";
 import Redis from "ioredis";
 import yargs from "yargs";
 import path from "path";
+import { LLMConfigProvider } from "../llm";
 
 function denormalizeSource(fileName: string): string {
     return fileName
@@ -14,13 +15,11 @@ function denormalizeSource(fileName: string): string {
 }
 
 async function main() {
-    const { folder } = await yargs(hideBin(process.argv))
-        .option("folder", {
-            alias: "f",
-            type: "string",
-            description: "Folder containing the agentic-chunked JSON files",
-            demandOption: true,
-        })
+    const { folder, indexName, model, provider } = await yargs(hideBin(process.argv))
+        .option("folder", { alias: "f", type: "string", description: "Folder containing the agentic-chunked JSON files", demandOption: true, })
+        .option('indexName', { alias: 'i', type: 'string', description: 'Name of the vector store index', demandOption: true })
+        .option('model', { alias: 'm', type: 'string', demandOption: true, description: 'Embedding model to use' })
+        .option('provider', { alias: 'p', type: 'string', choices: ['openai', 'mistral', 'google'], demandOption: true, description: 'Provider for embeddings' })
         .parse();
 
     const files = await readdir(folder);
@@ -32,21 +31,19 @@ async function main() {
     }
 
     const client = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
-    const indexName = `vector_store_index_agentic`;
-
     await ensureIndex(client, indexName, [
         "pageContent",
         "TEXT",
         "source",
         "TAG",
-        "metadata",
-        "TEXT",
     ]);
 
     const vectorStore = new VectorStore({
         client,
         indexName,
         fieldToEmbed: "pageContent",
+        embeddingsModel: model,
+        embeddingsProvider: provider as LLMConfigProvider
     });
 
     await vectorStore.load();
