@@ -1,7 +1,8 @@
 import { Chunk } from '../chunks/interfaces'
 
-export const ragCorpusInContext = (promptDocuments: Chunk[], userQuery: string, fewShots: boolean = false, reasoning: boolean = false, includeCitations : boolean = false): string => {
- return `
+export const ragCorpusInContext = (promptDocuments: Chunk[], userQuery: string, fewShots: boolean = false, reasoning: boolean = false, includeCitations: boolean = false): string => {
+
+    return `
 You are a medical information assistant. Analyze the provided documents and deliver precise answers based exclusively on the given content.
 ${fewShots ? FEW_SHOTS(reasoning, includeCitations) : ''}
 
@@ -13,7 +14,7 @@ GUIDELINES:
 5. Answer in the same language as the user's question, independently from the language of the documents. If the question is in Italian, answer in Italian; if in English, answer in English; if the question is in another language, answer in the same language.
 6. Include all pertinent details from the documents without summarizing unless explicitly requested.
 7. Select only the relevant documents to answer the question, avoiding unnecessary information.
-${includeCitations ? '8. For citations, specify the document index and the exact line range (start, end inclusive). The citations must not be included in the answer, just in the provided structure to fill. If you have adjacent citations, separated only by blank space, just return a merged citations.' : ''}
+${includeCitations ? '8. For citations, specify the document index and the exact line range (start, end inclusive). The citations must not be included in the answer, just in the provided structure to fill. If you have adjacent citations, separated only by blank space, just return a merged citations. Do not include the citation details within the answer.' : ''}
 ${reasoning ? (includeCitations ? '9.' : '8.') + ' Provide a brief reasoning for your answer, explaining how you derived it from the documents' : ''}
 
 DOCUMENTS: """
@@ -27,7 +28,17 @@ ${userQuery}
 };
 
 
-const FEW_SHOTS = (reasoning:boolean, includeCitations:boolean) => `
+const FEW_SHOTS = (reasoning: boolean, includeCitations: boolean) => {
+    const fmtAnswer = (answer: string, citations?: { chunkIndex: number, startLine: number, endLine: number }[], reasoningText?: string) => {
+        const output: Record<string, any> = {
+            answer: answer.trim(),
+        }
+        if (includeCitations && citations && citations.length > 0) output['citations'] = citations
+        if (reasoning && reasoningText) output['reasoning'] = reasoningText.trim();
+        return JSON.stringify(output, null, 2);
+    }
+    
+    return `
 Here are some examples of how to answer based on the provided documents:
 
 ---
@@ -48,14 +59,20 @@ USER'S QUESTION: """
 Qual è un effetto collaterale comune del Metformin?
 """
 
-ANSWER: """
-Effetti collaterali comuni del Metformin sono principalmente gastrointestinali e possono includere diarrea, nausea e dolore addominale. Gli effetti sono spesso temporanei. ${includeCitations ? '[Citazioni: DOCUMENT 0 (2, 4)]' : ''}
-"""
+OUTPUT:
+${fmtAnswer(
+        'Effetti collaterali comuni del Metformin sono principalmente gastrointestinali e possono includere diarrea, nausea e dolore addominale. Gli effetti sono spesso temporanei.',
+        [{ chunkIndex: 0, startLine: 2, endLine: 4 }],
+        'La risposta è direttamente trovata in DOCUMENT 0, righe 2 a 4, che elencano gli effetti collaterali comuni del Metformin.'
+    )}
 
-${reasoning ? "Reasoning: La risposta è direttamente trovata in DOCUMENT 0, righe 2 a 4, che elencano gli effetti collaterali comuni del Metformin." : ''}
+===
 
-WRONG ANSWER EXAMPLE: """
-Un effetto collaterale comune del Metformin è l'ipoglicemia. ${includeCitations ? '[Citazioni: DOCUMENT 0 (2, 4)]' : ''}
+WRONG OUTPUT EXAMPLE: """
+${fmtAnswer(
+        'Un effetto collaterale comune del Metformin è l\'ipoglicemia.',
+        [{ chunkIndex: 0, startLine: 2, endLine: 4 }],
+    )}
 """
 
 ---
@@ -75,15 +92,20 @@ USER'S QUESTION: """
 What is the recommended dosage of Metformin for children?
 """
 
-ANSWER: """
-I'm sorry, I can't find information about the recommended dosage of Metformin for children. The text only specifies the typical starting dose for adults. ${includeCitations ? '[Citations: DOCUMENT 0 (2, 2)]' : ''}
-"""
+OUTPUT: 
+${fmtAnswer(
+        "I'm sorry, I can't find information about the recommended dosage of Metformin for children. The text only specifies the typical starting dose for adults.",
+        [{ chunkIndex: 0, startLine: 2, endLine: 2 }],
+        "The documents only provide dosage information for adults, with no mention of children."
+    )}
 
-${reasoning ? "Reasoning: The documents only provide dosage information for adults, with no mention of children." : ''}
+===
 
-WRONG ANSWER EXAMPLE: """
-The recommended dosage of Metformin for children is 500 mg once daily with the evening meal. ${includeCitations ? '[Citazioni: DOCUMENT 0 (2, 2)]' : ''}
-"""
+WRONG OUTPUT EXAMPLE:
+${fmtAnswer(
+        "The recommended dosage of Metformin for children is 500 mg once daily with the evening meal.",
+        [{ chunkIndex: 0, startLine: 2, endLine: 2 }],
+    )}
 
 ---
 
@@ -105,13 +127,23 @@ USER'S QUESTION: """
 Can Metformin be used to treat type 1 diabetes?
 """
 
-ANSWER: """
-There are no studies confirming that Metformin is effective for type 1 diabetes. ${includeCitations ? '[Citations: DOCUMENT 1 (3, 3)]' : ''}
-"""
+OUTPUT:
+${
+    fmtAnswer(
+        "There are no studies confirming that Metformin is effective for type 1 diabetes.",
+        [{ chunkIndex: 1, startLine: 3, endLine: 3 }],
+        "DOCUMENT 1, line 3 states that there are no studies confirming Metformin's effectiveness for type 1 diabetes, indicating it is not used for that purpose."
+    )
+}
 
-${reasoning ? "Reasoning: DOCUMENT 1, line 3 states that there are no studies confirming Metformin's effectiveness for type 1 diabetes, indicating it is not used for that purpose." : ''}
+===
 
-WRONG ANSWER EXAMPLE: """
-Metformin cannot be used to treat type 1 diabetes. ${includeCitations ? '[Citations: DOCUMENT 1 (3, 3)]' : ''}
-"""
-`;
+WRONG OUTPUT EXAMPLE: 
+${
+    fmtAnswer(
+        "Yes, Metformin can be used to treat type 1 diabetes.",
+        [{ chunkIndex: 1, startLine: 3, endLine: 3 }],
+    )
+}
+`.trim();
+};

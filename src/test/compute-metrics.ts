@@ -12,6 +12,7 @@ import yargs from "yargs";
 import path from 'path';
 import { glob } from 'glob';
 import { LLMConfigProvider } from '../llm';
+import 'dotenv/config'
 
 const allMetrics = { customLLMAsAJudge };
 

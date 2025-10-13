@@ -88,12 +88,11 @@ const main = async () => {
     if (multipleFiles.length > 1) {
         console.log(`Found ${multipleFiles.length} config files matching the pattern. Running tests for each file...`);
         for (const file of multipleFiles) {
-            console.log(`\nRunning test for: ${file}`);
+            console.log(`Running test for: ${file}`);
             await runSingleTest(testFile!, file);
         }
         return;
     }
-    console.log(multipleFiles)
 
     await runSingleTest(testFile!, configFile!);
 }

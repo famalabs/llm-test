@@ -112,7 +112,7 @@ export class AgenticChunker {
 
         for (const doc of docs) {
             const originalLines = doc.pageContent.split('\n');
-            const lines = originalLines.map((line, idx) => `${idx}: ${line}`);
+            const lines = originalLines.map((line, idx) => `${idx}: ${line}`); // <----- question: se qui metto un idx+1, posso escldere il ciclo finale?
 
             const start = performance.now();
             const { object: response } = await generateObject({
@@ -217,6 +217,13 @@ export class AgenticChunker {
             flushBuffer();
 
             output.push(...chunks);
+        }
+
+        for (const chunk of output) {
+            if (chunk.metadata.loc?.lines) { // check per typing
+                chunk.metadata.loc.lines.from += 1;
+                chunk.metadata.loc.lines.to += 1;
+            }
         }
 
         return output;

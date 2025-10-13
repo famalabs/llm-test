@@ -10,7 +10,7 @@ import Redis from 'ioredis';
 import z from 'zod';
 
 const docStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const docStoreIndexName = 'vector_store_index_fixed_size';
+const docStoreIndexName = 'vector_store_index_agentic';
 const docStoreIndexSchema = [ 'pageContent', 'TEXT', 'source', 'TAG' ]; // metadata non va indicizzato.
 const docStore = new VectorStore<Chunk>({
     client: docStoreRedisClient,
@@ -85,6 +85,7 @@ const main = async () => {
                                 `Informazioni sul farmaco ${medicineName}: ${textualQuery}`, 
                                 useLatestInfo
                             );
+
                             out = `Answer: ${answer}\n\n` + 
                             (citations && citations.length > 0 ? 'Citations:\n' + await resolveCitations(citations, chunks) + '\n\n' : '') +
                             (reasoning ? 'Reasoning:\n\n' + reasoning : '');
