@@ -1,7 +1,7 @@
+import { AgenticChunker, ProgressiveAgenticChunker, SectionAgenticChunker } from '../lib/chunks';
 import { RecursiveCharacterTextSplitter, TextSplitter } from 'langchain/text_splitter';
 import { createOutputFolderIfNeeded, getUserInput } from '../utils';
 import { VectorStore, ensureIndex } from "../vector-store";
-import { AgenticChunker } from '../lib/chunks/agentic-chunker';
 import { readFile, writeFile } from 'fs/promises';
 import { hideBin } from 'yargs/helpers';
 import { LLMConfigProvider } from '../llm';
@@ -14,7 +14,7 @@ const tokenToCharRatio = 4; // approx
 async function main() {
     const argv = await yargs(hideBin(process.argv))
         .option('files', { alias: 'f', type: 'string', demandOption: true, description: 'Comma-separated list of text file paths' })
-        .option('chunking', { alias: 'c', type: 'string', choices: ['fixed-size', 'agentic'], demandOption: true, description: 'Chunking strategy' })
+        .option('chunking', { alias: 'c', type: 'string', choices: ['fixed-size', 'agentic', 'progressive-agentic', 'section-agentic'], demandOption: true, description: 'Chunking strategy' })
         .option('indexName', { alias: 'i', type: 'string', description: 'Name of the vector store index', demandOption: true })
         .option('chunkerModel', { alias: 'cm', type: 'string', demandOption: false, description: 'LLM to use for agentic chunking', default: 'mistral-small-latest' })
         .option('chunkerProvider', { alias: 'cp', type: 'string', choices: ['openai', 'mistral', 'google'], demandOption: false, description: 'Provider for agentic chunking', default: 'mistral' })
@@ -24,13 +24,22 @@ async function main() {
         .option('embeddingsProvider', { alias: 'ep', type: 'string', choices: ['openai', 'mistral', 'google'], description: 'Provider for embeddings (default: openai)', demandOption: false, default: 'openai' })
         .option('debug', { alias: 'd', type: 'boolean', description: 'Enable debug mode to review chunks before storing', default: false })
         .option('minChunkLines', { type: 'number', description: 'Minimum number of lines per chunk for agentic chunking (default: 0)', default: 0 })
+        .option('batchSize', { alias: 'b', type: 'number', description: 'Batch size for progressive agentic chunking (default: 5)', default: 5 })
         .option('prefix', { alias: 'p', type: 'string', description: 'Optional prefix to add to the "source" field of each chunk' })
         .help()
         .parse();
 
-    const { files, chunking, indexName, chunkerModel, chunkerProvider, embeddingsModel, embeddingsProvider, tokenLength, tokenOverlap, minChunkLines, prefix } = argv;
+    const { 
+        files, chunking, indexName, 
+        chunkerModel, chunkerProvider, 
+        embeddingsModel, embeddingsProvider, 
+        tokenLength, tokenOverlap, 
+        minChunkLines, 
+        batchSize,
+        prefix 
+    } = argv;
     const filesPath = files!.split(',');
-    let splitter: TextSplitter | AgenticChunker;
+    let splitter: TextSplitter | AgenticChunker | ProgressiveAgenticChunker | SectionAgenticChunker;
 
     if (chunking == 'fixed-size') {
         splitter = new RecursiveCharacterTextSplitter({
@@ -44,6 +53,21 @@ async function main() {
             model: chunkerModel!,
             provider: chunkerProvider as LLMConfigProvider,
             minChunkLines: minChunkLines!,
+        });
+    }
+
+    else if (chunking == 'progressive-agentic') {
+        splitter = new ProgressiveAgenticChunker({
+            model: chunkerModel!,
+            provider: chunkerProvider as LLMConfigProvider,
+            batchSize: batchSize!,
+        });
+    }
+
+    else if (chunking == 'section-agentic') {
+        splitter = new SectionAgenticChunker({
+            model: chunkerModel!,
+            provider: chunkerProvider as LLMConfigProvider,
         });
     }
 
@@ -81,7 +105,9 @@ async function main() {
         })
     );
 
+    const startTime = performance.now();
     const allSplits = await splitter.splitDocuments(docs);
+    console.log(`Chunking completed in ${(performance.now() - startTime).toFixed(2)} ms`);
 
     if (argv.debug) {
         console.log(`Generated ${allSplits.length} chunks from ${docs.length} documents.`);
@@ -101,7 +127,7 @@ async function main() {
         console.log(`All chunks written to ${outputPath}`);
     }
 
-    await vectorStore.add(allSplits, prefix ? { prefix: () => prefix } : {});
+    // await vectorStore.add(allSplits, prefix ? { prefix: () => prefix } : {});
     
     console.log(allSplits.length, 'document chunks embedded and stored');
 }

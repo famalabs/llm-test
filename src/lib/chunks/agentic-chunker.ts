@@ -15,20 +15,14 @@ INPUT
 ----------------
 OUTPUT (STRICT)
 ----------------
-Return ONLY a JSON object of arrays:
+Return ONLY a JSON object:
 {
   "chunks": [
-    { "start": number, "end": number },
+    0 // note: the first line is always 0.
+    <line idx> // index of the first line of the second chunk (inclusive)
     ...
   ]
 }
-Rules:
-- Indices inclusive.
-- Chunks must:
-  - Start at 0 and end at N-1 (N = total lines).
-  - Cover every line exactly once (no gaps/overlaps).
-  - Be sorted and contiguous (next.start = prev.end + 1).
-  - Ensure start <= end.
 
 ----------------
 RAG-ORIENTED PRINCIPLES
@@ -53,8 +47,7 @@ RAG-ORIENTED PRINCIPLES
 ----------------
 QUALITY GATES (must pass)
 ----------------
-- First chunk at 0; last at N-1.
-- Full coverage, no overlaps, sorted, contiguous.
+- First chunk at 0;
 - No heading-only chunks.
 - Each chunk can plausibly answer at least one retrieval question about its topic without adjacent chunks.
 - Prefer ~120–300 words when possible; never split a sentence or tight logical unit across chunks.
@@ -72,10 +65,7 @@ Example 1 (list stays with heading):
 6: Tenere sotto 25°C.
 
 Output:
-{"chunks": [
-  { "start": 0, "end": 3 },
-  { "start": 4, "end": 6 }
-]}
+{"chunks": [0,4]}
 
 Example 2 (table/block kept intact with its intro):
 0: Posologia
@@ -85,13 +75,11 @@ Example 2 (table/block kept intact with its intro):
 4: Note: non superare 600mg/die.
 
 Output:
-{"chunks": [
-  { "start": 0, "end": 4 }
-]}
+{"chunks": [0]}
 ----------------
 EMIT
 ----------------
-Emit ONLY the JSON object "chunks" : array of { "start", "end" } objects. No commentary.
+Emit ONLY the JSON object "chunks" : array of start indexes. No commentary.
 `.trim();
 
 
@@ -112,7 +100,7 @@ export class AgenticChunker {
 
         for (const doc of docs) {
             const originalLines = doc.pageContent.split('\n');
-            const lines = originalLines.map((line, idx) => `${idx}: ${line}`); // <----- question: se qui metto un idx+1, posso escldere il ciclo finale?
+            const lines = originalLines.map((line, idx) => `${idx}: ${line}`);
 
             const start = performance.now();
             const { object: response } = await generateObject({
@@ -124,10 +112,7 @@ export class AgenticChunker {
                 temperature: 0,
                 seed: 42,
                 schema: z.object({
-                    chunks: z.array(z.object({
-                        start: z.number(),
-                        end: z.number()
-                    }))
+                    chunks: z.array(z.number())
                 })
             })
             console.log(`Chunked document (${originalLines.length} lines) in ${(performance.now() - start).toFixed(2)} ms`);
@@ -170,8 +155,11 @@ export class AgenticChunker {
                 bufferChunk = newChunk();
             };
 
-            for (const chunk of rawChunks) {
-                const { start, end } = chunk;
+            for (let i = 0; i < rawChunks.length; i++) {
+                const isLastElement = i == rawChunks.length - 1;
+                const start = rawChunks[i];
+                const end = isLastElement ? originalLines.length - 1 : rawChunks[i + 1] - 1;
+
                 const chunkLines = originalLines.slice(start, end + 1);
                 const numLinesOk = chunkLines.length >= this.minChunkLines;
                 const emptyBuffer = bufferChunk.pageContent.length === 0;
