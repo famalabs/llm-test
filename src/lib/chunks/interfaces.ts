@@ -1,3 +1,5 @@
+import { Document } from '../core';
+
 export interface Citation {
     chunkIndex: number;
     startLine: number;
@@ -6,18 +8,16 @@ export interface Citation {
     lines?: { from?: number; to?: number; };
 }
 
-export declare type Chunk = { 
-    pageContent: string;
-    metadata: { 
-        source: string;
-        loc?: { 
-            lines: { 
-                from: number;
-                to: number;
-            };
+export interface Chunk extends Document<{
+    source: string;
+    loc?: {
+        lines: {
+            from: number;
+            to: number;
         };
-        [key: string]: any;
     };
+    [key: string]: any;
+}> {
     distance: number;
 };
 
