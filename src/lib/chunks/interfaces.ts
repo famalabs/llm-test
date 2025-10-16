@@ -9,7 +9,6 @@ export interface Citation {
 }
 
 export interface Chunk extends Document<{
-    source: string;
     loc?: {
         lines: {
             from: number;
@@ -18,6 +17,11 @@ export interface Chunk extends Document<{
     };
     [key: string]: any;
 }> {
+    source: string;
+    
+    id: string;
+    childId?: string | null; // if it's a sub-chunk, we store the childId in here.
+
     distance: number;
 };
 

@@ -90,7 +90,12 @@ export interface ParentPageRetrievalConfig {
     /**
      * Number of lines to include around the ones containing the original chunk.
      */
-    offset: number;
+    offset?: number;
+
+    /**
+     * Type of parent page retrieval to perform.
+     */
+    type: 'lines' | 'full-section';
 }
 
 export interface SemanticCacheConfig {

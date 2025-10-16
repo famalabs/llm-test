@@ -3,10 +3,12 @@ import { ragCorpusInContext, rerankingPrompt } from "../lib/prompt";
 import { EMBEDDING_FIELD, VectorStore } from "../vector-store";
 import { RagConfig, RagAnswer } from "./interfaces";
 import { addLineNumbers } from "../lib/nlp";
+import { escapeRedisValue } from "../lib/redis";
 import { generateObject } from "ai";
 import { resolveConfig } from "./rag.config";
 import { getLLMProvider } from "../llm";
 import z, { ZodType } from "zod";
+import { writeFile } from "fs/promises";
 
 export class Rag {
     private readonly config: RagConfig;
@@ -160,6 +162,10 @@ export class Rag {
             if (parentPageRetrieval.offset != undefined && parentPageRetrieval.offset <= 0) {
                 throw new Error(`Invalid parent page retrieval offset: ${parentPageRetrieval.offset}. It must be a positive number.`);
             }
+
+            if (parentPageRetrieval.type == 'lines' && !(parentPageRetrieval.offset)) {
+                throw new Error("Parent page retrieval type is 'lines' but offset is not set.");
+            }
         }
 
         if (semanticCache) {
@@ -261,29 +267,117 @@ export class Rag {
         }
 
         let chunks = await this.docStore.retrieve(queryEmbedding, this.config.numResults);
+        await writeFile('last_query_raw_chunks.json', JSON.stringify(chunks, null, 2));
 
         if (this.config.chunkFiltering && this.config.chunkFiltering.thresholdMultiplier && this.config.chunkFiltering.baseThreshold) {
+            const prevLen = chunks.length;
             this.log("Applying chunk filtering...");
             chunks = applyChunkFiltering(
                 chunks,
                 this.config.chunkFiltering.thresholdMultiplier,
                 this.config.chunkFiltering.baseThreshold
             );
+            this.log(`Chunk filtering applied: ${prevLen} -> ${chunks.length}`);
+        }
+
+        if (this.config.parentPageRetrieval) {
+            if (this.config.parentPageRetrieval.type == 'full-section') {
+                chunks = await this.retrieveParentSection(chunks);
+            }
+
+            else if (this.config.parentPageRetrieval.type == 'lines' && this.config.parentPageRetrieval.offset) {
+                chunks = await retrieveParentPage(chunks, this.config.parentPageRetrieval.offset);
+            }
+
+            else {
+                throw new Error("Invalid parent page retrieval configuration.");
+            }
         }
 
         if (this.config.reranking) {
             chunks = await this.rerankChunks(query, chunks);
         }
 
-        if (this.config.parentPageRetrieval && this.config.parentPageRetrieval.offset) {
-            chunks = await retrieveParentPage(chunks, this.config.parentPageRetrieval.offset);
-        }
+        await writeFile('last_query_final_chunks.json', JSON.stringify(chunks, null, 2));
 
         const answer = await this.generateAnswer(query, chunks);
         await this.storeToCache(queryEmbedding, answer);
 
         return answer;
     }
+
+
+    private async retrieveParentSection(chunks: Chunk[]): Promise<Chunk[]> {
+
+        const alreadyProcessedParents = new Set<string>();
+        const output: Chunk[] = [];
+
+        for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            const isSubChunk = chunk.childId != undefined;
+            
+            // se non è un sub-chunk -> direct push.
+            if (!isSubChunk) {
+                const id = chunk.id;
+                if (alreadyProcessedParents.has(id)) { continue; }
+
+                output.push(chunk);
+                alreadyProcessedParents.add(chunk.id);
+
+                continue;
+            }
+
+            else {
+                const parentId = chunk.id;
+                if (alreadyProcessedParents.has(parentId)) { continue; }
+
+                const parentChunk = chunks.find(c => c.id == parentId && c.source == chunk.source && c.childId == null);
+
+                // parent is already in the chunks
+                if (parentChunk) {
+                    output.push(parentChunk);
+                    alreadyProcessedParents.add(parentId);
+                    continue;
+                }
+
+                // we have to read the parent from the docStore
+                else {
+                    const { docs } = await this.docStore.query(
+                        `@id:{${parentId}} @source:{${escapeRedisValue(chunk.source)}} @childId:{null}`,
+                    );
+
+                    if (!docs || docs.length == 0) {
+                        throw new Error("Parent chunk not found in the document store.");
+                    }
+
+                    const doc = docs[0];
+
+                    if (!doc) {
+                        throw new Error('Unexpected error: parent chunk not found in the results.')
+                    }
+
+                    const parentChunk = doc.fields;
+
+                    output.push({
+                        pageContent: parentChunk.pageContent,
+                        source: chunk.source,
+                        id: chunk.id,
+                        metadata: {
+                            loc: {
+                                ...chunk.metadata.loc,
+                                lines: parentChunk.metadata.loc.lines
+                            }
+                        },
+                        distance: chunk.distance
+                    });
+                    alreadyProcessedParents.add(parentId);
+                }
+            }
+        }
+
+        return output;
+    };
+
 
     public async rerankChunks(query: string, chunks: Chunk[]): Promise<Chunk[]> {
 
@@ -309,7 +403,7 @@ export class Rag {
         }
 
         for (const group of groupedChunks) {
-            const promptDocuments: PromptDocument[] = group.map(c => ({ content: c.pageContent, source: c.metadata.source }));
+            const promptDocuments: PromptDocument[] = group.map(c => ({ content: c.pageContent, source: c.source }));
             const prompt = rerankingPrompt(
                 promptDocuments,
                 query,

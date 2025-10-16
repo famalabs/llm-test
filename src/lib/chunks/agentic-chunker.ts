@@ -1,3 +1,7 @@
+/*
+DEPRECATED
+*/
+
 import z from "zod";
 import { getLLMProvider, LLMConfigProvider } from "../../llm";
 import { Chunk } from "../../lib/chunks/";
@@ -93,6 +97,7 @@ export class AgenticChunker {
         this.model = model;
         this.provider = provider;
         this.minChunkLines = minChunkLines;
+        console.warn("AgenticChunker is deprecated. Please use SectionAgenticChunker instead.");
     }
 
     async splitDocuments(docs: { pageContent: string; metadata: Record<string, any> }[]): Promise<Chunk[]> {
@@ -122,8 +127,8 @@ export class AgenticChunker {
             const rawChunks = response.chunks;
             const newChunk = () => ({
                 pageContent: [] as string[],
+                source: doc.metadata.source,
                 metadata: {
-                    source: doc.metadata.source,
                     loc: { lines: { from: 0, to: 0 } },
                 },
                 distance: 0,
@@ -141,8 +146,8 @@ export class AgenticChunker {
                 if (bufferChunk.pageContent.length === 0) return;
                 chunks.push({
                     pageContent: bufferChunk.pageContent.join("\n"),
+                    source: doc.metadata.source,
                     metadata: {
-                        source: doc.metadata.source,
                         loc: {
                             lines: {
                                 from: bufferChunk.metadata.loc.lines.from,
@@ -150,6 +155,7 @@ export class AgenticChunker {
                             },
                         },
                     },
+                    id: '', // will be set later
                     distance: 0,
                 });
                 bufferChunk = newChunk();
@@ -168,10 +174,11 @@ export class AgenticChunker {
                     if (emptyBuffer) { // big enough -> direct push                        
                         chunks.push({
                             pageContent: chunkLines.join("\n"),
+                            source: doc.metadata.source,
                             metadata: {
-                                source: doc.metadata.source,
                                 loc: { lines: { from: start, to: end } },
                             },
+                            id: '', // will be set later
                             distance: 0,
                         });
                     }
@@ -207,10 +214,12 @@ export class AgenticChunker {
             output.push(...chunks);
         }
 
-        for (const chunk of output) {
+        for (let i = 0; i < output.length; i++) {
+            const chunk = output[i];
             if (chunk.metadata.loc?.lines) { // check per typing
                 chunk.metadata.loc.lines.from += 1;
                 chunk.metadata.loc.lines.to += 1;
+                chunk.id = i.toString();
             }
         }
 

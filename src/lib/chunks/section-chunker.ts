@@ -1,7 +1,8 @@
-import z from "zod";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { getLLMProvider, LLMConfigProvider } from "../../llm";
 import { generateObject } from "ai";
 import { Chunk } from "./interfaces";
+import z from "zod";
 
 const PROMPT = `
 You are an expert in **document section indexing**.
@@ -32,7 +33,7 @@ Return ONLY a JSON object with:
   "sections": [
     {
       "title": string,
-      "line": number,    // index of the first line of the section
+      "line": number,
       "description": string
     },
     ...
@@ -47,39 +48,22 @@ RULES
 - Do NOT include commentary or extra fields.
 - Description must be informative but concise (max 2 sentences).
 - Never reorder the original text or renumber lines.
-
-----------------
-EXAMPLE
-----------------
-INPUT:
-0: I gatti
-1: Descrizione
-2: I gatti sono animali domestici molto popolari ...
-3:
-4: Benefici
-5: I gatti offrono compagnia e possono ridurre lo stress ...
-
-OUTPUT:
-{
-  "sections": [
-    { "title": "Descrizione", "line": 0, "description": "La sezione descrive i gatti in generale." },
-    { "title": "Benefici", "line": 4, "description": "La sezione parla degli effetti benefici dei gatti." },
-  ]
-}
+- The language of the title and the description should match the one used in the document.
 `.trim();
 
 interface SectionAgenticChunkerConstructorInterface {
-    model: string; 
+    model: string;
     provider: LLMConfigProvider;
     secondPass?: {
-        minCharacters: number;
-    }
+        maxSectionChars: number;
+    };
 }
 
 export class SectionAgenticChunker {
+
     model: string;
     provider: LLMConfigProvider;
-    secondPass: { minCharacters: number } | null = null;
+    secondPass: { maxSectionChars: number } | null = null;
 
     constructor({ model, provider, secondPass }: SectionAgenticChunkerConstructorInterface) {
         this.model = model;
@@ -87,62 +71,134 @@ export class SectionAgenticChunker {
         if (secondPass) this.secondPass = secondPass;
     }
 
+    private async runLLM(lines: string[]) {
+        const { object: response } = await generateObject({
+            model: (await getLLMProvider(this.provider))(this.model),
+            messages: [
+                { role: "system", content: PROMPT },
+                { role: "user", content: lines.join("\n") },
+            ],
+            temperature: 0,
+            seed: 42,
+            schema: z.object({
+                sections: z.array(
+                    z.object({
+                        title: z.string(),
+                        line: z.number(),
+                        description: z.string(),
+                    })
+                ),
+            }),
+        });
+
+        return response.sections;
+    }
+
+    private async chunkSingleDoc(doc: { pageContent: string; metadata: Record<string, any> }): Promise<Chunk[]> {
+        const originalLines = doc.pageContent.split("\n");
+        const lines = originalLines.map((line, idx) => `${idx}: ${line}`);
+        const sections = await this.runLLM(lines);
+
+        const chunks: Chunk[] = [];
+
+        for (let i = 0; i < sections.length; i++) {
+            const { title, line, description } = sections[i];
+            const isFirst = i === 0;
+            const isLast = i === sections.length - 1;
+            const endLine = isLast ? originalLines.length - 1 : sections[i + 1].line - 1;
+            const startLine = isFirst ? 0 : line;
+            const content = originalLines.slice(startLine, endLine + 1).join("\n");
+
+            chunks.push({
+                
+                pageContent: content,
+                source: doc.metadata.source,
+
+                metadata: {
+                    loc: {
+                        lines: {
+                            from: startLine + 1, // convert to 1-based
+                            to: endLine + 1,
+                        },
+                    },
+
+                    title,
+                    description,
+                },
+
+                childId: null, 
+                id: i.toString(),
+                distance: 0,
+            });
+        }
+
+        return chunks;
+    }
+
+    private async secondPassSplit(chunk: Chunk): Promise<Chunk[]> {
+        if (!this.secondPass) return [chunk];
+
+        const splitter = new RecursiveCharacterTextSplitter({
+            chunkSize: this.secondPass.maxSectionChars,
+            chunkOverlap: 0,
+            keepSeparator: true
+        });
+
+        const docs = await splitter.createDocuments([chunk.pageContent]);
+
+        if (!chunk.metadata.loc) {
+            throw new Error("Unexpected error: missing lines in original chunk metadata.");
+        }
+
+        const baseFrom = chunk.metadata.loc.lines.from;
+
+        const subChunks: Chunk[] = docs.map((d, idx) => {
+            const relFrom = d.metadata.loc?.lines?.from;
+            const relTo = d.metadata.loc?.lines?.to;
+
+            const absFrom = baseFrom + relFrom - 1;
+            const absTo = baseFrom + relTo - 1;
+
+            return {
+                pageContent: d.pageContent,
+                source: chunk.source,
+
+                metadata: {
+                    loc: {
+                        lines: { from: absFrom, to: absTo },
+                        parentLines: chunk.metadata.loc?.lines
+                    },
+
+                    title: chunk.metadata.title,
+                    description: chunk.metadata.description,
+                },
+                
+                id: chunk.id,
+                childId: idx.toString(),
+                distance: 0,
+            };
+        });
+
+        return subChunks;
+    }
+
+
     async splitDocuments(
         docs: { pageContent: string; metadata: Record<string, any> }[]
     ): Promise<Chunk[]> {
         const output: Chunk[] = [];
 
         for (const doc of docs) {
-            const originalLines = doc.pageContent.split("\n");
-            const lines = originalLines.map((line, idx) => `${idx}: ${line}`);
+            const firstChunks = await this.chunkSingleDoc(doc);
 
-            const { object: response } = await generateObject({
-                model: (await getLLMProvider(this.provider))(this.model),
-                messages: [
-                    { role: "system", content: PROMPT },
-                    { role: "user", content: lines.join("\n") },
-                ],
-                temperature: 0,
-                seed: 42,
-                schema: z.object({
-                    sections: z.array(
-                        z.object({
-                            title: z.string(),
-                            line: z.number(),
-                            description: z.string(),
-                        })
-                    ),
-                }),
-            });
+            for (const chunk of firstChunks) {
+                if (this.secondPass && chunk.pageContent.length > this.secondPass.maxSectionChars) {
+                    const refined = await this.secondPassSplit(chunk);
+                    output.push(...refined);
+                }
 
-            // build chunks
-            const sections = response.sections;
-            for (let i = 0; i < sections.length; i++) {
-                const { title, line, description } = sections[i];
-                const isFirst = i == 0;
-                const isLast = i == sections.length - 1;
-                const endLine = isLast
-                    ? originalLines.length - 1
-                    : sections[i + 1].line - 1;
-
-                const startLine = isFirst ? 0 : line;
-                const content = originalLines.slice(startLine, endLine + 1).join("\n");
-
-                output.push({
-                    pageContent: content,
-                    metadata: {
-                        source: doc.metadata.source,
-                        loc: {
-                            lines: {
-                                from: startLine + 1, // convert to 1-based
-                                to: endLine + 1,
-                            },
-                        },
-                        title,
-                        description,
-                    },
-                    distance: 0,
-                });
+                // we keep also the original section
+                output.push(chunk);
             }
         }
 

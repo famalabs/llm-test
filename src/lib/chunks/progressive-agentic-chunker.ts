@@ -1,9 +1,12 @@
+/*
+DEPRECATED
+*/
+
 import z from "zod";
 import { getLLMProvider, LLMConfigProvider } from "../../llm";
 import { Chunk } from "./interfaces";
 import { generateObject } from "ai";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { getUserInput } from "../../utils";
 
 const PROMPT = `You are an expert at grouping small text blocks ("mini-chunks") into bigger, meaningful groups ("semantic chunks").
 
@@ -80,7 +83,6 @@ Return ONLY a JSON object:
 
 
 export class ProgressiveAgenticChunker {
-
     model: string;
     provider: LLMConfigProvider;
     intermediateChunker: RecursiveCharacterTextSplitter;
@@ -93,6 +95,7 @@ export class ProgressiveAgenticChunker {
             chunkSize: 300
         });
         this.batchSize = batchSize;
+        console.warn("ProgressiveAgenticChunker is deprecated. Please use SectionAgenticChunker instead.");
     }
 
     async splitDocuments(docs: { pageContent: string; metadata: Record<string, any> }[]): Promise<Chunk[]> {
@@ -136,7 +139,7 @@ export class ProgressiveAgenticChunker {
 
             const { groups } = result;
 
-            const newChunks = groups.map(g => {
+            const newChunks = groups.map((g, idx) => {
                 const chunkLines = currentBatch.slice(g.start, g.end).map(c => c.pageContent);
 
                 const start = g.start;
@@ -151,10 +154,11 @@ export class ProgressiveAgenticChunker {
 
                 return {
                     pageContent: chunkLines.join("\n"),
+                    source: currentBatch[0].source,
                     metadata: {
-                        source: currentBatch[0].metadata.source,
                         loc: { lines: { from: fromLine, to: toLine } },
                     },
+                    id: idx.toString(),
                     distance: 0,
                 } as Chunk;
             });

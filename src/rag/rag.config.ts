@@ -1,4 +1,3 @@
-import { openai } from "@ai-sdk/openai";
 import { RagConfig } from "./interfaces";
 
 const DEFAULT_CONFIG: Omit<RagConfig, 'docStore' | 'semanticCache'> = {

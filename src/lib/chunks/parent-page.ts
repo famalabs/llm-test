@@ -42,10 +42,10 @@ export const retrieveParentPage = async (chunks: Chunk[], offset: number): Promi
 
     const chunksBySource: Record<string, Chunk[]> = {};
     for (const c of chunks) {
-        if (!chunksBySource[c.metadata.source]) {
-            chunksBySource[c.metadata.source] = [];
+        if (!chunksBySource[c.source]) {
+            chunksBySource[c.source] = [];
         }
-        chunksBySource[c.metadata.source].push(c);
+        chunksBySource[c.source].push(c);
     }
 
     const result: Chunk[] = [];
@@ -60,13 +60,15 @@ export const retrieveParentPage = async (chunks: Chunk[], offset: number): Promi
         // Restore order (distance based...smallest distance first)
         merged.sort((a, b) => a.distance - b.distance);
 
-        for (const { metadata, distance } of merged) {
+        for (const { metadata, distance, id, source } of merged) {
             const { from, to } = metadata.loc!.lines;
             const content = lines.slice(from - 1, to).join("\n");
 
             result.push({
                 pageContent: content,
                 metadata,
+                source,
+                id,
                 distance
             });
         }

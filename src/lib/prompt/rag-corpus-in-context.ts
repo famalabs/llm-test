@@ -18,7 +18,7 @@ ${includeCitations ? '8. For citations, specify the document index and the exact
 ${reasoning ? (includeCitations ? '9.' : '8.') + ' Provide a brief reasoning for your answer, explaining how you derived it from the documents' : ''}
 
 DOCUMENTS: """
-${promptDocuments.map((doc, idx) => `====== DOCUMENT ${idx} [INDEX = ${idx}] [extracted from source ${doc.metadata.source}] ======\n${doc.pageContent}\n`).join('\n')}
+${promptDocuments.map((doc, idx) => `====== DOCUMENT ${idx} [INDEX = ${idx}] [extracted from source ${doc.source}] ======\n${doc.pageContent}\n`).join('\n')}
 """
 
 USER'S QUESTION: """

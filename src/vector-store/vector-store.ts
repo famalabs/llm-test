@@ -45,6 +45,8 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
     private deserializeField(value: string): any {
         if (value === "true") return true;
         if (value === "false") return false;
+        if (value === "null") return null;
+        if (value === "undefined") return undefined;
 
         if (
             (value.startsWith("{") && value.endsWith("}")) ||
@@ -67,7 +69,7 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         return value;
     }
 
-    public async add(documents: ReturnDocumentType[], options: { ttl? : number, prefix?: (chunk: ReturnDocumentType) => string } = {}): Promise<void> {
+    public async add(documents: ReturnDocumentType[], options: { ttl?: number, prefix?: (chunk: ReturnDocumentType) => string } = {}): Promise<void> {
         await this.load();
         const fieldToEmbed = this.config.fieldToEmbed;
         let vectors: number[][] = [];
@@ -143,13 +145,15 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         return docs;
     }
 
-    public async deleteByFilter(filter: string): Promise<number> {
+    public async deleteByFilter(
+        filter: string
+    ): Promise<number> {
         await this.load();
         const { indexName } = this.config;
         let totalDeleted = 0;
         const PAGE = 1000;
         let offset = 0;
-
+        
         while (true) {
             const res = await this.client.call(
                 "FT.SEARCH",
@@ -191,18 +195,41 @@ export class VectorStore<ReturnDocumentType extends Record<string, any>> {
         }
     }
 
-    public async query(filter: string): Promise<{ total: number, keys: string[] }> {
+    public async query(
+        filter: string
+    ): Promise<{ total: number; docs: { key: string; fields: Record<string, any> }[] }> {
         await this.load();
         const { indexName } = this.config;
+
         const res = await this.client.call(
             "FT.SEARCH",
             indexName,
             filter,
-            "NOCONTENT",
-            "LIMIT", "0", "10000",  // MAX REDIS LIMIT for FT.SEARCH: 10k results
-            "DIALECT", "2"
+            "LIMIT",
+            "0",
+            "10000",  // max FT.SEARCH limit
+            "DIALECT",
+            "2"
         );
-        const [total, ...keys] = res as [number, ...string[]];
-        return { total, keys };
+
+        const [total, ...rawDocs] = res as [number, ...any[]];
+
+        const docs: { key: string; fields: Record<string, any> }[] = [];
+        for (let i = 0; i < rawDocs.length; i += 2) {
+            const key = rawDocs[i] as string;
+            const arr = rawDocs[i + 1] as string[];
+            const fields: Record<string, any> = {};
+
+            // arr = [field1, value1, field2, value2, ...]
+            for (let j = 0; j < arr.length; j += 2) {
+                const fieldName = arr[j];
+                const value = this.deserializeField(arr[j + 1]);
+                fields[fieldName] = value;
+            }
+
+            docs.push({ key, fields });
+        }
+
+        return { total, docs };
     }
 }

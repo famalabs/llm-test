@@ -3,28 +3,28 @@ import { VectorStore, ensureIndex } from './vector-store';
 import { Chunk, resolveCitations } from './lib/chunks';
 import { ragChatbotSystemPrompt } from './lib/prompt';
 import { getLLMProvider } from './llm';
-import { Rag, RagAnswer } from './rag';
+import { Rag } from './rag';
 import { getUserInput } from './utils';
 import { sleep } from './utils';
 import Redis from 'ioredis';
 import z from 'zod';
 
 const docStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const docStoreIndexName = 'vector_store_index_agentic';
-const docStoreIndexSchema = [ 'pageContent', 'TEXT', 'source', 'TAG' ]; // metadata non va indicizzato.
+const docStoreIndexName = 'vector_store_index_section_agentic';
+const docStoreIndexSchema = ['pageContent', 'TEXT', 'source', 'TAG', 'id', 'TAG', "childId", "TAG"]; // metadata non va indicizzato.
 const docStore = new VectorStore<Chunk>({
     client: docStoreRedisClient,
     indexName: docStoreIndexName,
     fieldToEmbed: 'pageContent'
 });
 
-const cacheStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const cacheStoreIndexName = 'cache_store_index';
-const cacheStoreIndexSchema: string[] = []; // Non dobbiamo indicicazzare niente
-const cacheStore = new VectorStore<RagAnswer>({
-    client: cacheStoreRedisClient,
-    indexName: cacheStoreIndexName,
-});
+// const cacheStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+// const cacheStoreIndexName = 'cache_store_index';
+// const cacheStoreIndexSchema: string[] = []; // Non dobbiamo indicicazzare niente
+// const cacheStore = new VectorStore<RagAnswer>({
+//     client: cacheStoreRedisClient,
+//     indexName: cacheStoreIndexName,
+// });
 
 const rag = new Rag({
     llmConfig: {
@@ -36,15 +36,10 @@ const rag = new Rag({
     includeCitations: false,
     fewShotsEnabled: false,
     verbose: true,
-    docStore, 
-    semanticCache: {
-        cacheStore,
-        distanceThreshold: 0.2,
-    },
-    chunkFiltering: {
-        thresholdMultiplier: 0.7,
-        baseThreshold: 0.12,
-    },
+    docStore,
+    parentPageRetrieval: {
+        type: 'full-section',
+    }
 });
 
 const messages: ModelMessage[] = [];
@@ -52,7 +47,7 @@ const messages: ModelMessage[] = [];
 const main = async () => {
 
     await ensureIndex(docStoreRedisClient, docStoreIndexName, docStoreIndexSchema);
-    await ensureIndex(cacheStoreRedisClient, cacheStoreIndexName, cacheStoreIndexSchema);
+    // await ensureIndex(cacheStoreRedisClient, cacheStoreIndexName, cacheStoreIndexSchema);
 
     await rag.init();
     rag.printSummary();
@@ -82,13 +77,13 @@ const main = async () => {
                         let out = 'No answer could be found.';
                         try {
                             const { answer, citations, reasoning, chunks } = await rag.search(
-                                `Informazioni sul farmaco ${medicineName}: ${textualQuery}`, 
+                                `Informazioni sul farmaco ${medicineName}: ${textualQuery}`,
                                 useLatestInfo
                             );
 
-                            out = `Answer: ${answer}\n\n` + 
-                            (citations && citations.length > 0 ? 'Citations:\n' + await resolveCitations(citations, chunks) + '\n\n' : '') +
-                            (reasoning ? 'Reasoning:\n\n' + reasoning : '');
+                            out = `Answer: ${answer}\n\n` +
+                                (citations && citations.length > 0 ? 'Citations:\n' + await resolveCitations(citations, chunks) + '\n\n' : '') +
+                                (reasoning ? 'Reasoning:\n\n' + reasoning : '');
                         }
                         catch (error) {
                             console.error('Error during RAG processing:', error);
