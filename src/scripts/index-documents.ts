@@ -44,6 +44,8 @@ async function main() {
     const filesPath = files!.split(',');
     let splitter: FixedSizeChunker | AgenticChunker | ProgressiveAgenticChunker | SectionAgenticChunker | RecursiveCharacterTextSplitter;
 
+    console.log('chunking', chunking);
+    
     if (chunking == 'fixed-size') {
         splitter = new FixedSizeChunker({
             chunkSize: tokenLength * tokenToCharRatio,
@@ -51,7 +53,7 @@ async function main() {
         });
     }
 
-    if (chunking == 'ported-fixed-size') {
+    else if (chunking == 'ported-fixed-size') {
         splitter = new RecursiveCharacterTextSplitter({
             chunkSize: tokenLength * tokenToCharRatio,
             chunkOverlap: tokenOverlap * tokenToCharRatio,
