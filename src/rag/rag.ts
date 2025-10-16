@@ -8,7 +8,6 @@ import { generateObject } from "ai";
 import { resolveConfig } from "./rag.config";
 import { getLLMProvider } from "../llm";
 import z, { ZodType } from "zod";
-import { writeFile } from "fs/promises";
 
 export class Rag {
     private readonly config: RagConfig;
@@ -267,7 +266,6 @@ export class Rag {
         }
 
         let chunks = await this.docStore.retrieve(queryEmbedding, this.config.numResults);
-        await writeFile('last_query_raw_chunks.json', JSON.stringify(chunks, null, 2));
 
         if (this.config.chunkFiltering && this.config.chunkFiltering.thresholdMultiplier && this.config.chunkFiltering.baseThreshold) {
             const prevLen = chunks.length;
@@ -297,8 +295,6 @@ export class Rag {
         if (this.config.reranking) {
             chunks = await this.rerankChunks(query, chunks);
         }
-
-        await writeFile('last_query_final_chunks.json', JSON.stringify(chunks, null, 2));
 
         const answer = await this.generateAnswer(query, chunks);
         await this.storeToCache(queryEmbedding, answer);
