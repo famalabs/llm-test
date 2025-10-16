@@ -4,6 +4,8 @@ export interface Document<
 > {
   pageContent: string;
 
+  source?: string;
+
   metadata: Metadata;
 
   id?: string;

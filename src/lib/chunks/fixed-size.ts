@@ -14,6 +14,8 @@ export class FixedSizeChunker {
         for (let i = 0; i < chunks.length; i++) {
             chunks[i].id = i.toString();
             chunks[i].distance = 0;
+            chunks[i].source = chunks[i].metadata.source;
+            delete chunks[i].metadata.source;
         }
 
         return chunks;

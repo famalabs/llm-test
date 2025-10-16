@@ -148,6 +148,13 @@ export abstract class TextSplitter
         indexPrevChunk = indexChunk;
       }
     }
+
+    for (let i = 0; i < documents.length; i++) {
+      documents[i].id = i.toString();
+      documents[i].source = documents[i].metadata.source;
+      delete documents[i].metadata.source;
+    }
+
     return documents;
   }
 

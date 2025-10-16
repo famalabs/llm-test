@@ -93,7 +93,7 @@ const main = async () => {
             values: [1, 3, 5]
         },
         parentPageRetrieval: {
-            values: [{ offset: 5 }],
+            values: [{ offset: 5, type: "lines" }],
             condition: (config: any) => {
                 return config.docStore.getConfig().indexName == fixedSizeIndexName
             }

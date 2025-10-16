@@ -39,7 +39,6 @@ const extendChunkLines = (chunk: Chunk, offset: number, totalLines: number): Chu
 
 export const retrieveParentPage = async (chunks: Chunk[], offset: number): Promise<Chunk[]> => {
 
-
     const chunksBySource: Record<string, Chunk[]> = {};
     for (const c of chunks) {
         if (!chunksBySource[c.source]) {
