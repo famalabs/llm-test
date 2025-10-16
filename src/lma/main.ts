@@ -1,91 +1,136 @@
-import yargs from "yargs";
-import { analyzeSentiment } from "./sentiment-analysis";
-import { hideBin } from "yargs/helpers";
-import { tqdm } from 'node-console-progress-bar-tqdm';
-import { readFile, writeFile } from "fs/promises";
-import { LLMConfigProvider } from "../llm";
-import { createOutputFolderIfNeeded, PATH_NORMALIZATION_MARK } from "../utils";
-import path from "path";
+import { hideBin } from 'yargs/helpers';
+import yargs from "yargs"
+import { readFile } from 'fs/promises';
+import { LMAInput, LMAOutput } from './interfaces';
+import { analyzeSentiment, SentimentScores } from './sentiment-analysis';
+import { shouldSummarize, summarize } from './summarization';
+import { LLMConfigProvider } from '../llm';
+import 'dotenv/config';
+import { analyzeTask, shouldAnalyzeTask } from './task-analysis';
+import { detectUserRequest } from './user-request-detection/core';
 
-const computeScores = (actual: Record<string, number>, predicted: Record<string, number>) => {
-    const polarityDiff = Math.abs(actual.polarity - predicted.polarity);
-    const polarityScore = 1 - polarityDiff / 2;
-    const moodDiff = Math.abs(actual.mood - predicted.mood);
-    const toneDiff = Math.abs(actual.tone - predicted.tone);
-    const registryDiff = Math.abs(actual.registry - predicted.registry);
-    const moodScore = 1 - moodDiff / 2;
-    const toneScore = 1 - toneDiff / 2;
-    const registryScore = 1 - registryDiff / 2;
+const sentimentScores = (sentimentScores: SentimentScores, expectedScores: SentimentScores) => {
+    const polarityScore = 1 - Math.abs((sentimentScores.polarity ?? 0) - (expectedScores.polarity ?? 0));
+    const involvementScore = 1 - Math.abs((sentimentScores.involvement ?? 0) - (expectedScores.involvement ?? 0));
+    const energyScore = 1 - Math.abs((sentimentScores.energy ?? 0) - (expectedScores.energy ?? 0));
+    const temperScore = 1 - Math.abs((sentimentScores.temper ?? 0) - (expectedScores.temper ?? 0));
+    const moodScore = 1 - Math.abs((sentimentScores.mood ?? 0) - (expectedScores.mood ?? 0));
+    const empathyScore = 1 - Math.abs((sentimentScores.empathy ?? 0) - (expectedScores.empathy ?? 0));
+    const toneScore = 1 - Math.abs((sentimentScores.tone ?? 0) - (expectedScores.tone ?? 0));
+    const registryScore = 1 - Math.abs((sentimentScores.registry ?? 0) - (expectedScores.registry ?? 0));
+    const sentimentScore = (polarityScore + involvementScore + energyScore + temperScore + moodScore + empathyScore + toneScore + registryScore) / 8;
+    console.log(`- Polarity: ${polarityScore.toFixed(2)}`);
+    console.log(`- Involvement: ${involvementScore.toFixed(2)}`);
+    console.log(`- Energy: ${energyScore.toFixed(2)}`);
+    console.log(`- Temper: ${temperScore.toFixed(2)}`);
+    console.log(`- Mood: ${moodScore.toFixed(2)}`);
+    console.log(`- Empathy: ${empathyScore.toFixed(2)}`);
+    console.log(`- Tone: ${toneScore.toFixed(2)}`);
+    console.log(`- Registry: ${registryScore.toFixed(2)}`);
+    console.log(`- Overall Sentiment Score: ${sentimentScore.toFixed(2)}`);
+}
 
-    let generalDiffSum = 0;
-    const dimensions = ['polarity', 'involvement', 'energy', 'temper', 'mood', 'tone', 'registry'] as const;
+const evaluate = async (output: Partial<LMAOutput>, expected: LMAOutput) => {
+    // sentiment analysis evaluation:
+    console.log('Sentiment Analysis Evaluation (single):');  
+    sentimentScores(output.sentiment!.single, expected.sentiment.single);
 
-    for (const dim of dimensions) {
-        const actualValue = actual[dim] ?? 0;
-        const predictedValue = predicted[dim] ?? 0;
-        generalDiffSum += Math.pow(predictedValue - actualValue, 2);
+    console.log('\n\nSentiment Analysis Evaluation (cumulative):');  
+    sentimentScores(output.sentiment!.cumulative, expected.sentiment.cumulative);
+
+    // summarization evaluation:
+    if (output.summary) {
+        console.log('\n\nExpected Summary:', expected.summary);
+        console.log('\n\nGenerated Summary:', output.summary);
     }
 
-    const generalScore = 1 - Math.sqrt(generalDiffSum / dimensions.length) / 2;
+    else {
+        console.log('\n\nSummarization not provided in output.');
+    }
 
-    return { polarityScore, generalScore, moodScore, toneScore, registryScore };
+
+    // task analysis evaluation:
+    if (output.task) {
+        console.log('\n\nExpected Task:', expected.task);
+        console.log('\n\nGenerated Task:', output.task);
+    }
+
+    else {
+        console.log('\n\nTask analysis not provided in output.');
+    }
+
+
+    // user request detection evaluation:
+    if (output.user_request != undefined) {
+        console.log('\n\nExpected User Request:', expected.user_request);
+        console.log('\n\nGenerated User Request:', output.user_request);
+    } else {
+        console.log('\n\nUser Request not provided in output.');
+    }
+
+    if (output.request_satisfied != undefined) {
+        console.log('\n\nExpected Request Satisfied:', expected.request_satisfied);
+        console.log('\n\nGenerated Request Satisfied:', output.request_satisfied);
+    } else {
+        console.log('\n\nRequest Satisfied not provided in output.');
+    }
 }
 
 const main = async () => {
-    const { input, model, provider } = await yargs(hideBin(process.argv))
-        .option("input", {
-            alias: "i",
-            type: "string",
-            description: "Input text or path to a JSON file with an array of sentences / conversations",
-            demandOption: true,
+    const { input, model, provider, debug } = await yargs(hideBin(process.argv))
+        .option('input', {
+            alias: 'i',
+            type: 'string',
+            description: 'Path to LMA input JSON file',
+            demandOption: true
         })
-        .option("model", {
-            alias: "m",
-            type: "string",
-            description: "LLM model to use",
-            demandOption: true,
+        .option('model', {
+            alias: 'm',
+            type: 'string',
+            description: 'LLM model',
+            demandOption: true
         })
-        .option("provider", {
-            alias: "p",
-            type: "string",
-            description: "LLM provider",
-            choices: ['openai', 'google', 'mistral'],
+        .option('provider', {
+            alias: 'p',
+            type: 'string',
+            description: 'LLM provider',
             demandOption: true,
+            choices: ['openai', 'mistral', 'google']
         })
-        .parse();
+        .option('debug', {
+            alias: 'd',
+            type: 'boolean',
+            description: 'Enable debug mode to force summarization',
+            default: false
+        })
+        .parse() as {
+            input: string,
+            model: string,
+            provider: LLMConfigProvider,
+            debug: boolean
+        };
 
+    const data = JSON.parse(await readFile(input, 'utf-8')) as { input: LMAInput, expected: any }[];
 
-    const data = JSON.parse(await readFile(input, "utf-8")) as Array<{ input: string; scores: Record<string, number> }>;
-    const output = [];
+    for (const { input, expected } of data) {
+        const prediction = {} as Partial<LMAOutput>;
 
-    for (const { input: sentenceOrConversation, scores } of tqdm(data, { description: 'Analyzing sentiment', total: data.length })) {
-        const result = await analyzeSentiment({
-            model,
-            provider: provider as LLMConfigProvider,
-            sentenceOrConversation,
-        });
+        prediction.sentiment = await analyzeSentiment({ input, model, provider });
 
-        output.push({
-            input: sentenceOrConversation,
-            actual: scores,
-            prediction: result.scores,
-            computedScores: computeScores(scores, result.scores)
-        });
+        if (shouldSummarize(input) || debug) {
+            prediction.summary = await summarize({ input, model, provider });
+        }
+
+        if (shouldAnalyzeTask(input) || debug) {
+            prediction.task = await analyzeTask({ input, model, provider });
+        }
+
+        const { user_request, request_satisfied } = await detectUserRequest({ input, model, provider, parallel: true });
+        prediction.user_request = user_request;
+        prediction.request_satisfied = request_satisfied;
+
+        await evaluate(prediction, expected);
     }
-
-    createOutputFolderIfNeeded('output', 'sentiment-analysis');
-    const outputPath = path.join('output', 'sentiment-analysis', `sentiment_analysis_${input.replaceAll(path.sep, PATH_NORMALIZATION_MARK)}_${model}_${provider}.json`);
-    await writeFile(outputPath, JSON.stringify(output, null, 2), "utf-8");
-    console.log(`Results written to ${outputPath}`);
-
-    const avgPolarityScore = output.reduce((acc, curr) => acc + curr.computedScores.polarityScore, 0) / output.length;
-    const avgGeneralScore = output.reduce((acc, curr) => acc + curr.computedScores.generalScore, 0) / output.length;
-
-    console.log(`Average Polarity Score: ${avgPolarityScore.toFixed(4)}`);
-    console.log(`Average Mood Score: ${(output.reduce((acc, curr) => acc + curr.computedScores.moodScore, 0) / output.length).toFixed(4)}`);
-    console.log(`Average Tone Score: ${(output.reduce((acc, curr) => acc + curr.computedScores.toneScore, 0) / output.length).toFixed(4)}`);
-    console.log(`Average Registry Score: ${(output.reduce((acc, curr) => acc + curr.computedScores.registryScore, 0) / output.length).toFixed(4)}`);
-    console.log(`Average General Score: ${avgGeneralScore.toFixed(4)}`);
 }
 
-main().catch(console.error).then(() => process.exit(0));
+main();

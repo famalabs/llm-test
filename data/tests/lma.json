@@ -1,0 +1,69 @@
+[
+    {
+        "input": {
+            "message": "Ho avuto nausea e un po’ di vertigini, e comunque vorrei parlare con un medico.",
+            "chat_status": "request",
+            "task": {
+                "name": "side-effects",
+                "type": "string",
+                "description": "Side effects, or strange feelings, that the patient can feel."
+            },
+            "history": [
+                {
+                    "sender": "user",
+                    "message": "Da stamattina ho mal di stomaco e non mi sento molto bene."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Hai assunto qualche farmaco oggi?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, ho preso una compressa di paracetamolo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Hai avuto effetti collaterali?"
+                }
+            ],
+            "summary": {
+                "text": "Paziente riferisce mal di stomaco e malessere generale. Ha assunto una compressa di paracetamolo.",
+                "span": 3
+            }
+        },
+        "expected": {
+            "user_request": "Parlare con un medico.",
+            "request_satisfied": false,
+            "sentiment": {
+                "single": {
+                    "polarity": -0.3,
+                    "involvement": 0.6,
+                    "energy": 0.3,
+                    "temper": 0.3,
+                    "mood": -0.3,
+                    "empathy": 0.3,
+                    "tone": 0.3,
+                    "registry": 0.3
+                },
+                "cumulative": {
+                    "polarity": -0.3,
+                    "involvement": 0.6,
+                    "energy": 0.3,
+                    "temper": 0.3,
+                    "mood": -0.3,
+                    "empathy": 0.3,
+                    "tone": 0.3,
+                    "registry": 0.3
+                }
+            },
+            "task": {
+                "status": "answered",
+                "answer": "nausea, vertigini"
+            },
+            "summary": {
+                "text": "Paziente riferisce mal di stomaco e malessere generale. Ha assunto una compressa di paracetamolo. Riporta nausea e vertigini e chiede di parlare con un medico.",
+                "span": 4
+            }
+        }
+    }
+]

@@ -10,7 +10,8 @@
             "empathy": -0.6,
             "tone": -0.6,
             "registry": 0.6
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Non ne posso più, questo dolore non passa e nessuno riesce a dirmi cosa ho.",
@@ -23,7 +24,8 @@
             "empathy": -0.3,
             "tone": -0.3,
             "registry": 0.3
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Non so, mi sembra che tu non stia davvero capendo cosa mi preoccupa.",
@@ -36,7 +38,8 @@
             "empathy": -0.3,
             "tone": 0,
             "registry": 0.3
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Non so se fidarmi davvero di quello che mi stai dicendo… sembra un po’ troppo vago per una risposta medica.",
@@ -49,7 +52,8 @@
             "empathy": -0.3,
             "tone": 0,
             "registry": 0.3
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Onestamente non mi sei stato molto utile finora… mi aspettavo risposte un po’ più chiare.",
@@ -62,7 +66,8 @@
             "empathy": -0.3,
             "tone": 0,
             "registry": 0.3
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Non mi stai aiutando per niente… è la terza volta che mi dai una dose sbagliata rispetto a quella che mi ha prescritto il medico.",
@@ -75,7 +80,8 @@
             "empathy": -0.6,
             "tone": 0.3,
             "registry": 0.6
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Non saprei, ultimamente i farmaci mi fanno sentire strano, ma forse è solo suggestione… tu che ne pensi?",
@@ -88,7 +94,8 @@
             "empathy": 0.3,
             "tone": 0.6,
             "registry": 0.6
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Non so bene se quello che mi hai prescritto funzioni davvero, ma voglio capire meglio prima di iniziare la terapia.",
@@ -101,7 +108,8 @@
             "empathy": 0.3,
             "tone": 0.3,
             "registry": 0.3
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Non mi sento ancora del tutto meglio, ma almeno i sintomi sembrano un po’ migliorati rispetto a ieri.",
@@ -114,7 +122,8 @@
             "empathy": 0.3,
             "tone": 0.3,
             "registry": 0.3
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Non mi sento benissimo oggi, ma almeno i sintomi sembrano un po’ più lievi rispetto a ieri.",
@@ -127,7 +136,8 @@
             "empathy": 0.3,
             "tone": 0.3,
             "registry": 0.3
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Mi sento un po’ meglio oggi, grazie per il consiglio di ieri — sembra che il trattamento stia iniziando a funzionare.",
@@ -140,7 +150,8 @@
             "empathy": 0.6,
             "tone": 0.3,
             "registry": 0.3
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Mi sento decisamente meglio oggi, grazie per il supporto — credo che la terapia stia iniziando a funzionare.",
@@ -153,7 +164,8 @@
             "empathy": 0.6,
             "tone": 0.3,
             "registry": 0.3
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Grazie davvero per il consiglio, mi sento già più tranquillo sapendo che posso gestire la terapia in questo modo!",
@@ -166,7 +178,8 @@
             "empathy": 0.6,
             "tone": 0.6,
             "registry": 0.6
-        }
+        },
+        "mode": "single-message"
     },
     {
         "input": "Grazie per il consiglio, mi sento davvero più tranquillo ora che so come gestire correttamente la mia terapia!",
@@ -179,6 +192,275 @@
             "empathy": 0.6,
             "tone": 0.6,
             "registry": 0.6
+        },
+        "mode": "single-message"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile oggi?",
+            "Utente: A niente, è tutto inutile.",
+            "Chatbot: Mi dispiace tu ti senta così. Possiamo fare un passo alla volta: cosa ti pesa di più adesso?",
+            "Utente: Non voglio parlare.",
+            "Chatbot: Capisco. Posso restare in silenzio con te o suggerirti un esercizio breve di respirazione, se vuoi.",
+            "Utente: No. Lasciami stare."
+        ],
+        "scores": {
+            "polarity": -1,
+            "involvement": -1,
+            "energy": -0.6,
+            "temper": -0.6,
+            "mood": -0.6,
+            "empathy": -1,
+            "tone": -1,
+            "registry": 0.6
+        },
+        "mode": "full-conversation"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: È da settimane che ho un dolore al petto. Al PS hanno detto \"ansia\", ma non passa e sto perdendo la pazienza.",
+            "Chatbot: Mi dispiace molto. Per capirci meglio: dov’è esatto il dolore, quanto dura, cosa lo peggiora o migliora? Hai fiato corto, sudorazione, nausea o dolore che si irradia? Se ora fosse intenso o improvvisamente peggiore, contatta subito il 118.",
+            "Utente: Adesso non è forte. È una stretta che arriva quando respiro a fondo o mi agito; mi sveglia la notte. ECG e analisi ok, però continuo a stare male.",
+            "Chatbot: Grazie per i dettagli. Possiamo provare alcune tecniche (respiro 4-7-8, rilassamento muscolare progressivo) e una routine del sonno. Se vuoi preparo un piano per stanotte e valutiamo insieme i prossimi passi con il medico.",
+            "Utente: Ok… provo, ma sono scettico. Non voglio altri giri a vuoto: dimmi qualcosa di concreto per dormire stanotte."
+        ],
+        "scores": {
+            "polarity": -0.6,
+            "involvement": 0.3,
+            "energy": -0.3,
+            "temper": -0.3,
+            "mood": -0.6,
+            "empathy": -0.3,
+            "tone": -0.3,
+            "registry": 0.3
+        },
+        "mode": "full-conversation"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: Guarda, sono un po' frustrato: da due settimane ho mal di stomaco e nausea e dormo male. Non voglio correre al pronto soccorso se non serve, ma vorrei capire cosa posso fare oggi e quando dovrei preoccuparmi. Puoi aiutarmi?",
+            "Chatbot: Capisco il fastidio. Posso darti indicazioni generali: se hai dolore molto forte, vomito persistente, sangue nelle feci o febbre alta, contatta subito il 118/PS o la guardia medica. Altrimenti prova dieta leggera, liquidi, evita alcol/caffè/spezie, e senti il tuo medico per una valutazione. Se peggiora o compaiono segnali d’allarme, vai subito in PS."
+        ],
+        "scores": {
+            "polarity": -0.3,
+            "involvement": 0.6,
+            "energy": -0.3,
+            "temper": 0.6,
+            "mood": -0.3,
+            "empathy": 0.3,
+            "tone": 0.3,
+            "registry": 0.6
+        },
+        "mode": "full-conversation"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: Ho avuto due episodi di ansia questa settimana (respiro corto, tremori). Vorrei indicazioni pratiche per gestirli a casa e capire quando è il caso di contattare il medico.",
+            "Chatbot: Capisco. Possiamo partire da tecniche brevi: respirazione 4-6 per 5 minuti, messa a terra 5-4-3-2-1 e routine serale regolare. Evita caffeina e alcol nelle ore serali. Se i sintomi durano oltre 20-30 minuti, peggiorano, o compaiono dolore toracico, svenimento o confusione marcata, contatta il medico o il 112. Ti va di provare per una settimana e poi fare un check?"
+        ],
+        "scores": {
+            "polarity": 0,
+            "involvement": 0.6,
+            "energy": 0,
+            "temper": 0.6,
+            "mood": 0,
+            "empathy": 0,
+            "tone": -0.3,
+            "registry": -0.3
+        },
+        "mode": "full-conversation"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: Ciao! Da qualche settimana ho tensione al collo e un po’ d’ansia. Non è nulla di grave, ma vorrei consigli pratici per stare meglio.",
+            "Chatbot: Capito. Ti propongo qualche esercizio di respirazione e stretching leggero. Prima: su una scala 0–10, quanto è intenso il dolore? Peggiora in momenti specifici?",
+            "Utente: Direi 3/10. Peggiora quando sto al computer a lungo; dormo spesso su un fianco senza cuscino per il collo. Mi servirebbe una routine semplice che posso seguire ogni giorno.",
+            "Chatbot: Perfetto. Possiamo provare: respiro 4-7-8 per 3 cicli, pause attive ogni 45 minuti con 3 allungamenti (collo, trapezi, pettorali) e attenzione alla postura. Se compaiono formicolii forti, debolezza o dolore che aumenta, contatta il medico.",
+            "Utente: Ok, grazie! Provo la routine (4-7-8, pause ogni 45’, stretching collo/spalle, postura più neutra). Se tra due settimane non migliora sentirò il mio medico. Puoi mandarmi un breve riepilogo dei passi?"
+        ],
+        "scores": {
+            "polarity": 0.3,
+            "involvement": 0.6,
+            "energy": 0.3,
+            "temper": 0.6,
+            "mood": 0.3,
+            "empathy": 0.3,
+            "tone": 0.3,
+            "registry": 0.6
         }
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: Ciao! Sto meglio rispetto a settimana scorsa: l’ansia è più gestibile. Vorrei però qualche esercizio di respirazione per consolidare i progressi e dormire meglio, grazie.",
+            "Chatbot: Ottimo che tu stia meglio! Posso guidarti con un esercizio di respirazione semplice e darti suggerimenti per il sonno; vuoi provare ora?"
+        ],
+        "scores": {
+            "polarity": 0.6,
+            "involvement": 0.6,
+            "energy": 0.3,
+            "temper": 0.6,
+            "mood": 0.6,
+            "empathy": 0.6,
+            "tone": 0.3,
+            "registry": 0.3
+        },
+        "mode": "full-conversation"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: Ciao! Sto bene oggi, grazie 😊 Vorrei dei consigli per mantenere la routine che il mio terapista mi ha proposto: respirazione 4-7-8 e camminata di 20 minuti. Possiamo impostare un promemoria giornaliero e anche una frase motivazionale?",
+            "Chatbot: Certo! Ottima energia: ti aiuto a strutturare i promemoria e ti propongo alcune frasi motivazionali personalizzate. Vuoi farli al mattino o alla sera?"
+        ],
+        "scores": {
+            "polarity": 1,
+            "involvement": 1,
+            "energy": 0.6,
+            "temper": 1,
+            "mood": 1,
+            "empathy": 0.6,
+            "tone": 0.6,
+            "registry": 0.6
+        },
+        "mode": "full-conversation"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile oggi?",
+            "Utente: A niente, è tutto inutile.",
+            "Chatbot: Mi dispiace tu ti senta così. Possiamo fare un passo alla volta: cosa ti pesa di più adesso?",
+            "Utente: Non voglio parlare.",
+            "Chatbot: Capisco. Posso restare in silenzio con te o suggerirti un esercizio breve di respirazione, se vuoi.",
+            "Utente: No. Lasciami stare."
+        ],
+        "scores": {
+            "polarity": -1,
+            "involvement": -1,
+            "energy": -0.6,
+            "temper": -0.6,
+            "mood": -0.6,
+            "empathy": -1,
+            "tone": -1,
+            "registry": 0.6
+        },
+        "mode": "last-message"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: È da settimane che ho un dolore al petto. Al PS hanno detto \"ansia\", ma non passa e sto perdendo la pazienza.",
+            "Chatbot: Mi dispiace molto. Per capirci meglio: dov’è esatto il dolore, quanto dura, cosa lo peggiora o migliora? Hai fiato corto, sudorazione, nausea o dolore che si irradia? Se ora fosse intenso o improvvisamente peggiore, contatta subito il 118.",
+            "Utente: Adesso non è forte. È una stretta che arriva quando respiro a fondo o mi agito; mi sveglia la notte. ECG e analisi ok, però continuo a stare male.",
+            "Chatbot: Grazie per i dettagli. Possiamo provare alcune tecniche (respiro 4-7-8, rilassamento muscolare progressivo) e una routine del sonno. Se vuoi preparo un piano per stanotte e valutiamo insieme i prossimi passi con il medico.",
+            "Utente: Ok… provo, ma sono scettico. Non voglio altri giri a vuoto: dimmi qualcosa di concreto per dormire stanotte."
+        ],
+        "scores": {
+            "polarity": -0.6,
+            "involvement": 0.3,
+            "energy": -0.3,
+            "temper": -0.3,
+            "mood": -0.6,
+            "empathy": -0.3,
+            "tone": -0.3,
+            "registry": 0.3
+        },
+        "mode": "last-message"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: Guarda, sono un po' frustrato: da due settimane ho mal di stomaco e nausea e dormo male. Non voglio correre al pronto soccorso se non serve, ma vorrei capire cosa posso fare oggi e quando dovrei preoccuparmi. Puoi aiutarmi?",
+            "Chatbot: Capisco il fastidio. Posso darti indicazioni generali: se hai dolore molto forte, vomito persistente, sangue nelle feci o febbre alta, contatta subito il 118/PS o la guardia medica. Altrimenti prova dieta leggera, liquidi, evita alcol/caffè/spezie, e senti il tuo medico per una valutazione. Se peggiora o compaiono segnali d’allarme, vai subito in PS."
+        ],
+        "scores": {
+            "polarity": -0.3,
+            "involvement": 0.6,
+            "energy": -0.3,
+            "temper": 0.6,
+            "mood": -0.3,
+            "empathy": 0.3,
+            "tone": 0.3,
+            "registry": 0.6
+        },
+        "mode": "last-message"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: Ho avuto due episodi di ansia questa settimana (respiro corto, tremori). Vorrei indicazioni pratiche per gestirli a casa e capire quando è il caso di contattare il medico.",
+            "Chatbot: Capisco. Possiamo partire da tecniche brevi: respirazione 4-6 per 5 minuti, messa a terra 5-4-3-2-1 e routine serale regolare. Evita caffeina e alcol nelle ore serali. Se i sintomi durano oltre 20-30 minuti, peggiorano, o compaiono dolore toracico, svenimento o confusione marcata, contatta il medico o il 112. Ti va di provare per una settimana e poi fare un check?"
+        ],
+        "scores": {
+            "polarity": 0,
+            "involvement": 0.6,
+            "energy": 0,
+            "temper": 0.6,
+            "mood": 0,
+            "empathy": 0,
+            "tone": -0.3,
+            "registry": -0.3
+        },
+        "mode": "last-message"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: Ciao! Da qualche settimana ho tensione al collo e un po’ d’ansia. Non è nulla di grave, ma vorrei consigli pratici per stare meglio.",
+            "Chatbot: Capito. Ti propongo qualche esercizio di respirazione e stretching leggero. Prima: su una scala 0–10, quanto è intenso il dolore? Peggiora in momenti specifici?",
+            "Utente: Direi 3/10. Peggiora quando sto al computer a lungo; dormo spesso su un fianco senza cuscino per il collo. Mi servirebbe una routine semplice che posso seguire ogni giorno.",
+            "Chatbot: Perfetto. Possiamo provare: respiro 4-7-8 per 3 cicli, pause attive ogni 45 minuti con 3 allungamenti (collo, trapezi, pettorali) e attenzione alla postura. Se compaiono formicolii forti, debolezza o dolore che aumenta, contatta il medico.",
+            "Utente: Ok, grazie! Provo la routine (4-7-8, pause ogni 45’, stretching collo/spalle, postura più neutra). Se tra due settimane non migliora sentirò il mio medico. Puoi mandarmi un breve riepilogo dei passi?"
+        ],
+        "scores": {
+            "polarity": 0.3,
+            "involvement": 0.6,
+            "energy": 0.3,
+            "temper": 0.6,
+            "mood": 0.3,
+            "empathy": 0.3,
+            "tone": 0.3,
+            "registry": 0.6
+        }
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: Ciao! Sto meglio rispetto a settimana scorsa: l’ansia è più gestibile. Vorrei però qualche esercizio di respirazione per consolidare i progressi e dormire meglio, grazie.",
+            "Chatbot: Ottimo che tu stia meglio! Posso guidarti con un esercizio di respirazione semplice e darti suggerimenti per il sonno; vuoi provare ora?"
+        ],
+        "scores": {
+            "polarity": 0.6,
+            "involvement": 0.6,
+            "energy": 0.3,
+            "temper": 0.6,
+            "mood": 0.6,
+            "empathy": 0.6,
+            "tone": 0.3,
+            "registry": 0.3
+        },
+        "mode": "last-message"
+    },
+    {
+        "input": [
+            "Chatbot: Ciao! Come posso esserti utile?",
+            "Utente: Ciao! Sto bene oggi, grazie 😊 Vorrei dei consigli per mantenere la routine che il mio terapista mi ha proposto: respirazione 4-7-8 e camminata di 20 minuti. Possiamo impostare un promemoria giornaliero e anche una frase motivazionale?",
+            "Chatbot: Certo! Ottima energia: ti aiuto a strutturare i promemoria e ti propongo alcune frasi motivazionali personalizzate. Vuoi farli al mattino o alla sera?"
+        ],
+        "scores": {
+            "polarity": 1,
+            "involvement": 1,
+            "energy": 0.6,
+            "temper": 1,
+            "mood": 1,
+            "empathy": 0.6,
+            "tone": 0.6,
+            "registry": 0.6
+        },
+        "mode": "last-message"
     }
 ]

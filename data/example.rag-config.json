@@ -8,7 +8,8 @@
             "baseThreshold": 0.35
         },
         "parentPageRetrieval": {
-            "offset": 3
+            "offset": 3,
+            "type" : "lines"
         },
         "reasoningEnabled": true,
         "includeCitations": true,
@@ -16,6 +17,6 @@
         "verbose": true
     },
     "docStore": {
-        "indexName": "vector_store_index_fixed_size"
+        "indexName": "vector_store_index_ported_fixed_size"
     }
 }
