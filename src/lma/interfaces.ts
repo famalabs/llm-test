@@ -14,23 +14,23 @@ export interface LMAInput {
     message: string;
     chat_status: ChatStatus;
     history: Array<{ sender: Sender; message: string }>;
-    summary?: { text: string; span: number };
+    summary?: { text: string; span: number } | null;
     task?: InputTask;
 }
 
 export interface OutputTask {
     status: 'answered' | 'ignored' | 'negated' | 'wait';
-    answer?: string | number | boolean;
-    notes?: string;
+    answer?: string | number | boolean | null;
+    notes?: string | null;
 };
 
 export interface LMAOutput {
-    user_request?: string;
-    request_satisfied?: boolean;
+    user_request?: string | null;
+    request_satisfied?: boolean | null;
     sentiment: {
         single: SentimentScores;
         cumulative: SentimentScores;
     };
-    summary?: { text: string; span: number };
-    task?: OutputTask;
+    summary?: { text: string; span: number } | null;
+    task?: OutputTask | null;
 }

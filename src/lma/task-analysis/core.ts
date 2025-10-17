@@ -16,8 +16,8 @@ export const analyzeTask = async ({ input, model, provider } : {
 
     const schema = z.object({
         status: z.enum(['answered', 'ignored', 'negated', 'wait']).describe("Task status"),
-        answer: z.union([z.string(), z.number(), z.boolean()]).optional().describe("Task answer, present only if status is 'answered'"),
-        notes: z.string().optional().describe("Additional notes, present only if status is 'answered'")
+        answer: z.union([z.string(), z.number(), z.boolean()]).optional().nullable().describe("Task answer, present only if status is 'answered'"),
+        notes: z.string().optional().nullable().describe("Additional notes, present only if status is 'answered'")
     });
 
     const llmModel = (await getLLMProvider(provider))(model);

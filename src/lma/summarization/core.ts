@@ -4,8 +4,8 @@ import { CHAT_HISTORY_SUMMARIZATION_PROMPT } from "./prompt";
 import z from "zod";
 import { getLLMProvider, LLMConfigProvider } from "../../llm";
 
-const C_MAX = 2000;
-const C_MIN = 1000;
+const C_MAX = 1000;
+const C_MIN = 200;
 
 const getInputLength = (input: LMAInput): number => {
     const span = input.summary?.span ?? 0;
