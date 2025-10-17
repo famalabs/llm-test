@@ -10,7 +10,7 @@ import yargs from 'yargs';
 import path from 'path';
 import { FixedSizeChunker } from '../lib/chunks/fixed-size';
 
-const tokenToCharRatio = 4; // approx
+const tokenToCharRatio = 1; // approx
 
 async function main() {
     const argv = await yargs(hideBin(process.argv))
@@ -23,11 +23,11 @@ async function main() {
         .option('tokenOverlap', { alias: 'o', type: 'number', description: 'Token overlap for fixed-size chunking (default: 50)', default: 50 })
         .option('embeddingsModel', { alias: 'em', type: 'string', description: 'Model to use for embeddings (default: text-embedding-3-large)', demandOption: false, default: 'text-embedding-3-large' })
         .option('embeddingsProvider', { alias: 'ep', type: 'string', choices: ['openai', 'mistral', 'google'], description: 'Provider for embeddings (default: openai)', demandOption: false, default: 'openai' })
-        .option('debug', { alias: 'd', type: 'boolean', description: 'Enable debug mode to review chunks before storing', default: false })
         .option('minChunkLines', { type: 'number', description: 'Minimum number of lines per chunk for agentic chunking (default: 0)', default: 0 })
-        .option('maxSectionChars', { type: 'number', description: 'Maximum number of characters per section for section-agentic chunking' })
         .option('batchSize', { alias: 'b', type: 'number', description: 'Batch size for progressive agentic chunking (default: 5)', default: 5 })
         .option('prefix', { alias: 'p', type: 'string', description: 'Optional prefix to add to the "source" field of each chunk' })
+        .option('purge', { type: 'boolean', description: 'Purge existing index and create a new one', default: false })
+        .option('debug', { alias: 'd', type: 'boolean', description: 'Enable debug mode to review chunks before storing', default: false })
         .help()
         .parse();
 
@@ -37,7 +37,6 @@ async function main() {
         embeddingsModel, embeddingsProvider,
         tokenLength, tokenOverlap,
         minChunkLines,
-        maxSectionChars,
         batchSize,
         prefix
     } = argv;
@@ -92,24 +91,6 @@ async function main() {
         process.exit(1);
     }
 
-    const client = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
-    const indexSchema = [
-        "pageContent", "TEXT",
-        "source", "TAG",
-        "id", "TAG",
-        "childId", "TAG"
-    ];
-    await ensureIndex(client, indexName, indexSchema);
-
-    const vectorStore = new VectorStore({
-        client,
-        indexName,
-        fieldToEmbed: 'pageContent',
-        embeddingsModel,
-        embeddingsProvider: embeddingsProvider as LLMConfigProvider
-    });
-    await vectorStore.load();
-
     const docs = await Promise.all(
         filesPath.map(async (path) => {
             const content = await readFile(path, 'utf-8');
@@ -127,16 +108,29 @@ async function main() {
     const allSplits = await splitter.splitDocuments(docs) as Chunk[];
 
     console.log(`Chunking completed in ${(performance.now() - startTime).toFixed(2)} ms`);
+    const log_message = `\n\n [${new Date().toISOString()}] Indexed files: ${argv.files}` +
+            `\n Params: ${JSON.stringify(argv)}` +
+            `\n Time taken: ${(performance.now() - startTime).toFixed(2)} ms` +
+            `\n Average chunks per document: ${(allSplits.length / docs.length).toFixed(2)}` +
+            `\n Total chunks: ${allSplits.length}` +
+            `\n Average chunk length: ${(allSplits.reduce((a, b) => a + b.pageContent.length, 0) / allSplits.length).toFixed(2)} characters` +
+            `\n Min chunk length: ${Math.min(...allSplits.map(c => c.pageContent.length))} characters` +
+            `\n Max chunk length: ${Math.max(...allSplits.map(c => c.pageContent.length))} characters`;
 
     if (argv.debug) {
         console.log(`Generated ${allSplits.length} chunks from ${docs.length} documents.`);
 
-        for (const split of allSplits) {
-            console.log(split);
-            console.log('---');
+        let lengths = [];
+        for (let i = 0; i < allSplits.length; i++) {
+            const split = allSplits[i];
+            lengths.push(split.pageContent.length);
+            console.log(`Chunk ${i + 1}/${allSplits.length} | Lines: ${split.metadata.loc?.lines.from}-${split.metadata.loc?.lines.to} | len: ${split.pageContent.length}`);
+            console.log('----------------------');
             console.log(split.pageContent);
             console.log('======================');
-            await getUserInput('Press Enter to continue...');
+            // if (process.stdin.isTTY) {
+            //     await getUserInput('Press Enter to continue...');
+            // }
         }
 
         const folder = path.join('output', 'chunking');
@@ -144,7 +138,43 @@ async function main() {
         const outputPath = path.join(folder, `debug-chunks-${chunking}.json`);
         await writeFile(outputPath, JSON.stringify(allSplits, null, 2));
         console.log(`All chunks written to ${outputPath}`);
+        console.log(log_message);
+        return;
     }
+    
+    const client = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+    const indexSchema = [
+        "pageContent", "TEXT",
+        "source", "TAG",
+        "id", "TAG",
+        "childId", "TAG"
+    ];
+    const log_folder = path.join('output', 'chunking', 'indexes');
+    createOutputFolderIfNeeded(log_folder);
+    const log_file = `${log_folder}/log_${indexName}.txt`;
+    if (argv.purge) {
+        try {
+            await client.call('FT.DROPINDEX', indexName, 'DD');
+            await writeFile(log_file, '');
+            console.log(`Dropped existing index ${indexName}`);
+        } catch (err: any) {
+            const msg = String(err?.message || err);
+            // Ignore "index does not exist" errors; rethrow others
+            if (!/unknown index|no such index|index does not exist/i.test(msg)) {
+                throw err;
+            }
+        }
+    }
+    await ensureIndex(client, indexName, indexSchema);
+
+    const vectorStore = new VectorStore({
+        client,
+        indexName,
+        fieldToEmbed: 'pageContent',
+        embeddingsModel,
+        embeddingsProvider: embeddingsProvider as LLMConfigProvider
+    });
+    await vectorStore.load();
 
     await vectorStore.add(
         (
@@ -202,6 +232,9 @@ async function main() {
     );
 
     console.log(allSplits.length, 'document chunks embedded and stored');
+    await writeFile(log_file, log_message, { flag: 'a' });
+    console.log('Log written to', log_file);
+    console.log(log_message);
 }
 
 main().catch(console.error).then(() => process.exit());
