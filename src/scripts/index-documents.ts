@@ -111,8 +111,10 @@ async function main() {
     const log_message = `\n\n [${new Date().toISOString()}] Indexed files: ${argv.files}` +
             `\n Params: ${JSON.stringify(argv)}` +
             `\n Time taken: ${(performance.now() - startTime).toFixed(2)} ms` +
-            `\n Average chunks per document: ${(allSplits.length / docs.length).toFixed(2)}` +
+            `\n Total sections: ${allSplits.reduce((a, b) => a + (b.childId == null ? 1 : 0), 0)}` +
+            `\n Average sections per document: ${(allSplits.reduce((a, b) => a + (b.childId == null ? 1 : 0), 0) / docs.length).toFixed(2)}` +
             `\n Total chunks: ${allSplits.length}` +
+            `\n Average chunks per document: ${(allSplits.length / docs.length).toFixed(2)}` +
             `\n Average chunk length: ${(allSplits.reduce((a, b) => a + b.pageContent.length, 0) / allSplits.length).toFixed(2)} characters` +
             `\n Min chunk length: ${Math.min(...allSplits.map(c => c.pageContent.length))} characters` +
             `\n Max chunk length: ${Math.max(...allSplits.map(c => c.pageContent.length))} characters`;
