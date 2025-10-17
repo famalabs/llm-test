@@ -1,4 +1,4 @@
-export const USER_REQUEST_DETECTION_PROMPT = (message:string) => `
+export const USER_REQUEST_DETECTION_PROMPT = (message: string) => `
 You are a precise assistant that extracts and summarizes user requests from conversations.
 Given the user's latest message, identify if there is a clear request or question directed at the AI assistant.
 
@@ -12,7 +12,7 @@ TASK
 -----------------------------
 OUTPUT:
 -----------------------------
-- If a request is found, return it as a brief summary (one sentence).
+- If a request is found, return it as a brief summary (one sentence). The sentence should be put in third person: e.g. "The user wants to have a consultation with a doctor." . IMPORTANTLY, the sentence should use the same language as the user message.
 - If no request is present, leave the output empty.
 
 -----------------------------
@@ -21,6 +21,17 @@ OUTPUT FORMAT:
 {
   "user_request": <string | undefined>
 }
+
+-----------------------------
+EXAMPLES
+-----------------------------
+
+Input Message: "Puoi aiutarmi a prenotare una visita dal medico?"
+Output:
+{
+  "user_request": "L'utente vuole prenotare una visita dal medico."
+}
+
 
 -----------------------------
 INPUT

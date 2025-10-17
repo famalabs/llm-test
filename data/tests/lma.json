@@ -1,7 +1,7 @@
 [
     {
         "input": {
-            "message": "Ho avuto nausea e un po’ di vertigini, e comunque vorrei parlare con un medico.",
+            "message": "Ho avuto nausea e un po' di vertigini, comunque vorrei parlare con un medico.",
             "chat_status": "request",
             "task": {
                 "name": "side-effects",
@@ -19,7 +19,7 @@
                 },
                 {
                     "sender": "user",
-                    "message": "Sì, ho preso una compressa di paracetamolo."
+                    "message": "Sì, dhe bimbo, ho preso una compressa di paracetamolo."
                 },
                 {
                     "sender": "agent",
@@ -31,29 +31,29 @@
                 "span": 3
             }
         },
-        "expected": {
-            "user_request": "Parlare con un medico.",
+        "expected_output": {
+            "user_request": "L'utente vuole parlare con un medico.",
             "request_satisfied": false,
             "sentiment": {
                 "single": {
-                    "polarity": -0.3,
-                    "involvement": 0.6,
-                    "energy": 0.3,
-                    "temper": 0.3,
-                    "mood": -0.3,
+                    "polarity": 0.0,
+                    "involvement": 0.3,
+                    "energy": 0.0,
+                    "temper": 0.6,
+                    "mood": 0.0,
                     "empathy": 0.3,
                     "tone": 0.3,
-                    "registry": 0.3
+                    "registry": 0.6
                 },
                 "cumulative": {
-                    "polarity": -0.3,
-                    "involvement": 0.6,
-                    "energy": 0.3,
-                    "temper": 0.3,
-                    "mood": -0.3,
+                    "polarity": 0.0,
+                    "involvement": 0.3,
+                    "energy": 0.0,
+                    "temper": 0.6,
+                    "mood": 0.0,
                     "empathy": 0.3,
                     "tone": 0.3,
-                    "registry": 0.3
+                    "registry": 1
                 }
             },
             "task": {
@@ -62,7 +62,143 @@
             },
             "summary": {
                 "text": "Paziente riferisce mal di stomaco e malessere generale. Ha assunto una compressa di paracetamolo. Riporta nausea e vertigini e chiede di parlare con un medico.",
-                "span": 4
+                "span": 3
+            }
+        }
+    },
+    {
+        "input": {
+            "message": "Ok, ora ho misurato: 102 bpm a riposo (ero un po’ agitato). Sto meglio dopo il Ventolin. Per favore annulla l’appuntamento di domani e riprogrammalo per lunedì mattina, tra le 9 e le 11. E mandami il PDF della terapia aggiornato appena puoi.",
+            "chat_status": "request",
+            "task": {
+                "name": "heart-rate",
+                "type": "number",
+                "description": "The heart rate of the patient, measured in beats per minute."
+            },
+            "history": [
+                {
+                    "sender": "user",
+                    "message": "Ieri notte ho avuto tosse e un po’ di fiato corto."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Hai una diagnosi di asma? Usi un inalatore?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, asma lieve. Ho il Ventolin."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Lo hai usato oggi? Quante puff?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Due puff stamattina alle 8."
+                },
+                {
+                    "sender": "agent",
+                    "message": "I sintomi sono migliorati? Dolore toracico?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Un po’ meglio, ma ho ancora capogiro e ansia."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Per favore misura la frequenza cardiaca a riposo per 60 secondi (task: heart-rate). Se puoi, anche la saturazione."
+                },
+                {
+                    "sender": "user",
+                    "message": "Non ho il saturimetro. Prendo l’Apple Watch, arrivo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ok, quando ce l’hai dimmelo. Vuoi che prenoti una visita pneumologica per domani alle 18?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, per favore. E puoi mandarmi il piano terapeutico aggiornato in PDF?"
+                },
+                {
+                    "sender": "agent",
+                    "message": "Visita prenotata per domani h 18:00 al Centro Respiro XYZ. Invio il PDF appena mi confermi l’email."
+                },
+                {
+                    "sender": "user",
+                    "message": "La mail è leonardo@example.com"
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ricevuta. Invio il PDF a breve. Intanto, per favore, misura i battiti a riposo."
+                },
+                {
+                    "sender": "user",
+                    "message": "Sto salendo le scale, te la dico appena mi fermo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Perfetto, aspetto. Hai avuto effetti collaterali dai farmaci?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Stamattina ho preso 1000 mg di paracetamolo per il mal di testa, forse troppi."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Nota: dose superiore alla compressa standard da 500 mg. Evita di ripetere. Riesci ora a misurare i battiti?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sto provando, ma l’orologio segna valori ballerini."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Siediti 5 minuti, poi misura di nuovo. Quando hai il numero, scrivimelo. Vuoi che sposti l’appuntamento se non stai bene?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Valuto tra poco. Puoi verificare se c’è disponibilità anche lunedì mattina?"
+                }
+            ],
+            "summary": {
+                "text": "Paziente con asma lieve, usa Ventolin (2 puff alle 8). Tosse e dispnea notturna, lieve capogiro/ansia. Prenotata visita pneumologica per domani h 18:00 (Centro Respiro XYZ). Richiesto PDF piano terapeutico via email (leonardo@example.com). In corso richiesta di misurazione frequenza cardiaca a riposo.",
+                "span": 14
+            }
+        },
+        "expected_output": {
+            "user_request": "L'utente vuole annullare la visita di domani e riprogrammarla a lunedì mattina tra le 9 e le 11; inoltre, vuole inviare il PDF della terapia aggiornato.",
+            "request_satisfied": false,
+            "sentiment": {
+                "single": {
+                    "polarity": 0.3,
+                    "involvement": 0.6,
+                    "energy": 0.3,
+                    "temper": 0.3,
+                    "mood": 0.3,
+                    "empathy": 0.3,
+                    "tone": 0.3,
+                    "registry": 0
+                },
+                "cumulative": {
+                    "polarity": 0,
+                    "involvement": 0.6,
+                    "energy": 0.3,
+                    "temper": 0.3,
+                    "mood": 0,
+                    "empathy": 0.3,
+                    "tone": 0.3,
+                    "registry": 0
+                }
+            },
+            "task": {
+                "status": "answered",
+                "answer": 102,
+                "notes": "Misurazione riferita a riposo ma con agitazione; dispositivo: Apple Watch; possibile sovrastima. Migliorato dopo Ventolin."
+            },
+            "summary": {
+                "text": "Paziente con asma lieve, usa Ventolin (2 puff alle 8). Tosse e dispnea notturna, lieve capogiro/ansia. Prenotata visita pneumologica per domani h 18:00 (Centro Respiro XYZ). Richiesto PDF piano terapeutico via email (leonardo@example.com). In corso richiesta di misurazione frequenza cardiaca a riposo. Paziente ha assunto 1000 mg di paracetamolo per mal di testa, dose superiore alla compressa standard da 500 mg. Evitare di ripetere.",
+                "span": 18
             }
         }
     }
