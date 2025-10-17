@@ -140,6 +140,7 @@ export class SectionAgenticChunker {
     }
 
     private async secondPassSplit(chunk: Chunk): Promise<Chunk[]> {
+        console.log('---- Running second pass ----');
         if (!this.secondPass) return [chunk];
 
         const splitter = new RecursiveCharacterTextSplitter({
