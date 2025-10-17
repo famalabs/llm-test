@@ -213,11 +213,13 @@ export class Rag {
 
         // Adding here the EMBEDDING_FIELD prevent re-compuation of the queryEmbeddings.
         const doc = { ...ragAnswer, [EMBEDDING_FIELD]: queryEmbeddings };
+        
+        const options: { ttl?: number } = {};
         if (this.config.semanticCache && this.config.semanticCache.ttl) {
-            (doc as Record<string, any>)['ttl'] = this.config.semanticCache.ttl;
+            options.ttl = this.config.semanticCache.ttl;
         }
 
-        await this.cacheStore.add([doc]);
+        await this.cacheStore.add([doc], options);
         this.log("Stored answer in cache store.");
     }
 
@@ -311,7 +313,7 @@ export class Rag {
         for (let i = 0; i < chunks.length; i++) {
             const chunk = chunks[i];
             const isSubChunk = chunk.childId != undefined;
-            
+
             // se non è un sub-chunk -> direct push.
             if (!isSubChunk) {
                 const id = chunk.id;
@@ -360,7 +362,6 @@ export class Rag {
                         id: chunk.id,
                         metadata: {
                             loc: {
-                                ...chunk.metadata.loc,
                                 lines: parentChunk.metadata.loc.lines
                             }
                         },

@@ -80,7 +80,10 @@ async function main() {
         splitter = new SectionAgenticChunker({
             model: chunkerModel!,
             provider: chunkerProvider as LLMConfigProvider,
-            secondPass: (maxSectionChars) ? { maxSectionChars } : undefined,
+            secondPass: {
+                chunkSize : tokenLength * tokenToCharRatio, 
+                chunkOverlap : tokenOverlap * tokenToCharRatio,
+            }
         });
     }
 

@@ -19,15 +19,17 @@ const sentimentScores = (sentimentScores: SentimentScores, expectedScores: Senti
     const toneScore = 1 - Math.abs((sentimentScores.tone ?? 0) - (expectedScores.tone ?? 0));
     const registryScore = 1 - Math.abs((sentimentScores.registry ?? 0) - (expectedScores.registry ?? 0));
     const sentimentScore = (polarityScore + involvementScore + energyScore + temperScore + moodScore + empathyScore + toneScore + registryScore) / 8;
-    console.log(`- Polarity: ${polarityScore.toFixed(2)}`);
-    console.log(`- Involvement: ${involvementScore.toFixed(2)}`);
-    console.log(`- Energy: ${energyScore.toFixed(2)}`);
-    console.log(`- Temper: ${temperScore.toFixed(2)}`);
-    console.log(`- Mood: ${moodScore.toFixed(2)}`);
-    console.log(`- Empathy: ${empathyScore.toFixed(2)}`);
-    console.log(`- Tone: ${toneScore.toFixed(2)}`);
-    console.log(`- Registry: ${registryScore.toFixed(2)}`);
-    console.log(`- Overall Sentiment Score: ${sentimentScore.toFixed(2)}`);
+
+    console.log('Sentiment Scores:');
+    console.log(`\tOVERALL: ${sentimentScore.toFixed(2)}`);
+    console.log(`\tPolarity: ${polarityScore.toFixed(2)} [{expected: ${(expectedScores.polarity ?? 0).toFixed(2)} | got: ${(sentimentScores.polarity ?? 0).toFixed(2)}]`);
+    console.log(`\tMood: ${moodScore.toFixed(2)} [{expected: ${(expectedScores.mood ?? 0).toFixed(2)} | got: ${(sentimentScores.mood ?? 0).toFixed(2)}]`);
+    console.log(`\tTemper: ${temperScore.toFixed(2)} [{expected: ${(expectedScores.temper ?? 0).toFixed(2)} | got: ${(sentimentScores.temper ?? 0).toFixed(2)}]`);
+    console.log(`\t\tEnergy: ${energyScore.toFixed(2)} [{expected: ${(expectedScores.energy ?? 0).toFixed(2)} | got: ${(sentimentScores.energy ?? 0).toFixed(2)}]`);
+    console.log(`\t\tInvolvement: ${involvementScore.toFixed(2)} [{expected: ${(expectedScores.involvement ?? 0).toFixed(2)} | got: ${(sentimentScores.involvement ?? 0).toFixed(2)}]`);
+    console.log(`\t\tEmpathy: ${empathyScore.toFixed(2)} [{expected: ${(expectedScores.empathy ?? 0).toFixed(2)} | got: ${(sentimentScores.empathy ?? 0).toFixed(2)}]`);
+    console.log(`\t\tTone: ${toneScore.toFixed(2)} [{expected: ${(expectedScores.tone ?? 0).toFixed(2)} | got: ${(sentimentScores.tone ?? 0).toFixed(2)}]`);
+    console.log(`\t\tRegistry: ${registryScore.toFixed(2)} [{expected: ${(expectedScores.registry ?? 0).toFixed(2)} | got: ${(sentimentScores.registry ?? 0).toFixed(2)}]`);
 }
 
 const evaluate = async (output: Partial<LMAOutput>, expected: LMAOutput) => {
@@ -64,14 +66,18 @@ const evaluate = async (output: Partial<LMAOutput>, expected: LMAOutput) => {
     if (output.user_request != undefined) {
         console.log('\n\nExpected User Request:', expected.user_request);
         console.log('\n\nGenerated User Request:', output.user_request);
-    } else {
+    } 
+    
+    else {
         console.log('\n\nUser Request not provided in output.');
     }
 
     if (output.request_satisfied != undefined) {
         console.log('\n\nExpected Request Satisfied:', expected.request_satisfied);
         console.log('\n\nGenerated Request Satisfied:', output.request_satisfied);
-    } else {
+    } 
+    
+    else {
         console.log('\n\nRequest Satisfied not provided in output.');
     }
 }
@@ -115,7 +121,7 @@ const main = async () => {
     for (const { input, expected } of data) {
         const prediction = {} as Partial<LMAOutput>;
 
-        prediction.sentiment = await analyzeSentiment({ input, model, provider });
+        prediction.sentiment = await analyzeSentiment({ input, model, provider, parallel: true });
 
         if (shouldSummarize(input) || debug) {
             prediction.summary = await summarize({ input, model, provider });

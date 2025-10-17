@@ -55,7 +55,8 @@ interface SectionAgenticChunkerConstructorInterface {
     model: string;
     provider: LLMConfigProvider;
     secondPass?: {
-        maxSectionChars: number;
+        chunkSize : number
+        chunkOverlap : number
     };
 }
 
@@ -63,7 +64,10 @@ export class SectionAgenticChunker {
 
     model: string;
     provider: LLMConfigProvider;
-    secondPass: { maxSectionChars: number } | null = null;
+    secondPass: {
+        chunkSize : number
+        chunkOverlap : number
+    } | null = null;
 
     constructor({ model, provider, secondPass }: SectionAgenticChunkerConstructorInterface) {
         this.model = model;
@@ -110,7 +114,7 @@ export class SectionAgenticChunker {
             const content = originalLines.slice(startLine, endLine + 1).join("\n");
 
             chunks.push({
-                
+
                 pageContent: content,
                 source: doc.metadata.source,
 
@@ -126,7 +130,7 @@ export class SectionAgenticChunker {
                     description,
                 },
 
-                childId: null, 
+                childId: null,
                 id: i.toString(),
                 distance: 0,
             });
@@ -139,8 +143,8 @@ export class SectionAgenticChunker {
         if (!this.secondPass) return [chunk];
 
         const splitter = new RecursiveCharacterTextSplitter({
-            chunkSize: this.secondPass.maxSectionChars,
-            chunkOverlap: 0,
+            chunkSize : this.secondPass.chunkSize,
+            chunkOverlap : this.secondPass.chunkOverlap,
             keepSeparator: true
         });
 
@@ -172,7 +176,7 @@ export class SectionAgenticChunker {
                     title: chunk.metadata.title,
                     description: chunk.metadata.description,
                 },
-                
+
                 id: chunk.id,
                 childId: idx.toString(),
                 distance: 0,
@@ -192,7 +196,7 @@ export class SectionAgenticChunker {
             const firstChunks = await this.chunkSingleDoc(doc);
 
             for (const chunk of firstChunks) {
-                if (this.secondPass && chunk.pageContent.length > this.secondPass.maxSectionChars) {
+                if (this.secondPass && chunk.pageContent.length > this.secondPass.chunkSize) {
                     const refined = await this.secondPassSplit(chunk);
                     output.push(...refined);
                 }
