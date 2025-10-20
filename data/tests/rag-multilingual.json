@@ -1,0 +1,84 @@
+{
+    "questions": [
+        {
+            "question": "Does OKI create dependency?",
+            "fullRef": "It is not known that the drug OKI 30 mg suppositories causes habituation or dependency phenomena.",
+            "keyRef": "There is no evidence that OKI creates dependency."
+        },
+        {
+            "question": "What is the maximum daily dosage of OKI for a 25 Kg child?",
+            "fullRef": "OKI 30 mg suppositories for a child weighing 25 kg (at least 6 years old, weighing less than 30 kg): - Dose per administration: 1–2 mg/kg. - One 30 mg suppository = 1.2 mg/kg, therefore correct. - Schedule: 1 suppository 2–3 times a day. - Maximum dose: 3 suppositories = 90 mg per day. - Note: use the minimum effective dose, monitor gastrointestinal risk. OKI is contraindicated for children under 6 years.",
+            "keyRef": "Maximum dosage of 3 suppositories per day for children at least 6 years old. Contraindicated under 6 years."
+        },
+        {
+            "question": "Can aspirin be taken with Warfarin or high-dose methotrexate?",
+            "fullRef": "Aspirin 325 mg should not be taken together with Warfarin therapy or Methotrexate therapy with doses greater than or equal to 15 mg per week, unless otherwise prescribed by a doctor. These combinations are not recommended due to increased risks of serious side effects.",
+            "keyRef": "Contraindicated with warfarin or high-dose methotrexate (≥15 mg/week)."
+        },
+        {
+            "question": "Can I eat anything I want after taking Aspirin?",
+            "fullRef": "The combined effects of alcohol and Aspirin 325 mg increase the risk of gastrointestinal bleeding. Additionally, it is advisable not to administer other oral medications within 1-2 hours of using the product. I recommend consulting a doctor or pharmacist for guidance regarding specific foods or medications. In any case, it is recommended to take the product on a full stomach, preferably after main meals.",
+            "keyRef": "After 1-2 hours from intake, it is advisable not to take other medications. Alcohol consumption is also discouraged."
+        },
+        {
+            "question": "Can I take OKI during pregnancy?",
+            "fullRef": "During the first and second trimesters of pregnancy, OKI 30 mg suppositories (ketoprofen) should only be administered in strictly necessary cases and after consulting a doctor, maintaining the lowest possible doses. During the third trimester of pregnancy, OKI is contraindicated as it can expose both the mother and the fetus to serious risks.",
+            "keyRef": "OKI is contraindicated during pregnancy, especially in the third trimester."
+        },
+        {
+            "question": "What are the contraindications of OKI?",
+            "fullRef": "OKI 30 mg suppositories is contraindicated in several conditions and situations. Below are all the contraindications listed from the sources: - Hypersensitivity to ketoprofen or any of the excipients. - Allergic reactions to ketoprofen, ASA, or other NSAIDs (asthma, bronchospasm, urticaria, anaphylaxis). - Severe heart failure. - Active peptic ulcer or history of recurrent ulcers. - Previous gastrointestinal bleeding or perforation from NSAIDs. - Hemorrhagic diathesis. - Severe hepatic or renal insufficiency. - Leukopenia or thrombocytopenia. - Severe coagulation disorders. - Ulcerative colitis, gastritis, chronic dyspepsia. - History of gastrointestinal bleeding. - Third trimester of pregnancy (risk for mother and fetus). - Proctitis or history of proctorrhagia. - Children under 6 years.",
+            "keyRef": "OKI is contraindicated in case of ulcers, gastrointestinal bleeding, severe heart, liver or kidney problems, coagulation disorders, allergies to NSAIDs, in the third trimester of pregnancy and in children under 6 years."
+        },
+        {
+            "question": "OKI and Aspirin can be taken together?",
+            "fullRef": "Aspirin 325 mg (acetylsalicylic acid) and Oki 30 mg suppositories (ketoprofen) both belong to the NSAID category: taking them together increases the risk of gastrointestinal bleeding and ulceration, including selective cyclooxygenase-2 inhibitors. It is necessary to consult a doctor beforehand.",
+            "keyRef": "Do not take them together without medical advice."
+        },
+        {
+            "question": "¿Puedo tomar OKI durante el embarazo?",
+            "fullRef": "Durante el primer y segundo trimestre de embarazo, las supositorios OKI 30 mg (ketoprofeno) solo deben administrarse en casos estrictamente necesarios y tras consultar a un médico, manteniendo las dosis más bajas posibles. Durante el tercer trimestre de embarazo, OKI está contraindicado ya que puede exponer tanto a la madre como al feto a riesgos graves.",
+            "keyRef": "OKI está contraindicado durante el embarazo, especialmente en el tercer trimestre."
+        },
+        {
+            "question": "¿Cuáles son las contraindicaciones de OKI?",
+            "fullRef": "OKI 30 mg supositorios está contraindicado en varias condiciones y situaciones. A continuación se enumeran todas las contraindicaciones mencionadas en las fuentes: - Hipersensibilidad al ketoprofeno o a cualquiera de los excipientes. - Reacciones alérgicas al ketoprofeno, ASA u otros AINE (asma, broncoespasmo, urticaria, anafilaxis). - Insuficiencia cardíaca severa. - Úlcera péptica activa o antecedentes de úlceras recurrentes. - Sangrado gastrointestinal previo o perforación por AINE. - Diátesis hemorrágica. - Insuficiencia hepática o renal severa. - Leucopenia o trombocitopenia. - Trastornos graves de la coagulación. - Colitis ulcerosa, gastritis, dispepsia crónica. - Antecedentes de sangrado gastrointestinal. - Tercer trimestre de embarazo (riesgo para la madre y el feto). - Proctitis o antecedentes de proctorragia. - Niños menores de 6 años.",
+            "keyRef": "OKI está contraindicado en caso de úlceras, sangrados gastrointestinales, graves problemas cardíacos, hepáticos o renales, trastornos de la coagulación, alergias a AINE, en el tercer trimestre de embarazo y en niños menores de 6 años."
+        },
+        {
+            "question": "¿Se pueden tomar juntos OKI y Aspirina?",
+            "fullRef": "Aspirina 325 mg (ácido acetilsalicílico) y Oki 30 mg supositorios (ketoprofeno) pertenecen ambos a la categoría de AINE: tomarlos juntos aumenta el riesgo de sangrado y ulceración gastrointestinal, incluidos los inhibidores selectivos de la ciclooxigenasa-2. Es necesario consultar a un médico antes.",
+            "keyRef": "No tomarlos juntos sin consejo médico."
+        },
+        {
+            "question": "Puis-je prendre OKI pendant la grossesse?",
+            "fullRef": "Pendant les premier et deuxième trimestres de la grossesse, les suppositoires OKI 30 mg (kétoprofène) ne doivent être administrés qu'en cas de nécessité absolue et après consultation d'un médecin, en maintenant les doses les plus basses possibles. Pendant le troisième trimestre de la grossesse, OKI est contre-indiqué car il peut exposer à la fois la mère et le fœtus à des risques graves.",
+            "keyRef": "OKI est contre-indiqué pendant la grossesse, en particulier au troisième trimestre."
+        },
+        {
+            "question": "Quelles sont les contre-indications d'OKI?",
+            "fullRef": "OKI 30 mg suppositoires est contre-indiqué dans plusieurs conditions et situations. Voici toutes les contre-indications énumérées dans les sources : - Hypersensibilité au kétoprofène ou à l'un des excipients. - Réactions allergiques au kétoprofène, à l'ASA ou à d'autres AINS (asthme, bronchospasme, urticaire, anaphylaxie). - Insuffisance cardiaque sévère. - Ulcère peptique actif ou antécédents d'ulcères récurrents. - Saignement gastro-intestinal antérieur ou perforation due aux AINS. - Diathèse hémorragique. - Insuffisance hépatique ou rénale sévère. - Leucopénie ou thrombocytopénie. - Troubles graves de la coagulation. - Rectocolite hémorragique, gastrite, dyspepsie chronique. - Antécédents de saignement gastro-intestinal. - Troisième trimestre de la grossesse (risque pour la mère et le fœtus). - Proctite ou antécédents de rectorragie. - Enfants de moins de 6 ans.",
+            "keyRef": "OKI est contre-indiqué en cas d'ulcères, de saignements gastro-intestinaux, de graves problèmes cardiaques, hépatiques ou rénaux, de troubles de la coagulation, d'allergies aux AINS, au troisième trimestre de la grossesse et chez les enfants de moins de 6 ans."
+        },
+        {
+            "question": "OKI et Aspirine peuvent-ils être pris ensemble?",
+            "fullRef": "L'aspirine 325 mg (acide acétylsalicylique) et les suppositoires Oki 30 mg (kétoprofène) appartiennent tous deux à la catégorie des AINS : les prendre ensemble augmente le risque de saignement et d'ulcération gastro-intestinaux, y compris les inhibiteurs sélectifs de la cyclooxygénase-2. Il est nécessaire de consulter un médecin au préalable.",
+            "keyRef": "Ne les prenez pas ensemble sans avis médical."
+        },
+        {
+            "question": "Kann ich OKI während der Schwangerschaft einnehmen?",
+            "fullRef": "Während des ersten und zweiten Trimesters der Schwangerschaft sollten OKI 30 mg Zäpfchen (Ketoprofen) nur in unbedingt notwendigen Fällen und nach Rücksprache mit einem Arzt verabreicht werden, wobei die niedrigstmöglichen Dosen beibehalten werden. Während des dritten Trimesters der Schwangerschaft ist OKI kontraindiziert, da es sowohl die Mutter als auch den Fötus ernsthaften Risiken aussetzen kann.",
+            "keyRef": "OKI ist während der Schwangerschaft, insbesondere im dritten Trimester, kontraindiziert."
+        },
+        {
+            "question": "Was sind die Kontraindikationen von OKI?",
+            "fullRef": "OKI 30 mg Zäpfchen sind in mehreren Bedingungen und Situationen kontraindiziert. Nachfolgend sind alle in den Quellen aufgeführten Kontraindikationen aufgeführt: - Überempfindlichkeit gegen Ketoprofen oder einen der Hilfsstoffe. - Allergische Reaktionen auf Ketoprofen, ASA oder andere NSAIDs (Asthma, Bronchospasmus, Urtikaria, Anaphylaxie). - Schwere Herzinsuffizienz. - Aktives peptisches Geschwür oder Vorgeschichte von rezidivierenden Geschwüren. - Frühere gastrointestinale Blutungen oder Perforation durch NSAIDs. - Hämorrhagische Diathese. - Schwere Leber- oder Niereninsuffizienz. - Leukopenie oder Thrombozytopenie. - Schwere Gerinnungsstörungen. - Colitis ulcerosa, Gastritis, chronische Dyspepsie. - Vorgeschichte von gastrointestinalen Blutungen. - Drittes Trimester der Schwangerschaft (Risiko für Mutter und Fötus). - Proktitis oder Vorgeschichte von Proktorhagie. - Kinder unter 6 Jahren.",
+            "keyRef": "OKI ist kontraindiziert bei Geschwüren, gastrointestinalen Blutungen, schweren Herz-, Leber- oder Nierenproblemen, Gerinnungsstörungen, Allergien gegen NSAIDs, im dritten Trimester der Schwangerschaft und bei Kindern unter 6 Jahren."
+        },
+        {
+            "question": "Können OKI und Aspirin zusammen eingenommen werden?",
+            "fullRef": "Aspirin 325 mg (Acetylsalicylsäure) und Oki 30 mg Zäpfchen (Ketoprofen) gehören beide zur Kategorie der NSAIDs: Die gleichzeitige Einnahme erhöht das Risiko für gastrointestinale Blutungen und Ulzerationen, einschließlich selektiver Cyclooxygenase-2-Hemmer. Es ist notwendig, vorher einen Arzt zu konsultieren.",
+            "keyRef": "Nehmen Sie sie nicht ohne ärztlichen Rat zusammen ein."
+        }
+    ]
+}

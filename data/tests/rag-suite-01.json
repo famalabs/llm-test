@@ -2,17 +2,17 @@
     "questions": [
         {
             "question": "Quali sono le controindicazioni di OKI?",
-            "fullRef": "OKI è controindicato in diverse condizioni e situazioni. Di seguito sono elencate tutte le controindicazioni riportate dalle fonti: - Ipersensibilità al ketoprofene o a uno qualsiasi degli eccipienti. - Reazioni allergiche a ketoprofene, ASA o altri FANS (asma, broncospasmo, orticaria, anafilassi). - Severa insufficienza cardiaca. - Ulcera peptica attiva o storia di ulcere ricorrenti. - Precedente sanguinamento o perforazione gastrointestinale da FANS. - Diatesi emorragica. - Grave insufficienza epatica o renale. - Leucopenia o piastrinopenia. - Disturbi gravi della coagulazione. - Colite ulcerosa, gastrite, dispepsia cronica. - Storia di emorragia gastrointestinale. - Terzo trimestre di gravidanza (rischio per madre e feto). - Proctite o anamnesi di proctorragia. - Bambini < 6 anni.",
+            "fullRef": "OKI 30 mg supposte è controindicato in diverse condizioni e situazioni. Di seguito sono elencate tutte le controindicazioni riportate dalle fonti: - Ipersensibilità al ketoprofene o a uno qualsiasi degli eccipienti. - Reazioni allergiche a ketoprofene, ASA o altri FANS (asma, broncospasmo, orticaria, anafilassi). - Severa insufficienza cardiaca. - Ulcera peptica attiva o storia di ulcere ricorrenti. - Precedente sanguinamento o perforazione gastrointestinale da FANS. - Diatesi emorragica. - Grave insufficienza epatica o renale. - Leucopenia o piastrinopenia. - Disturbi gravi della coagulazione. - Colite ulcerosa, gastrite, dispepsia cronica. - Storia di emorragia gastrointestinale. - Terzo trimestre di gravidanza (rischio per madre e feto). - Proctite o anamnesi di proctorragia. - Bambini < 6 anni.",
             "keyRef": "OKI è controindicato in caso di ulcere, sanguinamenti gastrointestinali, gravi problemi cardiaci, epatici o renali, disturbi della coagulazione, allergie a FANS, nel terzo trimestre di gravidanza e nei bambini sotto i 6 anni."
         },
         {
             "question": "OKI crea dipendenza?",
-            "fullRef": "Non è noto che il farmaco OKI dia origine a fenomeni di assuefazione o di dipendenza.",
+            "fullRef": "Non è noto che il farmaco OKI 30 mg supposte dia origine a fenomeni di assuefazione o di dipendenza.",
             "keyRef": "Non ci sono evidenze che OKI crei dipendenza."
         },
         {
             "question": "Qual è il dosaggio massimo giornaliero di OKI per un bambino di 25 Kg?",
-            "fullRef": "Per un bambino di 25 kg (di almeno 6 anni, peso minore di 30 kg): - Dose per somministrazione: 1–2 mg/kg. - Una supposta da 30 mg = 1,2 mg/kg, quindi corretta. - Schema: 1 supposta 2–3 volte al giorno. - Dose massima: 3 supposte = 90 mg al giorno. - Nota: usare la dose minima efficace, monitorare rischio gastrointestinale. Per bambini sotto i 6 anni OKI è controindicato.",
+            "fullRef": "OKI 30 mg supposte per un bambino di 25 kg (di almeno 6 anni, peso minore di 30 kg): - Dose per somministrazione: 1–2 mg/kg. - Una supposta da 30 mg = 1,2 mg/kg, quindi corretta. - Schema: 1 supposta 2–3 volte al giorno. - Dose massima: 3 supposte = 90 mg al giorno. - Nota: usare la dose minima efficace, monitorare rischio gastrointestinale. Per bambini sotto i 6 anni OKI è controindicato.",
             "keyRef": "Dosaggio di max 3 supposte al giorno per bambini di almeno 6 anni. Controindicato sotto i 6 anni."
         },
         {
@@ -27,13 +27,8 @@
         },
         {
             "question": "Spiegami perché OKI va mangiata a stomaco pieno.",
-            "fullRef": "OKI 30mg supposte è una supposta e non va mangiata. L’assunzione orale di FANS richiede stomaco pieno per ridurre rischi gastrointestinali, ma con OKI supposta questa precauzione non è necessaria. Consultare un medico o farmacista per ulteriori dettagli.",
+            "fullRef": "OKI 30 mg supposte è una supposta e non va mangiata. L’assunzione orale di FANS richiede stomaco pieno per ridurre rischi gastrointestinali, ma con OKI supposta questa precauzione non è necessaria. Consultare un medico o farmacista per ulteriori dettagli.",
             "keyRef": "OKI è una supposta, non va mangiata; non serve stomaco pieno."
-        },
-        {
-            "question": "¿Cuáles son los efectos adversos de la aspirina?",
-            "fullRef": "Según el prospecto, los efectos adversos más frecuentes afectan al aparato gastrointestinal (náuseas, dolor abdominal, sangrado). Pueden incluir: cefalea, mareo, tinnitus, reacciones alérgicas (asma, rinitis, urticaria), hemorragias gastrointestinales o cerebrales, hepatotoxicidad rara, alteración renal, shock anafiláctico en casos raros. Riesgo mayor en mayores de 75 años.",
-            "keyRef": "Efectos adversos comunes: molestias gastrointestinales, sangrado, reacciones alérgicas, mareo y tinnitus. Raros: hemorragia cerebral, hepatotoxicidad, alteración renal, shock anafiláctico."
         },
         {
             "question": "Per quali disturbi si usa Aspirina 325 mg?",
@@ -58,11 +53,11 @@
         {
             "question": "L'aspirina si può assumere con Warfarin o metotrexato ad alte dosi?",
             "fullRef": "Aspirina 325 mg non va assunta insieme a terapia di Warfarin o terapia di Metotrexato con dosi maggiori o uguali a 15 mg a settimana, salvo diversa prescrizione medica.",
-            "keyRef": "Controindicata con warfarin o metotrexato ad alto dosaggio (≥15 mg/settimana)."
+            "keyRef": "Controindicata con warfarin o metotrexato ad alto dosaggio (maggiore o uguale a 15 mg/settimana)."
         },
         {
             "question": "Aspirina e OKI si possono assumere nello stesso periodo?",
-            "fullRef": "Aspirina 325 mg (acido acetilsalicilico) e Oki 30 mg supposte (ketoprofene) appartengono entrambi alla categoria di FANS (inclusi gli inibitori selettivi delle cicloossigenasi-2): assumerli insieme aumenta il rischio di sanguinamenti e ulcerazioni gastrointestinali. È necessario consultare un medico prima.",
+            "fullRef": "Aspirina 325 mg (acido acetilsalicilico) e Oki 30 mg supposte (ketoprofene) appartengono entrambi alla categoria di FANS: assumerli insieme aumenta il rischio di sanguinamenti e ulcerazioni gastrointestinali, inclusi gli inibitori selettivi delle cicloossigenasi-2. È necessario consultare un medico prima.",
             "keyRef": "Non assumerli insieme senza parere medico."
         },
         {
@@ -74,11 +69,6 @@
             "question": "OKI è controindicato durante la gravidanza?",
             "fullRef": "Durante il primo e il secondo trimestre di gravidanza, il OKI 30 mg supposte (ketoprofene) non deve essere somministrato se non in casi strettamente necessari e dopo aver consultato il medico, mandenendo le dosi minime possibili. Durante il terzo trimestre di gravidanza, OKI è controindicato in quanto può esporre sia la madre che il feto a gravi rischi.",
             "keyRef": "OKI è controindicato in gravidanza, soprattutto durante il terzo trimestre."
-        },
-        {
-            "question": "Can I take OKI during pregnancy?",
-            "fullRef": "During the first and second trimesters of pregnancy, OKI 30 mg suppositories (ketoprofen) should only be administered in strictly necessary cases and after consulting a doctor, maintaining the lowest possible doses. During the third trimester of pregnancy, OKI is contraindicated as it can expose both the mother and the fetus to serious risks.",
-            "keyRef": "OKI is contraindicated during pregnancy, especially in the third trimester."
         }
     ]
 }
