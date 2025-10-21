@@ -1,4 +1,4 @@
-import { TASK_NOTES_EVALUATION_PROMPT } from './prompts';
+import { TASK_ANSWER_EVALUATION_PROMPT, TASK_NOTES_EVALUATION_PROMPT } from './prompts';
 import { getLLMProvider, LLMConfigProvider } from "../../llm";
 import { LMAOutput } from "../interfaces";
 import { generateObject } from "ai";
@@ -29,10 +29,36 @@ export const evalauteTaskAnalysis = async ({
         const generated = generatedOutputs[i];
 
         if (expected.task) {
+
+
+            if (expected.task.answer == undefined && generated.task?.answer == undefined) {
+                // none è comunque una risposta.
+                correctTaskAnswer += 1;
+                totalTaskAnswer += 1;
+            }
+
             if (expected.task.answer != undefined) {
                 totalTaskAnswer += 1;
-                if (generated.task?.answer != undefined && generated.task.answer === expected.task.answer) {
+
+                if (typeof expected.task.answer != 'string' && expected.task.answer === generated.task?.answer) {
+                    // number or boolean
                     correctTaskAnswer += 1;
+                }
+                else {
+                    // sono stringhe -> comparison con llm as a judge
+                    const { object: response } = await generateObject({
+                        model: (await getLLMProvider(provider))(model),
+                        prompt: TASK_ANSWER_EVALUATION_PROMPT(expected.task.answer.toString(), generated.task?.answer?.toString() ?? ''),
+                        temperature: 0,
+                        seed: 42,
+                        schema: z.object({
+                            reasoning: z.string(),
+                            score: z.number().min(0).max(1)
+                        })
+                    })
+                    if (response.score > 0.5) {
+                        correctTaskAnswer += 1;
+                    }
                 }
             }
 
@@ -50,6 +76,7 @@ export const evalauteTaskAnalysis = async ({
                     temperature: 0,
                     seed: 42,
                     schema: z.object({
+                        reasoning: z.string(),
                         score: z.number().min(0).max(1)
                     })
                 })

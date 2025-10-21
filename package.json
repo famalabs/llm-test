@@ -38,6 +38,7 @@
     "babel-jest": "^30.2.0",
     "chartjs-node-canvas": "^5.0.0",
     "csv-parser": "^3.2.0",
+    "express": "^5.1.0",
     "jest": "^30.2.0",
     "js-rouge": "^3.0.0",
     "natural": "^8.1.0",

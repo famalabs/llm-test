@@ -17,10 +17,11 @@ import 'dotenv/config'
 const allMetrics = { customLLMAsAJudge };
 
 const main = async () => {
-    const { input, model, provider } = await yargs(hideBin(process.argv))
+    const { input, model, provider, parallel } = await yargs(hideBin(process.argv))
         .option('input', { alias: 'i', type: 'string', demandOption: true, description: 'Path to candidates JSON produced by run-test' })
         .option('model', { alias: 'm', type: 'string', demandOption: true, description: 'Model to use for llm-as-a-judge' })
         .option('provider', { alias: 'p', type: 'string', choices: ['openai', 'mistral', 'google'], demandOption: true, description: 'Provider for llm-as-a-judge' })
+        .option('parallel', { alias: 'P', type: 'boolean', default: false, description: 'Run evaluations in parallel (default: false)' })
         .help()
         .parse();
 
@@ -29,57 +30,97 @@ const main = async () => {
         console.log(`Found ${multipleFiles.length} input files matching the pattern. Computing metrics for each file...`);
         for (const file of multipleFiles) {
             console.log(`\nRunning metrics computation for: ${file}`);
-            await computeMetricsForFile(file, model, provider as LLMConfigProvider);
+            await computeMetricsForFile(file, model, provider as LLMConfigProvider, parallel);
         }
         return;
     }
 
-    await computeMetricsForFile(input!, model, provider as LLMConfigProvider);
+    await computeMetricsForFile(input!, model, provider as LLMConfigProvider, parallel);
 }
 
-async function computeMetricsForFile(input: string, model: string = 'mistral-small-latest', provider: LLMConfigProvider = 'mistral') {
-
-    const normalizedInputPath = path.normalize(input!);
-    const resultsContent = JSON.parse(await readFile(normalizedInputPath, 'utf-8'));
+export async function computeMetricsForFile(
+    input: string,
+    model: string = "mistral-small-latest",
+    provider: LLMConfigProvider = "mistral",
+    parallel: boolean = false
+) {
+    const normalizedInputPath = path.normalize(input);
+    const resultsContent = JSON.parse(await readFile(normalizedInputPath, "utf-8"));
     const baseName = path.basename(normalizedInputPath, path.extname(normalizedInputPath));
     const outputFileName = `${baseName}.csv`;
 
-    const evaluations : Record<string, number[]> = {};
+    const evaluations: Record<string, number[]> = {};
 
     for (const metric of tqdm(Object.keys(allMetrics))) {
-        const { name, execute } = (allMetrics)[metric as keyof typeof allMetrics];
-        const scores: number[] = [];
-        for (const { candidate, fullRef, keyRef } of resultsContent.results) {
-            const args: { fullRef: string; keyRef: string; prediction: string; query?: string; model?: string, provider?: LLMConfigProvider } = { 
-                fullRef, 
-                keyRef,  
-                prediction: candidate,
-            };
+        const { name, execute } = allMetrics[metric as keyof typeof allMetrics];
 
-            if (name === 'llm-as-a-judge') {
-                args.query = resultsContent.results[0].question;
-                args.model = model;
-                args.provider = provider;
+        if (parallel) {
+            const scores = await Promise.all(
+                resultsContent.results.map(async ({ candidate, fullRef, keyRef, question }: { candidate: string; fullRef: string; keyRef: string; question: string }) => {
+                    const args: {
+                        fullRef: string;
+                        keyRef: string;
+                        prediction: string;
+                        query?: string;
+                        model?: string;
+                        provider?: LLMConfigProvider;
+                    } = { fullRef, keyRef, prediction: candidate };
+
+                    if (name === "llm-as-a-judge") {
+                        args.query = question;
+                        args.model = model;
+                        args.provider = provider;
+                    }
+
+                    const { score } = await execute(args);
+                    return score;
+                })
+            );
+
+            evaluations[name] = scores;
+        } 
+        
+        else {
+            const scores: number[] = [];
+            for (const { candidate, fullRef, keyRef, question } of resultsContent.results) {
+                const args: {
+                    fullRef: string;
+                    keyRef: string;
+                    prediction: string;
+                    query?: string;
+                    model?: string;
+                    provider?: LLMConfigProvider;
+                } = { fullRef, keyRef, prediction: candidate };
+
+                if (name === "llm-as-a-judge") {
+                    args.query = question;
+                    args.model = model;
+                    args.provider = provider;
+                }
+
+                const { score } = await execute(args);
+                scores.push(score);
             }
-
-            const { score }= await execute(args);
-            scores.push(score);
+            evaluations[name] = scores;
         }
-        evaluations[name] = scores;
     }
 
-    let out = `llm, ${mean(evaluations['llm-as-a-judge'])}\n`;
+    let out = `llm, ${mean(evaluations["llm-as-a-judge"])}\n`;
     out += "#,query,fullref,keyref,candidate,llm\n";
     for (let i = 0; i < resultsContent.results.length; i++) {
         const { question, fullRef, keyRef, candidate } = resultsContent.results[i];
-        out += `${i + 1},"${question.replaceAll('"', '""')}","${fullRef.replaceAll('"', '""')}","${keyRef.replaceAll('"', '""')}","${candidate.replaceAll('"', '""')}",${evaluations['llm-as-a-judge'][i]}\n`;
+        out += `${i + 1},"${question.replaceAll('"', '""')}","${fullRef.replaceAll(
+            '"',
+            '""'
+        )}","${keyRef.replaceAll('"', '""')}","${candidate.replaceAll('"', '""')}",${evaluations["llm-as-a-judge"][i]
+            }\n`;
     }
 
-    const fileName = path.join(createOutputFolderIfNeeded('output','scores'), outputFileName);
+    const fileName = path.join(createOutputFolderIfNeeded("output", "scores"), outputFileName);
     await writeFile(fileName, out);
-    console.log('Report written to', fileName);
-
+    console.log("Report written to", fileName);
 }
+
 
 
 main().catch(console.error).then(_ => process.exit(0));

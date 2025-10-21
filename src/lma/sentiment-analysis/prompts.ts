@@ -3,88 +3,90 @@ import { LMAInput } from "../interfaces";
 const DIMENSIONS = `-----------------------------
 Dimensions (all in [-1 … 1] using S):
 -----------------------------
-  - polarity: -1 negative <-> 1 positive
-  - involvement: -1 apathetic (menefreghista) <-> 1 collaborative
-  - energy: -1 annoyed <-> 1 enthusiastic
-  - temper: -1 angry <-> 1 calm
-  - mood: -1 sad <-> 1 happy
-  - empathy: -1 cold <-> 1 warm
-  - tone: -1 concise <-> 1 talkative
-  - registry: -1 formal <-> 1 informal`;
+  - polarity:        -1 negative       <-> 1 positive
+  - involvement:     -1 apathetic      <-> 1 collaborative
+  - energy:          -1 annoyed        <-> 1 enthusiastic
+  - temper:          -1 angry          <-> 1 calm
+  - mood:            -1 sad            <-> 1 happy
+  - empathy:         -1 cold           <-> 1 warm
+  - tone:            -1 concise        <-> 1 talkative
+  - registry:        -1 formal         <-> 1 informal`;
 
-const RULES=`-----------------------------
-RULES for analysis:
+const RULES = `-----------------------------
+RULES for rating:
 -----------------------------
-  - read the TEXT carefully, then assign scores according to the definitions above.
-  - take your time to consider the context and nuances of the text.
-  - ensure that your scores reflect the overall sentiment and tone of the text.`;
+  1) Allowed values: S = [-1, -0.6, -0.3, 0, 0.3, 0.6, 1]. No other values are permitted.
+  2) If your internal estimate is between two values in S, SNAP to the closest one.
+  3) Consider the meaning of each dimension INDEPENDENTLY from the others.
+  4) Use -1 if the text contains offensive, hateful, discriminatory or hostile language.
+  5) Evaluate based on the user's language and tone only (do not infer unstated emotions).
+  6) A neutral or factual message → likely 0 on most dimensions (but not mandatory).
+  7) Always prioritize linguistic evidence over speculation.
+  8) When evaluating conversations, aggregate the user's attitude and tone across messages, not the chatbot's.`;
 
-
-
-export const SINGLE_USER_MESSAGE_PROMPT = (textBlock: LMAInput['message']) => `You are a precise sentiment rater. Score the text on the dimensions below.
-General rules:
-  1) Each score MUST be one of the seven discrete values S = [-1, -0.6, -0.3, 0, 0.3, 0.6, 1]. No other numbers are allowed.
-  2) If your internal estimate falls between two values, snap to the nearest in S.
-  3) Base scores only on the provided content.
-  4) If this is a conversation, score the overall interaction (single set of scores, not per turn).
-  5) Use -1 when the user is offensive, hateful, or discriminatory.
+export const SINGLE_USER_MESSAGE_PROMPT = (textBlock: LMAInput['message']) => `
+You are an expert sentiment rater. 
+Your task is to assign a single set of sentiment scores for the USER MESSAGE below.
 
 ${DIMENSIONS}
-
 ${RULES}
+
+-----------------------------
+EVALUATION FOCUS:
+-----------------------------
+- Evaluate ONLY the text provided (no external inference).
+- Output ONE value per dimension.
+- Reflect the global sentiment and tone conveyed.
 
 -----------------------------
 INPUT
 -----------------------------
-TEXT:"""
+USER MESSAGE:
+"""
 ${textBlock}
 """
 `.trim();
 
-export const WHOLE_CONVERSATION_PROMPT = (conversation: LMAInput['history']) => `You are a precise sentiment rater. 
-Score the whole conversation on the dimensions below.
 
-General rules:
-  1) Each score MUST be one of the seven discrete values S = [-1, -0.6, -0.3, 0, 0.3, 0.6, 1]. No other numbers are allowed.
-  2) If your internal estimate falls between two values, snap to the nearest in S.
-  3) Base scores only on the provided content.
-  4) If this is a conversation, score the overall interaction (single set of scores, not per turn).
-  5) Use -1 when the user is offensive, hateful, or discriminatory.
-  6) You have of course to evaluate only the user messages, not the chatbot replies.
+export const WHOLE_CONVERSATION_PROMPT = (conversation: LMAInput['history']) => `
+You are an expert sentiment rater.
+Your task is to assign ONE set of sentiment scores representing the overall tone of the USER across the entire conversation.
 
 ${DIMENSIONS}
-
 ${RULES}
 
 -----------------------------
-INPUT
+EVALUATION FOCUS:
 -----------------------------
-TEXT:"""
+- Evaluate ONLY the USER messages (ignore chatbot responses completely).
+- Consider how the user's language, tone, mood, and emotional state evolve during the conversation.
+- Reflect the overall impression (not just the last message).
+
+-----------------------------
+INPUT (Conversation)
+-----------------------------
 ${conversation.map(el => `${el.sender.toUpperCase()}: ${el.message}`).join("\n==============\n")}
-"""
-`;
+`.trim();
 
 
-export const LAST_USER_MESSAGE_CONVERSATION_PROMPT = (conversation: LMAInput['history']) => `You are a precise sentiment rater. 
-Score the conversation on the dimensions below.
-Focus your analysis on the last user message, but consider the entire conversation for context.
-
-General rules:
-  1) Each score MUST be one of the seven discrete values S = [-1, -0.6, -0.3, 0, 0.3, 0.6, 1]. No other numbers are allowed.
-  2) If your internal estimate falls between two values, snap to the nearest in S.
-  3) Base scores only on the provided content.
-  4) If this is a conversation, score the overall interaction (single set of scores, not per turn).
-  5) Use -1 when the user is offensive, hateful, or discriminatory.
-  6) You have to evaluate JUST THE LAST USER MESSAGE, not the chatbot replies.
+export const LAST_USER_MESSAGE_CONVERSATION_PROMPT = (conversation: LMAInput['history']) => `
+You are an expert sentiment rater.
+Your task is to assign ONE set of sentiment scores representing the tone of the LAST USER MESSAGE,
+taking into account the previous context only as support.
 
 ${DIMENSIONS}
-
 ${RULES}
 
 -----------------------------
-INPUT
+EVALUATION FOCUS:
 -----------------------------
-TEXT:"""
+- Base the scores primarily on the last user message.
+- Use previous turns only to better interpret tone and emotional state.
+- Do NOT score chatbot replies.
+- Do not infer emotions beyond what is linguistically evident.
+
+-----------------------------
+INPUT (Conversation)
+-----------------------------
 ${conversation.map(el => `${el.sender.toUpperCase()}: ${el.message}`).join("\n==============\n")}
-"""
-`;
+`.trim();

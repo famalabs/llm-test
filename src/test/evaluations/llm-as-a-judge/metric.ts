@@ -1,8 +1,8 @@
-import z from "zod";
-import { sleep } from "../../../utils";
-import { generateObject } from "ai";
-import { llmAsAJudgePrompt } from "./prompt";
 import { getLLMProvider, LLMConfigProvider } from "../../../llm";
+import { llmAsAJudgePrompt } from "./prompt";
+import { generateObject } from "ai";
+import { sleep } from "../../../utils";
+import z from "zod";
 
 const execute = async ({
     prediction,
@@ -25,8 +25,8 @@ const execute = async ({
     }
 
     const schema = z.object({
-        score: z.number().min(0).max(1),
-        explanation: z.string()
+        explanation: z.string(),
+        score: z.number().min(0).max(1)
     });
 
     const prompt = llmAsAJudgePrompt(query, keyRef, fullRef, prediction);

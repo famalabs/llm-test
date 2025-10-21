@@ -10,7 +10,7 @@ import Redis from 'ioredis';
 import z from 'zod';
 
 const docStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const docStoreIndexName = 'vector_store_index_section_agentic';
+const docStoreIndexName = 'vector_store_index_fixed_size';
 const docStoreIndexSchema = ['pageContent', 'TEXT', 'source', 'TAG', 'id', 'TAG', "childId", "TAG"]; // metadata non va indicizzato.
 const docStore = new VectorStore<Chunk>({
     client: docStoreRedisClient,
@@ -38,7 +38,8 @@ const rag = new Rag({
     verbose: true,
     docStore,
     parentPageRetrieval: {
-        type: 'full-section',
+        type: 'lines',
+        offset: 5,
     }
 });
 

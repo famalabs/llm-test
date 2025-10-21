@@ -13,6 +13,7 @@ ${generated}
 
 Based on the above, provide your score as a JSON object in the following format:
 {
+    "reasoning": "<your_reasoning (1 to 3 sentences, explaining your score)>",
     "score": <your_score>
 }
 `.trim();
@@ -31,6 +32,26 @@ ${generated}
 
 Based on the above, provide your score as a JSON object in the following format:
 {
+    "reasoning": "<your_reasoning (1 to 3 sentences, explaining your score)>",
+    "score": <your_score>
+}
+`.trim();
+
+export const TASK_ANSWER_EVALUATION_PROMPT = (expected: string, generated: string) => `
+You are an expert evaluator for AI-generated responses in a task analysis context. Your task is to assess the quality of the AI's task analysis answers.
+
+Given the expected and generated outputs below, evaluate how well the AI provided the correct answer.
+Provide a score between 0 and 1, where 1 means the AI perfectly answered the task as per the expected output, and 0 means it completely failed to answer it.
+
+Expected Output:
+${expected}
+
+Generated Output:
+${generated}
+
+Based on the above, provide your score as a JSON object in the following format:
+{
+    "reasoning": "<your_reasoning (1 to 3 sentences, explaining your score)>",
     "score": <your_score>
 }
 `.trim();

@@ -1,37 +1,45 @@
 import { SentimentScores } from "../sentiment-analysis";
 
+type EvalResult = { binarized: number; raw: number };
+
 export const evaluateSentimentAnalysis = ({
     generatedScores,
-    expectedScores
+    expectedScores,
+    threshold = 0,
 }: {
     generatedScores: SentimentScores[];
     expectedScores: SentimentScores[];
-}) => {
+    threshold?: number; // default 0
+}): EvalResult => {
     if (generatedScores.length != expectedScores.length) {
         throw new Error("Generated scores and expected scores arrays must have the same length.");
     }
 
-    const allMaes: number[] = [];
-    for (let i = 0;  i< expectedScores.length; i++) {
-        const generated: SentimentScores = generatedScores[i];
-        const expected: SentimentScores = expectedScores[i];
+    const mae = (a: number, b: number) => Math.abs(a - b);
+    const bin = (x: number) => (x > threshold ? 1 : 0);
 
-        const mae = (a:number, b:number) => Math.abs(a - b);
+    const allRawMeans: number[] = [];
+    const allBinMeans: number[] = [];
 
-        const mae8 = [];
-        for (const dimension of Object.keys(expected) as (keyof SentimentScores)[]) {
-            mae8.push(
-                mae(
-                    generated[dimension], 
-                    expected[dimension]
-                )
-            )
-        }
-        const meanMae = mae8.reduce((a, b) => a + b, 0) / mae8.length;
-        allMaes.push(meanMae);
+    for (let i = 0; i < expectedScores.length; i++) {
+        const g = generatedScores[i];
+        const e = expectedScores[i];
+
+        const dims = Object.keys(e) as (keyof SentimentScores)[];
+
+        const rawMaePerDim = dims.map((d) => mae(g[d], e[d]));
+        const rawMeanMae = rawMaePerDim.reduce((a, b) => a + b, 0) / rawMaePerDim.length;
+        allRawMeans.push(rawMeanMae);
+
+        const binMaePerDim = dims.map((d) => mae(bin(g[d]), bin(e[d])));
+        const binMeanMae = binMaePerDim.reduce((a, b) => a + b, 0) / binMaePerDim.length;
+        allBinMeans.push(binMeanMae);
     }
-    
-    const meanOfMeansMae = allMaes.reduce((a, b) => a + b, 0) / allMaes.length;
 
-    return meanOfMeansMae;
-}
+    const meanOfMeans = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
+
+    return {
+        raw: meanOfMeans(allRawMeans),
+        binarized: meanOfMeans(allBinMeans),
+    };
+};

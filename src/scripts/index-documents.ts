@@ -1,10 +1,10 @@
 import { AgenticChunker, Chunk, ProgressiveAgenticChunker, SectionAgenticChunker } from '../lib/chunks';
 import { RecursiveCharacterTextSplitter } from '../lib/core';
-import { createOutputFolderIfNeeded, getUserInput } from '../utils';
+import { createOutputFolderIfNeeded } from '../utils';
 import { VectorStore, ensureIndex } from "../vector-store";
 import { readFile, writeFile } from 'fs/promises';
-import { hideBin } from 'yargs/helpers';
 import { LLMConfigProvider } from '../llm';
+import { hideBin } from 'yargs/helpers';
 import Redis from 'ioredis';
 import yargs from 'yargs';
 import path from 'path';
@@ -19,8 +19,8 @@ async function main() {
         .option('indexName', { alias: 'i', type: 'string', description: 'Name of the vector store index', demandOption: true })
         .option('chunkerModel', { alias: 'cm', type: 'string', demandOption: false, description: 'LLM to use for agentic chunking', default: 'mistral-small-latest' })
         .option('chunkerProvider', { alias: 'cp', type: 'string', choices: ['openai', 'mistral', 'google'], demandOption: false, description: 'Provider for agentic chunking', default: 'mistral' })
-        .option('tokenLength', { alias: 't', type: 'number', description: 'Token length for fixed-size chunking (default: 300)', default: 300 })
-        .option('tokenOverlap', { alias: 'o', type: 'number', description: 'Token overlap for fixed-size chunking (default: 50)', default: 50 })
+        .option('tokenLength', { alias: 't', type: 'number', description: 'Token length for fixed-size chunking' })
+        .option('tokenOverlap', { alias: 'o', type: 'number', description: 'Token overlap for fixed-size'})
         .option('embeddingsModel', { alias: 'em', type: 'string', description: 'Model to use for embeddings (default: text-embedding-3-large)', demandOption: false, default: 'text-embedding-3-large' })
         .option('embeddingsProvider', { alias: 'ep', type: 'string', choices: ['openai', 'mistral', 'google'], description: 'Provider for embeddings (default: openai)', demandOption: false, default: 'openai' })
         .option('minChunkLines', { type: 'number', description: 'Minimum number of lines per chunk for agentic chunking (default: 0)', default: 0 })
@@ -46,6 +46,7 @@ async function main() {
     console.log('chunking', chunking);
     
     if (chunking == 'fixed-size') {
+        if (!tokenLength || !tokenOverlap) { throw new Error('tokenLength and tokenOverlap are required for fixed-size chunking'); } 
         splitter = new FixedSizeChunker({
             chunkSize: tokenLength * tokenToCharRatio,
             chunkOverlap: tokenOverlap * tokenToCharRatio,
@@ -53,6 +54,7 @@ async function main() {
     }
 
     else if (chunking == 'ported-fixed-size') {
+        if (!tokenLength || !tokenOverlap) { throw new Error('tokenLength and tokenOverlap are required for ported-fixed-size chunking'); }
         splitter = new RecursiveCharacterTextSplitter({
             chunkSize: tokenLength * tokenToCharRatio,
             chunkOverlap: tokenOverlap * tokenToCharRatio,
@@ -76,6 +78,7 @@ async function main() {
     }
 
     else if (chunking == 'section-agentic') {
+        if (!tokenLength || !tokenOverlap) { throw new Error('tokenLength and tokenOverlap are required for section-agentic chunking'); }
         splitter = new SectionAgenticChunker({
             model: chunkerModel!,
             provider: chunkerProvider as LLMConfigProvider,
@@ -119,7 +122,7 @@ async function main() {
             `\n Min chunk length: ${Math.min(...allSplits.map(c => c.pageContent.length))} characters` +
             `\n Max chunk length: ${Math.max(...allSplits.map(c => c.pageContent.length))} characters`;
 
-    if (argv.debug) {
+    if (argv.debug == true) {
         console.log(`Generated ${allSplits.length} chunks from ${docs.length} documents.`);
 
         let lengths = [];

@@ -17,7 +17,7 @@ Your evaluation process must always follow two steps:
 2.  **Completeness Assessment**: If the answer is factually correct, you will then score its completeness based on the specific criteria for the task, comparing it against the KEY and/or FULL answers. Rephrasing is acceptable and should not be penalized if the meaning is preserved.
 3.  **Truth Check**: Always ensure that the GIVEN ANSWER does not introduce any general false information (e.g. a false fact, like "sky's color is green" => 0). If it does, the score must be 0, even if it contains some correct information.
 4.  **Speculation Penalty**: Penalize the model whenever it introduces speculative or assumptive content that is not supported by — or contradicts — the reference answers => score = 0.
-5.  **No Information Available**: If the EXPECTED ANSWERS says that no information is available, but the GIVEN ANSWER provides some information, the score must be 0.
+5.  **No Information Available**: If the EXPECTED ANSWERS says that no information is available, but the GIVEN ANSWER provides some information, the score must be 0. Else, if both say no information is available, the score is 1.
 
 Your task is to compare the provided answer (GIVEN ANSWER) with two answers: One contains only key informations (EXPECTED KEY ANSWER), the other contains both key and optional (EXPECTED FULL ANSWER) informations.
 Considering also the query, you will assign a correctness score based on the following criteria:
@@ -71,8 +71,8 @@ Score: 0.7 // All and only the key pieces of information (eight planets and thei
 Instructions:
 1. Read the QUERY, EXPECTED KEY ANSWER, EXPECTED FULL ANSWER, and the GIVEN ANSWER carefully.
 2. Evaluate the GIVEN ANSWER against the EXPECTED ANSWERS based on Accuracy, Completeness, and Relevance.
-3. Assign a Correctness Score (0-1) with one decimal place.
-4. Provide a short explanation (1-3 sentences) justifying your score.
+3. Provide a short explanation (1-3 sentences) justifying your score - it's the reasoning behind your score.
+4. Assign a Correctness Score (0-1) with one decimal place.
 
 Remember: If the given answer include false information, its score is 0. If the language of the given answer is different from the language of the query, the score is 0.
 Check every detail of the GIVEN ANSWER and meticoulously compare it to the EXPECTED ANSWERS. A fake information (temporal / factual etc..) lead to a score of 0 [!]. 

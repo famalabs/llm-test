@@ -92,7 +92,8 @@ export class Rag {
             reranking,
             parentPageRetrieval,
             chunkFiltering,
-            semanticCache
+            semanticCache, 
+            docStore
         } = this.config;
 
         if (numResults && numResults < 1) {
@@ -158,6 +159,11 @@ export class Rag {
         }
 
         if (parentPageRetrieval) {
+
+            if (parentPageRetrieval.type == 'full-section' && !docStore.getConfig().indexName.includes('section')) {
+                console.warn("Warning: Parent page retrieval type is 'full-section', but the document store index name does not indicate section-based chunking. Ensure that the document store was indexed with section-based chunking.");
+            }
+
             if (parentPageRetrieval.offset != undefined && parentPageRetrieval.offset <= 0) {
                 throw new Error(`Invalid parent page retrieval offset: ${parentPageRetrieval.offset}. It must be a positive number.`);
             }
@@ -268,6 +274,7 @@ export class Rag {
         }
 
         let chunks = await this.docStore.retrieve(queryEmbedding, this.config.numResults);
+        this.log(`Retrieved ${chunks.length} chunks from document store.`);
 
         if (this.config.chunkFiltering && this.config.chunkFiltering.thresholdMultiplier && this.config.chunkFiltering.baseThreshold) {
             const prevLen = chunks.length;

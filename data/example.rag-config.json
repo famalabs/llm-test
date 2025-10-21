@@ -1,14 +1,10 @@
 {
     "rag": {
-        "provider": "mistral",
-        "llm": "mistral-small-latest",
+        "provider": "openai",
+        "llm": "gpt-5-nano",
         "numResults": 10,
-        "chunkFiltering": {
-            "thresholdMultiplier": 0.7,
-            "baseThreshold": 0.35
-        },
         "parentPageRetrieval": {
-            "offset": 3,
+            "offset": 5,
             "type" : "lines"
         },
         "reasoningEnabled": true,
@@ -17,6 +13,6 @@
         "verbose": true
     },
     "docStore": {
-        "indexName": "vector_store_index_ported_fixed_size"
+        "indexName": "vector_store_index_fixed_size"
     }
 }
