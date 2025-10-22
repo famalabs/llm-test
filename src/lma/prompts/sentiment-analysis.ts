@@ -1,5 +1,3 @@
-import { LMAInput } from "../interfaces";
-
 const DIMENSIONS = `-----------------------------
 Dimensions (all in [-1 … 1] using S):
 -----------------------------
@@ -12,10 +10,10 @@ Dimensions (all in [-1 … 1] using S):
   - tone:            -1 concise        <-> 1 talkative
   - registry:        -1 formal         <-> 1 informal`;
 
-const RULES = `-----------------------------
+const RULES = (scoreSet: string) => `-----------------------------
 RULES for rating:
 -----------------------------
-  1) Allowed values: S = [-1, -0.6, -0.3, 0, 0.3, 0.6, 1]. No other values are permitted.
+  1) Allowed values: S = ${scoreSet}. No other values are permitted.
   2) If your internal estimate is between two values in S, SNAP to the closest one.
   3) Consider the meaning of each dimension INDEPENDENTLY from the others.
   4) Use -1 if the text contains offensive, hateful, discriminatory or hostile language.
@@ -24,12 +22,12 @@ RULES for rating:
   7) Always prioritize linguistic evidence over speculation.
   8) When evaluating conversations, aggregate the user's attitude and tone across messages, not the chatbot's.`;
 
-export const SINGLE_USER_MESSAGE_PROMPT = (textBlock: LMAInput['message']) => `
+export const SINGLE_USER_MESSAGE_PROMPT = (message: string, scoreSet: string) => `
 You are an expert sentiment rater. 
 Your task is to assign a single set of sentiment scores for the USER MESSAGE below.
 
 ${DIMENSIONS}
-${RULES}
+${RULES(scoreSet)}
 
 -----------------------------
 EVALUATION FOCUS:
@@ -43,17 +41,17 @@ INPUT
 -----------------------------
 USER MESSAGE:
 """
-${textBlock}
+${message}
 """
 `.trim();
 
 
-export const WHOLE_CONVERSATION_PROMPT = (conversation: LMAInput['history']) => `
+export const WHOLE_CONVERSATION_PROMPT = (history: string, scoreSet: string) => `
 You are an expert sentiment rater.
 Your task is to assign ONE set of sentiment scores representing the overall tone of the USER across the entire conversation.
 
 ${DIMENSIONS}
-${RULES}
+${RULES(scoreSet)}
 
 -----------------------------
 EVALUATION FOCUS:
@@ -65,17 +63,17 @@ EVALUATION FOCUS:
 -----------------------------
 INPUT (Conversation)
 -----------------------------
-${conversation.map(el => `${el.sender.toUpperCase()}: ${el.message}`).join("\n==============\n")}
+${history}
 `.trim();
 
 
-export const LAST_USER_MESSAGE_CONVERSATION_PROMPT = (conversation: LMAInput['history']) => `
+export const LAST_USER_MESSAGE_CONVERSATION_PROMPT = (history: string, message: string, scoreSet: string) => `
 You are an expert sentiment rater.
 Your task is to assign ONE set of sentiment scores representing the tone of the LAST USER MESSAGE,
 taking into account the previous context only as support.
 
 ${DIMENSIONS}
-${RULES}
+${RULES(scoreSet)}
 
 -----------------------------
 EVALUATION FOCUS:
@@ -86,7 +84,12 @@ EVALUATION FOCUS:
 - Do not infer emotions beyond what is linguistically evident.
 
 -----------------------------
-INPUT (Conversation)
+INPUT (Conversation + Last Message)
 -----------------------------
-${conversation.map(el => `${el.sender.toUpperCase()}: ${el.message}`).join("\n==============\n")}
+${history}
+
+LAST USER MESSAGE:
+"""
+${message}
+"""
 `.trim();

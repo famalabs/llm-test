@@ -1,5 +1,5 @@
 import { LLMConfigProvider } from "../llm"
-import { LMAOutput } from "./interfaces";
+import { LmaOutput } from "./interfaces";
 import { hideBin } from "yargs/helpers"
 import { readFile } from "fs/promises";
 import { evaluate } from "./evaluation";
@@ -33,7 +33,7 @@ const main = async ()=> {
             provider: LLMConfigProvider
         };
         
-    const data = JSON.parse(await readFile(input, 'utf-8')) as { predictions: LMAOutput[], expectedOutputs: LMAOutput[] };
+    const data = JSON.parse(await readFile(input, 'utf-8')) as { predictions: LmaOutput[], expectedOutputs: LmaOutput[] };
     console.log('Evaluations:');
     console.log(await evaluate({
         expectedOutputs: data.expectedOutputs, 

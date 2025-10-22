@@ -1,9 +1,4 @@
-import { LMAInput } from "../interfaces";
-
-export const CHAT_HISTORY_SUMMARIZATION_PROMPT = (
-  partialHistory: LMAInput['history'],
-  previousSummary?: string
-) => {
+export const CHAT_HISTORY_SUMMARIZATION_PROMPT = (partialHistory: string, previousSummary?: string) => {
 
   const previousSummaryIndications = previousSummary ? `4. **merge the PREVIOUS SUMMARY provided** with this new portion into a single coherent summary.
    - Do not repeat information already present in the previous summary.
@@ -40,7 +35,7 @@ INPUT
 ${previousSummary ? `PREVIOUS SUMMARY:\n"""\n${previousSummary}\n"""\n\n` : ""}
 
 HISTORY:"""
-${partialHistory.map(h => `${h.sender.toUpperCase()}: ${h.message}`).join('\n===========\n')}
+${partialHistory}
 """
 `.trim();
 }

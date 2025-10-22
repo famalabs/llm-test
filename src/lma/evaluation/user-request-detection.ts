@@ -1,5 +1,5 @@
 import { generateObject } from "ai";
-import { LMAOutput } from "../interfaces";
+import { LmaOutput } from "../interfaces";
 import { getLLMProvider, LLMConfigProvider } from "../../llm";
 import z from "zod";
 import { USER_REQUEST_EVALUATION_PROMPT } from "./prompts";
@@ -10,8 +10,8 @@ export const evaluateUserRequestDetection = async ({
     model = "mistral-small-latest",
     provider = "mistral",
 }: {
-    expectedOutputs: LMAOutput[];
-    generatedOutputs: LMAOutput[];
+    expectedOutputs: LmaOutput[];
+    generatedOutputs: LmaOutput[];
     model?: string;
     provider?: LLMConfigProvider;
 }) => {

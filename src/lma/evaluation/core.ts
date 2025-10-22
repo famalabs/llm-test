@@ -1,5 +1,5 @@
 import { LLMConfigProvider } from "../../llm";
-import { LMAOutput } from "../interfaces";
+import { LmaOutput } from "../interfaces";
 import { evaluateSentimentAnalysis } from "./sentiment-analysis";
 import { evalauteTaskAnalysis as evaluateTaskAnalysis } from "./task-analysis";
 import { evaluateUserRequestDetection } from "./user-request-detection";
@@ -10,8 +10,8 @@ export const evaluate = async ({
     model = 'mistral-small-latest',
     provider = 'mistral'
 }: {
-    expectedOutputs: LMAOutput[],
-    generatedOutputs: LMAOutput[],
+    expectedOutputs: LmaOutput[],
+    generatedOutputs: LmaOutput[],
     model: string,
     provider: LLMConfigProvider
 }) => {

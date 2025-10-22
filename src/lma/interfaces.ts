@@ -1,4 +1,17 @@
-import { SentimentScores } from "./sentiment-analysis";
+import { LLMConfig } from "../rag";
+
+export type SentimentAnalysisMode = 'single-message' | 'last-message' | 'full-conversation';
+
+export interface SentimentScores {
+    polarity: number;      // -1 (negative) to 1 (positive)
+    involvement: number;   // -1 (apathetic) to 1 (collaborative)
+    energy: number;        // -1 (annoyed) to 1 (enthusiastic)
+    temper: number;        // -1 (angry) to 1 (calm)
+    mood: number;          // -1 (sad) to 1 (happy)
+    empathy: number;       // -1 (cold) to 1 (warm)
+    tone: number;          // -1 (concise) to 1 (talkative)
+    registry: number;      // -1 (formal) to 1 (informal)
+}
 
 export type Sender = 'agent' | 'user';
 
@@ -10,7 +23,7 @@ export interface InputTask {
     description: string;
 }
 
-export interface LMAInput {
+export interface LmaInput {
     message: string;
     chat_status: ChatStatus;
     history: Array<{ sender: Sender; message: string }>;
@@ -24,7 +37,7 @@ export interface OutputTask {
     notes?: string | null;
 };
 
-export interface LMAOutput {
+export interface LmaOutput {
     user_request?: string | null;
     request_satisfied?: boolean | null;
     sentiment: {
@@ -34,3 +47,16 @@ export interface LMAOutput {
     summary?: { text: string; span: number } | null;
     task?: OutputTask | null;
 }
+
+export interface LmaConfig {
+    baseConfig: LLMConfig,
+    sentimentAnalysisConfig: LLMConfig & {
+        scoreSet: number[];
+    },
+    taskAnalysisConfig: LLMConfig,
+    userRequestDetectionConfig: LLMConfig,
+    summarizationConfig: LLMConfig & {
+        C_MIN: number;
+        C_MAX: number;
+    },
+};

@@ -39,19 +39,24 @@ const execute = async ({
             schema
         });
 
-        return result.score;
+        return result;
     }
 
     let score = 0;
+    let explanation = "";
 
     try {
-        score = await getResponse();
+        const res = await getResponse();
+        score = res.score;
+        explanation = res.explanation;
     } catch (error) {
         await sleep(10);
-        score = await getResponse();
+        const res = await getResponse();
+        score = res.score;
+        explanation = res.explanation;
     }
 
-    return { score };
+    return { score, explanation };
 }
 
 export const customLLMAsAJudge = {

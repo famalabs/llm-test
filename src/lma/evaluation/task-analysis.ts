@@ -1,6 +1,6 @@
 import { TASK_ANSWER_EVALUATION_PROMPT, TASK_NOTES_EVALUATION_PROMPT } from './prompts';
 import { getLLMProvider, LLMConfigProvider } from "../../llm";
-import { LMAOutput } from "../interfaces";
+import { LmaOutput } from "../interfaces";
 import { generateObject } from "ai";
 import z from "zod";
 
@@ -10,8 +10,8 @@ export const evalauteTaskAnalysis = async ({
     model = 'mistral-small-latest',
     provider = 'mistral'
 }: {
-    expectedOutputs: LMAOutput[],
-    generatedOutputs: LMAOutput[],
+    expectedOutputs: LmaOutput[],
+    generatedOutputs: LmaOutput[],
     model?: string,
     provider?: LLMConfigProvider
 }) => {

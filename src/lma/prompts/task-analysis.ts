@@ -1,6 +1,4 @@
-import { InputTask, LMAInput } from "../interfaces";
-
-export const TASK_ANALYSIS_PROMPT = (message: string, task: InputTask, history: LMAInput['history']) => `
+export const TASK_ANALYSIS_PROMPT = (history: string, message: string, task: string) => `
 You are an expert assistant specialized in analyzing **chat conversations between a chatbot and a user**.  
 Your goal is to determine if the **user’s last message** responds to a **pending task** previously requested by the agent.
 
@@ -11,8 +9,8 @@ Classify the user’s last message into one of these statuses:
 
 - **"answered"** → The user provides the requested information or confirms execution of the task.
 - **"ignored"** → The user replies with something unrelated to the task.
-- **"negated"** → The user explicitly refuses or states they cannot do the task now (e.g. “non posso”, “non riesco ora”).
-- **"wait"** → The user acknowledges the task but postpones it (e.g. “ok lo faccio dopo”, “aspetta un attimo”).
+- **"negated"** → The user explicitly refuses or states they cannot do the task now (e.g. “I can't”, “I can't now”).
+- **"wait"** → The user acknowledges the task but postpones it (e.g. “Ok I'll do it later”, “I'll wait a moment”).
 
 -----------------------------
 EXTRACTION RULES (if status = "answered")
@@ -20,8 +18,8 @@ EXTRACTION RULES (if status = "answered")
 1. **Extract the answer** in the expected data type:
    - type = number → numeric value (e.g. 85)
    - type = boolean → true / false
-     • true if the user confirms or implies execution (“sì”, “l’ho fatto”)  
-     • false if they deny or say “non ancora”
+     • true if the user confirms or implies execution (“yes”, “I've done it”)  
+     • false if they deny or say “not yet”
    - type = string → the descriptive text provided by the user
 
 2. **Add notes ONLY if the user provides extra details** that are:
@@ -112,23 +110,17 @@ INPUT
 -----------------------------
 
 CHAT HISTORY:
-${history.map(h => `${h.sender.toUpperCase()}: ${h.message}`).join('\n')}
+${history}
 
 USER LAST MESSAGE:
 ${message}
 
 TASK TO EVALUATE:
-Name: ${task.name}
-Type: ${task.type}
-Description: ${task.description}
+${task}
 `.trim();
 
 
-export const TASK_ANALYSIS_AND_USER_REQUEST_PROMPT = (
-  message: string,
-  task: { name: string; type: string; description: string } | null,
-  history: { sender: string; message: string }[]
-) => `
+export const TASK_ANALYSIS_AND_USER_REQUEST_PROMPT = (history: string, message: string, task: string | null) => `
 You are an expert assistant specialized in analyzing **conversations between a user and an AI assistant**.  
 Your goals are:
 1. **Extract and summarize any user request** expressed in the last user message.  
@@ -215,12 +207,9 @@ FINAL OUTPUT FORMAT (JSON)
 ======================================================================
 CONVERSATION CONTEXT
 ======================================================================
-${history.map(h => `${h.sender.toUpperCase()}: ${h.message}`).join('\n')}
+${history}
 ==============
 USER: ${message}
 
-${task ? `\nTASK TO EVALUATE:
-Name: ${task.name}
-Type: ${task.type}
-Description: ${task.description}` : '(No pending task provided)'}
+${task ? `\nTASK TO EVALUATE:\n${task}` : '(No pending task provided)'}
 `.trim();

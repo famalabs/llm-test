@@ -49,14 +49,17 @@ export async function computeMetricsForFile(
     const baseName = path.basename(normalizedInputPath, path.extname(normalizedInputPath));
     const outputFileName = `${baseName}.csv`;
 
-    const evaluations: Record<string, number[]> = {};
+    const evaluations: Record<string, { score: number, explanation: string }[]> = {};
 
     for (const metric of tqdm(Object.keys(allMetrics))) {
         const { name, execute } = allMetrics[metric as keyof typeof allMetrics];
 
         if (parallel) {
-            const scores = await Promise.all(
-                resultsContent.results.map(async ({ candidate, fullRef, keyRef, question }: { candidate: string; fullRef: string; keyRef: string; question: string }) => {
+            const scoresAndExplanations = await Promise.all(
+                resultsContent.results.map(async (
+                    { candidate, fullRef, keyRef, question }:
+                        { candidate: string; fullRef: string; keyRef: string; question: string; }
+                ) => {
                     const args: {
                         fullRef: string;
                         keyRef: string;
@@ -66,22 +69,21 @@ export async function computeMetricsForFile(
                         provider?: LLMConfigProvider;
                     } = { fullRef, keyRef, prediction: candidate };
 
-                    if (name === "llm-as-a-judge") {
+                    if (name == "llm-as-a-judge") {
                         args.query = question;
                         args.model = model;
                         args.provider = provider;
                     }
 
-                    const { score } = await execute(args);
-                    return score;
+                    return await execute(args); //  { score, explanation } 
                 })
             );
 
-            evaluations[name] = scores;
-        } 
-        
+            evaluations[name] = scoresAndExplanations;
+        }
+
         else {
-            const scores: number[] = [];
+            const scoresAndExplanations: { score: number, explanation: string }[] = [];
             for (const { candidate, fullRef, keyRef, question } of resultsContent.results) {
                 const args: {
                     fullRef: string;
@@ -98,22 +100,30 @@ export async function computeMetricsForFile(
                     args.provider = provider;
                 }
 
-                const { score } = await execute(args);
-                scores.push(score);
+                const { score, explanation } = await execute(args);
+                scoresAndExplanations.push({ score, explanation });
             }
-            evaluations[name] = scores;
+            evaluations[name] = scoresAndExplanations;
         }
     }
 
-    let out = `llm, ${mean(evaluations["llm-as-a-judge"])}\n`;
-    out += "#,query,fullref,keyref,candidate,llm\n";
+    let out = `llm, ${mean(evaluations["llm-as-a-judge"].map(e => e.score))}\n`;
+    out += "#,query,fullref,keyref,candidate,llm_score,llm_explanation\n";
     for (let i = 0; i < resultsContent.results.length; i++) {
         const { question, fullRef, keyRef, candidate } = resultsContent.results[i];
-        out += `${i + 1},"${question.replaceAll('"', '""')}","${fullRef.replaceAll(
-            '"',
-            '""'
-        )}","${keyRef.replaceAll('"', '""')}","${candidate.replaceAll('"', '""')}",${evaluations["llm-as-a-judge"][i]
-            }\n`;
+        out += `${i + 1},"${
+            question.replaceAll('"', '""')
+        }","${
+            fullRef.replaceAll('"','""')
+        }","${
+            keyRef.replaceAll('"', '""')
+        }","${
+            candidate.replaceAll('"', '""')
+        }",${
+            evaluations["llm-as-a-judge"][i].score
+        },"${
+            evaluations["llm-as-a-judge"][i].explanation.replaceAll('"', '""')
+        }"\n`;
     }
 
     const fileName = path.join(createOutputFolderIfNeeded("output", "scores"), outputFileName);

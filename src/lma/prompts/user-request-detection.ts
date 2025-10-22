@@ -42,7 +42,7 @@ ${message}
 """
 `
 
-export const REQUEST_SATISFIED_PROMPT = (message: string, history: { sender: string; message: string }[]) => `
+export const REQUEST_SATISFIED_PROMPT = (history: string, message: string) => `
 You are a precise assistant that determines if a user's request has been satisfied in a conversation with an AI assistant.
 
 -----------------------------
@@ -66,7 +66,7 @@ OUTPUT FORMAT:
 }
 
 CONVERSATION:"""
-${history.map(h => `${h.sender}: ${h.message}`).join("\n==============\n")}
+${history}
 ==============
 user: ${message}
 """

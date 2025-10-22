@@ -1,15 +1,12 @@
-import { hideBin } from 'yargs/helpers';
-import yargs from "yargs"
-import { readFile, writeFile } from 'fs/promises';
-import { LMAInput, LMAOutput } from './interfaces';
-import { analyzeSentiment } from './sentiment-analysis';
-import { shouldSummarize, summarize } from './summarization';
-import { LLMConfigProvider } from '../llm';
-import 'dotenv/config';
-import { analyzeTask, shouldAnalyzeTask, analyzeTaskAndDetectUserRequest } from './task-analysis';
-import { detectUserRequest } from './user-request-detection';
-import path from 'path';
 import { createOutputFolderIfNeeded } from '../utils';
+import { readFile, writeFile } from 'fs/promises';
+import { LmaInput, LmaOutput } from './interfaces';
+import { LLMConfigProvider } from '../llm';
+import { hideBin } from 'yargs/helpers';
+import { Lma } from './lma';
+import yargs from "yargs"
+import path from 'path';
+import 'dotenv/config';
 
 const main = async () => {
     const { input, model, provider, debug, verbose, tests, taur } = await yargs(hideBin(process.argv))
@@ -89,26 +86,31 @@ const main = async () => {
         console.log(`Running specified tests: ${testStrings.join(', ')}`);
     }
 
-    const data = JSON.parse(await readFile(input, 'utf-8')) as { input: LMAInput, expected_output: LMAOutput }[];
-    const predictions: LMAOutput[] = [];
-    const expectedOutputs: LMAOutput[] = [];
+    const lma = new Lma({ baseConfig: { model, provider } });
+
+    const data = JSON.parse(await readFile(input, 'utf-8')) as { input: LmaInput, expected_output: LmaOutput }[];
+    const predictions: LmaOutput[] = [];
+    const expectedOutputs: LmaOutput[] = [];
 
     for (const { input, expected_output } of data) {
-        const prediction = {} as LMAOutput;
+        const prediction = {} as LmaOutput;
 
         let start = performance.now();
 
         if (tests.length == 0 || tests.includes(0)) {
-            console.log('Analyzing sentiment...');
-            prediction.sentiment = await analyzeSentiment({ input, model, provider });
+            console.log('Analyzing sentiment...');  
+            prediction.sentiment = {
+                single : await lma.getSingleMessageSentiment(input),
+                cumulative: await lma.getCumulativeSentiment(input)
+            };
             console.log(`Sentiment analysis took ${(performance.now() - start).toFixed(2)} ms`);
         }
 
         if (tests.length == 0 || tests.includes(1)) {
-            if (shouldSummarize(input) || debug) {
+            if (lma.shouldSummarize(input) || debug) {
                 start = performance.now();
                 console.log('Summarizing conversation...');
-                prediction.summary = await summarize({ input, model, provider });
+                prediction.summary = await lma.summarizeChatHistory(input);
                 console.log(`Summarization took ${(performance.now() - start).toFixed(2)} ms`);
             }
         }
@@ -117,7 +119,7 @@ const main = async () => {
             if (tests.length == 0 || (tests.includes(2) && tests.includes(3))) {
                 start = performance.now();
                 console.log('Analyzing task and detecting user request (taur mode)...');
-                const { task, user_request, request_satisfied } = await analyzeTaskAndDetectUserRequest({ input, model, provider });
+                const { task, user_request, request_satisfied } = await lma.analyzeTaskAndDetectUserRequest(input);
                 console.log(`Task analysis and user request detection took ${(performance.now() - start).toFixed(2)} ms`);
 
                 prediction.task = task;
@@ -127,10 +129,10 @@ const main = async () => {
         }
         else {
             if (tests.length == 0 || tests.includes(2)) {
-                if (shouldAnalyzeTask(input) || debug) {
+                if (lma.shouldAnalyzeTask(input) || debug) {
                     start = performance.now();
                     console.log('Analyzing task...');
-                    prediction.task = await analyzeTask({ input, model, provider });
+                    prediction.task = await lma.analyzeTask(input);
                     console.log(`Task analysis took ${(performance.now() - start).toFixed(2)} ms`);
                 }
             }
@@ -138,7 +140,7 @@ const main = async () => {
             if (tests.length == 0 || tests.includes(3)) {
                 start = performance.now();
                 console.log('Detecting user request...');
-                const { user_request, request_satisfied } = await detectUserRequest({ input, model, provider });
+                const { user_request, request_satisfied } = await lma.detectUserRequest(input);
                 console.log(`User request detection took ${(performance.now() - start).toFixed(2)} ms`);
 
                 prediction.user_request = user_request;

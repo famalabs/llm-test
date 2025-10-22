@@ -37,9 +37,9 @@ const titleize = (s: string) =>
 
 const normalizeConfigShape = (parsed: any): { rag: Record<string, any>; docStore: Record<string, any> } => {
   return {
-    rag: parsed.ragConfig ?? {},
-    docStore: parsed.docStoreConfig ?? {}
-  }
+    rag: parsed?.ragConfig ?? {},
+    docStore: parsed?.docStoreConfig ?? {}
+  };
 };
 
 const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
@@ -56,7 +56,7 @@ const buildRagConfigTooltipHTML = (filePath: string, config: any) => {
   };
 
   const renderConfigObject = (obj: Record<string, any>): string =>
-    Object.entries(obj)
+    Object.entries(obj ?? {})
       .map(
         ([key, value]) => `
         <div class="flex justify-between items-start space-x-4 py-1">
@@ -100,37 +100,38 @@ const buildQueryRefsTooltipHTML = (query: string, keyRef?: string, fullRef?: str
   <div class="space-y-3">
     <div>
       <div class="font-semibold text-sm mb-1">Query</div>
-      <div class="text-sm leading-snug">${escapeText(query)}</div>
+      <div class="text-sm leading-snug">${escapeText(query ?? "")}</div>
     </div>
     ${keyRef
-      ? `<div>
+    ? `<div>
              <div class="font-semibold text-sm mb-1">Key reference</div>
              <div class="text-sm leading-snug whitespace-pre-wrap">${escapeText(keyRef)}</div>
            </div>`
-      : ""
-    }
+    : ""
+  }
     ${fullRef
-      ? `<div>
+    ? `<div>
              <div class="font-semibold text-sm mb-1">Full reference</div>
              <div class="text-sm leading-snug whitespace-pre-wrap">${escapeText(fullRef)}</div>
            </div>`
-      : ""
-    }
+    : ""
+  }
   </div>`;
 
 const encodeForDataAttr = (s: string) => encodeURIComponent(s);
 
 const buildCandidateTooltipHTML = (
   candidate: string,
-  items: Array<{ sourceName: string; spanLabel: string; resolvedEncoded: string }>
+  items: Array<{ sourceName: string; spanLabel: string; resolvedEncoded: string }>,
+  explanation?: string
 ) => {
   const list =
     items.length === 0
       ? `<div class="text-xs text-gray-400">Nessuna citazione.</div>`
       : `<ul class="mt-1 space-y-1">
           ${items
-            .map(
-              (it) => `
+        .map(
+          (it) => `
             <li class="grid grid-cols-[1fr_auto] items-center gap-3">
               <span class="font-mono truncate">${escapeText(it.sourceName)}</span>
               <button
@@ -140,20 +141,29 @@ const buildCandidateTooltipHTML = (
                 aria-label="Apri citazione risolta"
               >${escapeText(it.spanLabel)}</button>
             </li>`
-            )
-            .join("")}
+        )
+        .join("")}
         </ul>`;
+
+  const exp =
+    explanation && explanation.trim().length > 0
+      ? `<div class="mt-3">
+          <div class="font-semibold text-sm mb-1">LLM explanation</div>
+          <div class="text-xs leading-snug whitespace-pre-wrap">${escapeText(explanation)}</div>
+        </div>`
+      : "";
 
   return `
   <div class="space-y-3">
     <div>
       <div class="font-semibold text-sm mb-1">Candidate</div>
-      <div class="text-sm leading-snug whitespace-pre-wrap">${escapeText(candidate)}</div>
+      <div class="text-sm leading-snug whitespace-pre-wrap">${escapeText(candidate ?? "")}</div>
     </div>
     <div>
       <div class="font-semibold text-sm mb-1">Citations</div>
       ${list}
     </div>
+    ${exp}
   </div>`;
 };
 
@@ -185,17 +195,30 @@ const main = async () => {
 
   const normalizedInput = input.replaceAll("/", PATH_NORMALIZATION_MARK);
 
+
   const scoresDir = path.join("output", "scores");
-  const allFiles = (await readdir(scoresDir)).filter((f) => f.split("_")[0] === normalizedInput);
+  const allScoreFiles = (await readdir(scoresDir)).filter((f) => f.split("_")[0] === normalizedInput);
+
+  if (allScoreFiles.length == 0) {
+    console.warn(`⚠️ Nessun file di score trovato per "${normalizedInput}" in ${scoresDir}`);
+  }
 
   const allData = await Promise.all(
-    allFiles.map(async (file) => {
+    allScoreFiles.map(async (file) => {
       const csvRaw = await readFile(path.join(scoresDir, file), "utf-8");
       const [meanScoresText, ...csvLines] = csvRaw.split("\n");
-      const [llm, llmValue] = meanScoresText.split(",");
-      const meanScores = {
-        [llm.trim()]: parseFloat(llmValue),
-      };
+
+      // Prima riga: "llm, <media>"
+      let meanScores: Record<string, number> = {};
+      if (meanScoresText?.includes(",")) {
+        const [k, v] = meanScoresText.split(",");
+        const key = (k ?? "llm").trim();
+        const val = parseFloat((v ?? "NaN").trim());
+        meanScores = { [key]: val };
+      } else {
+        // fallback
+        meanScores = { llm: NaN };
+      }
 
       const jsonPath = path.join("output", "candidates", file.replace(".csv", ".json"));
       let config: any = {};
@@ -213,11 +236,7 @@ const main = async () => {
       const csvData = await parseCSV(csvFile);
       return {
         filePath: file.replace(".csv", ""),
-        displayName:
-          (file.split("_").pop()?.replace(".csv", "") ?? file).replaceAll(
-            PATH_NORMALIZATION_MARK,
-            "/"
-          ),
+        displayName: file.replace(".csv", ""),
         meanScores,
         csvData,
         config,
@@ -226,7 +245,12 @@ const main = async () => {
     })
   );
 
-  allData.sort((a, b) => b.meanScores.llm - a.meanScores.llm);
+  // Ordina per media LLM decrescente (chi non ha valore va in fondo)
+  allData.sort((a, b) => {
+    const av = Object.values(a.meanScores)[0] ?? Number.NEGATIVE_INFINITY;
+    const bv = Object.values(b.meanScores)[0] ?? Number.NEGATIVE_INFINITY;
+    return (isNaN(bv) ? -Infinity : bv) - (isNaN(av) ? -Infinity : av);
+  });
 
   let html = `<html>
 <head>
@@ -264,8 +288,9 @@ const main = async () => {
 </head>
 <body class="p-6 bg-gray-50">
 <h1 class="text-3xl flex items-center gap-2 font-bold mb-6"><span>Risultati della valutazione per</span><code 
-class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${input}</code></h1>`;
+class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${escapeText(input)}</code></h1>`;
 
+  // Tabella score medi
   html += `<h2 class="text-xl font-semibold mb-3">Score medi</h2>`;
   html += `<table class="table-fixed border-collapse border border-gray-300 w-full mb-8 text-sm">
   <thead><tr class="bg-gray-200">
@@ -283,11 +308,11 @@ class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${input}<
       </td>
       ${Object.values(meanScores)
         .map((v) => {
-          const bg = getHeatmapColor(v);
-          const fg = getTextColor(v);
-          return `<td class="border border-gray-300 px-3 py-2 text-center font-mono" style="background:${bg};color:${fg}">${v.toFixed(
-            3
-          )}</td>`;
+          const num = typeof v === "number" ? v : NaN;
+          const bg = isFinite(num) ? getHeatmapColor(num) : "#f3f4f6";
+          const fg = isFinite(num) ? getTextColor(num) : "#111827";
+          const content = isFinite(num) ? num.toFixed(3) : "-";
+          return `<td class="border border-gray-300 px-3 py-2 text-center font-mono" style="background:${bg};color:${fg}">${content}</td>`;
         })
         .join("")}
     </tr>`;
@@ -296,63 +321,73 @@ class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${input}<
 
   // Per-test
   html += `<h2 class="text-xl font-semibold mb-3">LLM scores per test</h2>`;
-  const firstCsv = allData[0].csvData;
-  html += `<table class="table-fixed border-collapse border border-gray-300 w-full text-sm">
-    <thead><tr class="bg-gray-200">
-      <th class="border border-gray-300 px-3 py-2 w-1/5">File</th>`;
-  for (let i = 0; i < firstCsv.length; i++) {
-    const row: any = firstCsv[i];
-    const query = row.query ?? "";
-    const keyRef = row.keyref ?? row.keyRef ?? "";
-    const fullRef = row.fullref ?? row.fullRef ?? "";
-    const tip = escapeAttrQuotesOnly(buildQueryRefsTooltipHTML(query, keyRef, fullRef));
-    html += `<th class="border border-gray-300 px-3 py-2"><span class="cursor-help underline decoration-dotted" data-tippy-content="${tip}">#${i + 1}</span></th>`;
-  }
-  html += `</tr></thead><tbody>`;
 
-  for (const { filePath, displayName, csvData, config, results } of allData) {
-    const cfgTip = escapeAttrQuotesOnly(buildRagConfigTooltipHTML(filePath, config));
-    const dsName = config?.docStore?.indexName ? `<code class="badge" title="Doc Store indexName">${escapeText(config.docStore.indexName)}</code>` : "";
-    html += `<tr>
-      <td class="border border-gray-300 px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis">
-        <span class="cursor-help underline decoration-dotted" data-tippy-content="${cfgTip}">
-          ${escapeText(displayName)}${dsName}
-        </span>
-      </td>`;
-
-    for (let i = 0; i < csvData.length; i++) {
-      const row: any = csvData[i];
-      const score = parseFloat(row.llm);
-      const bg = getHeatmapColor(score);
-      const fg = getTextColor(score);
-
-      const res: JSONResult | undefined = results?.[i];
-      const citations = res?.citations ?? [];
-      const chunks = res?.chunks ?? [];
-
-      // Preparo i badge: filename + lines (testo risolto codificato)
-      const items = await Promise.all(
-        (citations ?? []).map(async (c) => {
-          const chunk = chunks?.[c.chunkIndex];
-          const srcFull = chunk?.source ?? "sorgente-sconosciuta";
-          const sourceName = path.basename(srcFull);
-          const spanLabel = `Citazione`;
-          const resolvedEncoded = await buildResolvedCitationEncoded(c, chunks);
-          return { sourceName, spanLabel, resolvedEncoded };
-        })
-      );
-
-      const candidateText = row.candidate ?? res?.candidate ?? "";
-      const cellTip = escapeAttrQuotesOnly(buildCandidateTooltipHTML(candidateText, items));
-
-      html += `<td class="border border-gray-300 px-3 py-2 text-center font-mono" style="background:${bg};color:${fg}">
-        <span class="cursor-help" data-tippy-content="${cellTip}">${isFinite(score) ? score.toFixed(3) : "-"}</span>
-      </td>`;
+  if (allData.length === 0) {
+    html += `<p class="text-sm text-gray-600">Nessun dato disponibile.</p>`;
+  } else {
+    const firstCsv = allData[0].csvData ?? [];
+    html += `<table class="table-fixed border-collapse border border-gray-300 w-full text-sm">
+      <thead><tr class="bg-gray-200">
+        <th class="border border-gray-300 px-3 py-2 w-1/5">File</th>`;
+    for (let i = 0; i < firstCsv.length; i++) {
+      const row: any = firstCsv[i] ?? {};
+      const query = row.query ?? "";
+      const keyRef = row.keyref ?? row.keyRef ?? "";
+      const fullRef = row.fullref ?? row.fullRef ?? "";
+      const tip = escapeAttrQuotesOnly(buildQueryRefsTooltipHTML(query, keyRef, fullRef));
+      html += `<th class="border border-gray-300 px-3 py-2"><span class="cursor-help underline decoration-dotted" data-tippy-content="${tip}">#${i + 1}</span></th>`;
     }
-    html += `</tr>`;
+    html += `</tr></thead><tbody>`;
+
+    for (const { filePath, displayName, csvData, config, results } of allData) {
+      const cfgTip = escapeAttrQuotesOnly(buildRagConfigTooltipHTML(filePath, config));
+      const dsName = config?.docStore?.indexName ? `<code class="badge" title="Doc Store indexName">${escapeText(config.docStore.indexName)}</code>` : "";
+      html += `<tr>
+        <td class="border border-gray-300 px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis">
+          <span class="cursor-help underline decoration-dotted" data-tippy-content="${cfgTip}">
+            ${escapeText(displayName)}${dsName}
+          </span>
+        </td>`;
+
+      for (let i = 0; i < (csvData?.length ?? 0); i++) {
+        const row: any = csvData[i] ?? {};
+        // ⬇️ allineato al nuovo schema: llm_score e llm_explanation
+        const score = parseFloat(row.llm_score ?? row.llm ?? "NaN");
+        const explanation = row.llm_explanation ?? "";
+
+        const bg = isFinite(score) ? getHeatmapColor(score) : "#f3f4f6";
+        const fg = isFinite(score) ? getTextColor(score) : "#111827";
+
+        const res: JSONResult | undefined = results?.[i];
+        const citations = res?.citations ?? [];
+        const chunks = res?.chunks ?? [];
+
+        // Preparo i badge citazioni
+        const items = await Promise.all(
+          (citations ?? []).map(async (c) => {
+            const chunk = chunks?.[c.chunkIndex as number];
+            const srcFull = chunk?.source ?? "sorgente-sconosciuta";
+            const sourceName = path.basename(srcFull);
+            const spanLabel = `Citazione`;
+            const resolvedEncoded = await buildResolvedCitationEncoded(c, chunks);
+            return { sourceName, spanLabel, resolvedEncoded };
+          })
+        );
+
+        const candidateText = row.candidate ?? res?.candidate ?? "";
+        const cellTip = escapeAttrQuotesOnly(buildCandidateTooltipHTML(candidateText, items, explanation));
+
+        html += `<td class="border border-gray-300 px-3 py-2 text-center font-mono" style="background:${bg};color:${fg}">
+          <span class="cursor-help" data-tippy-content="${cellTip}">${isFinite(score) ? score.toFixed(3) : "-"}</span>
+        </td>`;
+      }
+      html += `</tr>`;
+    }
+
+    html += `</tbody></table>`;
   }
 
-  html += `</tbody></table>
+  html += `
 <script>
 document.addEventListener('DOMContentLoaded', function(){
 
@@ -384,7 +419,6 @@ document.addEventListener('DOMContentLoaded', function(){
       const enc = reference.getAttribute('data-resolved-enc');
       return enc ? decodeURIComponent(enc) : '<div class="text-xs text-gray-400">Nessun testo disponibile</div>';
     },
-    // trigger: 'click',
   });
 });
 </script>
