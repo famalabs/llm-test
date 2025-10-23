@@ -1,0 +1,1 @@
+export type LanguageLabel = 'arabic' | 'bulgarian' | 'german' | 'modern greek' | 'english' | 'spanish' | 'french' | 'hindi' | 'italian' | 'japanese' | 'dutch' | 'polish' | 'portuguese' | 'russian' | 'swahili' | 'thai' | 'turkish' | 'urdu' | 'vietnamese' | 'chinese';

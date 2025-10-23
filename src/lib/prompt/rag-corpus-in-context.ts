@@ -1,19 +1,24 @@
-import { Chunk } from '../chunks/interfaces'
+import { Chunk } from '../chunks/interfaces';
+import { LanguageLabel } from '../nlp';
 
-export const ragCorpusInContext = (promptDocuments: Chunk[], userQuery: string, fewShots: boolean = false, reasoning: boolean = false, includeCitations: boolean = false): string => {
+export const ragCorpusInContext = (promptDocuments: Chunk[], userQuery: string, detectedLanguage: LanguageLabel, fewShots: boolean = false, reasoning: boolean = false, includeCitations: boolean = false): string => {
+
+
 
     return `
 You are a medical information assistant. Analyze the provided documents and deliver precise answers based exclusively on the given content.
+
+------------
+Basic context, useful in general: 
+* Current Date / Time: ${new Date().toISOString()}
+------------
 
 GUIDELINES:
 1. Base your answer ONLY on the information explicitly provided.
 2. When information is partial or ambiguous, clearly state these limitations.
 3. Provide complete answers when full information is available.
 4. If no relevant information is available, say that you don't have information to answer the user's question.
-5. Always provide the answer in the same language as the user’s question, regardless of the language of the source documents or any other context.
-    5.1 ❌ Do not translate the answer to a different language.
-    5.2 ✅ The answer language must strictly match the question language.
-    ${fewShots ? '' : '5.3 In the example below, you will notice this rule in action -> language query == language answer.'}
+5. Provide the answer in ${detectedLanguage.toUpperCase()}, regardless of the language of the source documents or any other context.
 6. Include all pertinent details from the documents without summarizing unless explicitly requested.
 7. Select only the relevant documents to answer the question, avoiding unnecessary information.
 8. Make sure you're not copying sections of text verbatim; instead, synthesize the information into a coherent response.
@@ -32,12 +37,11 @@ ${userQuery}
 
 STEP BY STEP INSTRUCTIONS:
 1. Carefully read the user's question and identify the key information being requested.
-2. Understand which is the language of the user's question (QUERY_LANGUAGE).
-3. Review the documents to find relevant information.
-4. Formulate your answer in language QUERY_LANGUAGE, strictly matching the user's question language [very important]
-5. Follow the guidelines provided above.
-6. If there is no relevant information in the documents, do not include any citations!
-${reasoning ? '7. Provide your reasoning.' : ''}`;
+2. Review the documents to find relevant information.
+3. Formulate your answer in ${detectedLanguage.toUpperCase()}, independently of the language of the documents. Do not shift language during the answer.
+4. Follow the guidelines provided above.
+5. If there is no relevant information in the documents, do not include any citations!
+${reasoning ? '6. Provide your reasoning.' : ''}`.trim();
 };
 
 

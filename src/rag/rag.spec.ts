@@ -43,7 +43,8 @@ async function testPrompt(idx: number) {
             ...document,
             pageContent: addLineNumbers(document.pageContent),
         })),
-        testData[idx].question
+        testData[idx].question, 
+        'italian'
     );
 
     const { object: result } = await generateObject({

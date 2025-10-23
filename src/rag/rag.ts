@@ -2,7 +2,7 @@ import { applyChunkFiltering, retrieveParentPage, Chunk, PromptDocument, Citatio
 import { ragCorpusInContext, rerankingPrompt } from "../lib/prompt";
 import { EMBEDDING_FIELD, VectorStore } from "../vector-store";
 import { RagConfig, RagAnswer } from "./interfaces";
-import { addLineNumbers } from "../lib/nlp";
+import { addLineNumbers, detectLanguage } from "../lib/nlp";
 import { escapeRedisValue } from "../lib/redis";
 import { generateObject } from "ai";
 import { resolveConfig } from "./rag.config";
@@ -92,7 +92,7 @@ export class Rag {
             reranking,
             parentPageRetrieval,
             chunkFiltering,
-            semanticCache, 
+            semanticCache,
             docStore
         } = this.config;
 
@@ -219,7 +219,7 @@ export class Rag {
 
         // Adding here the EMBEDDING_FIELD prevent re-compuation of the queryEmbeddings.
         const doc = { ...ragAnswer, [EMBEDDING_FIELD]: queryEmbeddings };
-        
+
         const options: { ttl?: number } = {};
         if (this.config.semanticCache && this.config.semanticCache.ttl) {
             options.ttl = this.config.semanticCache.ttl;
@@ -252,7 +252,11 @@ export class Rag {
                 chunks.map((document) => ({
                     ...document,
                     pageContent: addLineNumbers(document.pageContent)
-                })), query, fewShotsEnabled, reasoningEnabled, includeCitations
+                })), query,
+                await detectLanguage(query),
+                fewShotsEnabled,
+                reasoningEnabled,
+                includeCitations
             ),
             schema: z.object(responseSchema)
         }) as { object: { answer: string; citations?: Citation[]; reasoning?: string; }; };

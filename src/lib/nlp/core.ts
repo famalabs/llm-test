@@ -1,6 +1,6 @@
 import keywordExtractor from 'keyword-extractor';
 
-export const splitTextIntoSentences = (text: string, language: 'it'): string[] => {
+export const splitTextIntoSentences = (text: string, language: string = 'it'): string[] => {
     const segmenter = new Intl.Segmenter(language, { granularity: 'sentence' });
     return Array.from(segmenter.segment(text)).map(segment => segment.segment.trim()).filter(sentence => sentence.length > 0);
 };

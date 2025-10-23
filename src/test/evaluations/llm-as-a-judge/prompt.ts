@@ -77,7 +77,7 @@ Instructions:
 Remember: If the given answer include false information, its score is 0. If the language of the given answer is different from the language of the query, the score is 0.
 Check every detail of the GIVEN ANSWER and meticoulously compare it to the EXPECTED ANSWERS. A fake information (temporal / factual etc..) lead to a score of 0 [!]. 
 A mismatch in the language between the query and the given answer lead to a score of 0.
-The answers are medically related. If the GIVEN ANSWER contains wrong medical indication with respect to the EXPECTED ANSWERS, the score must be 0.
+The answers are medically related. If the GIVEN ANSWER contains wrong medical indication with respect to the EXPECTED ANSWERS, the score must be 0. Even a change of language (e.g. starting in the right language but then switching to another one) lead to a score of 0.
 But, be aware of rephrases: if the GIVEN ANSWER is a rephrase of the EXPECTED ANSWER, it should not be penalized.
 
 QUERY:\`\`\`
