@@ -87,7 +87,7 @@ const main = async () => {
     const predictions: LmaOutput[] = [];
     const expectedOutputs: LmaOutput[] = [];
 
-    for (const { input, expected_output } of data.slice(0,1)) {
+    for (const { input, expected_output } of data) {
         let prediction = {} as LmaOutput;
 
         let start = performance.now();

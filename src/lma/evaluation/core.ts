@@ -3,6 +3,7 @@ import { LmaOutput } from "../interfaces";
 import { evaluateSentimentAnalysis } from "./sentiment-analysis";
 import { evalauteTaskAnalysis as evaluateTaskAnalysis } from "./task-analysis";
 import { evaluateUserRequestDetection } from "./user-request-detection";
+import { evaluateToolsDetection } from "./tools-detection";
 
 export const evaluate = async ({
     expectedOutputs,
@@ -18,10 +19,11 @@ export const evaluate = async ({
 
     let singleSentimentAnalysisScore: { raw: number, binarized: number } | null = null;
     let cumulativeSentimentAnalysisScore: { raw: number, binarized: number } | null = null;
-    let userRequestAccuracyAndEvaluation: { userRequestPresenceAccuracy: number, requestSatisfiedAccuracy: number, averageUserRequestScore: number } | null = null;
-    let taskAnalysis: { taskAnswerAccuracy: number, taskStatusAccuracy: number, taskNotesAverageScore: number } | null = null;
+    let userRequestAccuracyAndEvaluation: { userRequestPresenceAccuracy: number | null, requestSatisfiedAccuracy: number | null, averageUserRequestScore: number | null } | null = null;
+    let toolsDetection: { toolNameIoU: number | null, toolParamAccuracy: number | null } | null = null;
+    let taskAnalysis: { taskAnswerAccuracy: number | null, taskStatusAccuracy: number | null, taskNotesAverageScore: number | null } | null = null;
 
-    if (generatedOutputs.some(g => g.sentiment)) {
+    if (generatedOutputs.some(g => g.sentiment) && expectedOutputs.some(e => e.sentiment)) {
         singleSentimentAnalysisScore = evaluateSentimentAnalysis({
             expectedScores: expectedOutputs.map(e => e.sentiment.single),
             generatedScores: generatedOutputs.map(e => e.sentiment.single)
@@ -41,6 +43,13 @@ export const evaluate = async ({
         });
     }
 
+    if (generatedOutputs.some(g => g.useful_tools)) {
+        toolsDetection = evaluateToolsDetection({
+            expectedOutputs,
+            generatedOutputs
+        });
+    }
+
     if (generatedOutputs.some(g => g.task)) {
         taskAnalysis = await evaluateTaskAnalysis({
             expectedOutputs,
@@ -56,6 +65,7 @@ export const evaluate = async ({
             cumulative: cumulativeSentimentAnalysisScore
         },
         userRequest: userRequestAccuracyAndEvaluation,
+        toolsDetection, 
         taskAnalysis,
     };
 };

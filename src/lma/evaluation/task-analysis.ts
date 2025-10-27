@@ -87,9 +87,9 @@ export const evalauteTaskAnalysis = async ({
         }
     }
 
-    const taskAnswerAccuracy = totalTaskAnswer == 0 ? 0 : correctTaskAnswer / totalTaskAnswer;
-    const taskStatusAccuracy = totalTaskStatus == 0 ? 0 : correctTaskStatus / totalTaskStatus;
-    const taskNotesAverageScore = scores.length == 0 ? 0 : scores.reduce((a, b) => a + b, 0) / scores.length;
+    const taskAnswerAccuracy = totalTaskAnswer == 0 ? null : correctTaskAnswer / totalTaskAnswer;
+    const taskStatusAccuracy = totalTaskStatus == 0 ? null : correctTaskStatus / totalTaskStatus;
+    const taskNotesAverageScore = scores.length == 0 ? null : scores.reduce((a, b) => a + b, 0) / scores.length;
 
     return {
         taskAnswerAccuracy,

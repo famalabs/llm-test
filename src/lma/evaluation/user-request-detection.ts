@@ -70,11 +70,11 @@ export const evaluateUserRequestDetection = async ({
         }
     }
 
-    const userRequestPresenceAccuracy = totalPresenceDetections == 0 ? 0 : correctPresenceDetections / totalPresenceDetections;
+    const userRequestPresenceAccuracy = totalPresenceDetections == 0 ? null : correctPresenceDetections / totalPresenceDetections;
 
-    const requestSatisfiedAccuracy = totalSatisfiedDetections == 0 ? 0 : correctSatisfiedDetections / totalSatisfiedDetections; 
+    const requestSatisfiedAccuracy = totalSatisfiedDetections == 0 ? null : correctSatisfiedDetections / totalSatisfiedDetections;
 
-    const averageUserRequestScore = scores.length == 0 ? 0 : scores.reduce((a, b) => a + b, 0) / scores.length;
+    const averageUserRequestScore = scores.length == 0 ? null : scores.reduce((a, b) => a + b, 0) / scores.length;
 
     return {
         userRequestPresenceAccuracy,
