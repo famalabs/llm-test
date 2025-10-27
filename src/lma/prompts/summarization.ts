@@ -1,7 +1,7 @@
 export const CHAT_HISTORY_SUMMARIZATION_PROMPT = (partialHistory: string, previousSummary?: string) => {
 
   const previousSummaryIndications = previousSummary ? `4. **merge the PREVIOUS SUMMARY provided** with this new portion into a single coherent summary.
-   - Do not repeat information already present in the previous summary.
+   - Do not repeat the exact same words already present in the previous summary.
    - Keep the chronological and logical flow.` : '';
 
   return `

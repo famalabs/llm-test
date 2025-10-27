@@ -1,15 +1,6 @@
+import { Tool } from "./interfaces";
 
-export interface LMATool {
-    name: string;
-    description: string;
-    parameters?: {
-        name: string;
-        type: 'string' | 'number' | 'boolean';
-        description: string;
-    }[];
-}
-
-export const example_lma_tools: LMATool[] = [
+export const example_lma_tools: Tool[] = [
     {
         name: "rag-from-docs",
         description: "Retrieve information from a set of documents about different pharmsaceutical products.",

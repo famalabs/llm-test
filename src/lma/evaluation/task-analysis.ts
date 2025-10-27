@@ -30,56 +30,58 @@ export const evalauteTaskAnalysis = async ({
 
         if (expected.task) {
 
-
-            if (expected.task.answer == undefined && generated.task?.answer == undefined) {
-                // none è comunque una risposta.
-                correctTaskAnswer += 1;
-                totalTaskAnswer += 1;
+            // STATUS
+            totalTaskStatus += 1;
+            if (expected.task.status == generated.task?.status) {
+                correctTaskStatus += 1;
+            }
+            else {
+                console.log('Mismatch. Expected status:', expected.task.status, 'Generated status:', generated.task?.status);  
             }
 
-            if (expected.task.answer != undefined) {
-                totalTaskAnswer += 1;
-
-                if (typeof expected.task.answer != 'string' && expected.task.answer === generated.task?.answer) {
-                    // number or boolean
-                    correctTaskAnswer += 1;
-                }
-                else {
-                    // sono stringhe -> comparison con llm as a judge
+            // ANSWER CHECK
+            totalTaskAnswer += 1;
+            if (expected.task.answer == generated.task?.answer) {
+                correctTaskAnswer += 1;
+            }
+            else {
+                if (typeof expected.task.answer == 'string') { // va valutato con llm
                     const { object: response } = await generateObject({
                         model: (await getLLMProvider(provider))(model),
-                        prompt: TASK_ANSWER_EVALUATION_PROMPT(expected.task.answer.toString(), generated.task?.answer?.toString() ?? ''),
+                        prompt: TASK_ANSWER_EVALUATION_PROMPT(
+                            expected.task.answer.toString(),
+                            generated.task?.answer?.toString() ?? ''
+                        ),
                         temperature: 0,
                         seed: 42,
                         schema: z.object({
                             reasoning: z.string(),
                             score: z.number().min(0).max(1)
                         })
-                    })
+                    });
+
                     if (response.score > 0.5) {
                         correctTaskAnswer += 1;
                     }
                 }
             }
 
-            if (expected.task.status != undefined) {
-                totalTaskStatus += 1;
-                if (generated.task?.status != undefined && generated.task.status === expected.task.status) {
-                    correctTaskStatus += 1;
-                }
-            }
-
+            // NOTES
             if (expected.task.notes != undefined) {
                 const { object: response } = await generateObject({
                     model: (await getLLMProvider(provider))(model),
-                    prompt: TASK_NOTES_EVALUATION_PROMPT(expected.task.notes, generated.task?.notes ?? ''),
+                    prompt: TASK_NOTES_EVALUATION_PROMPT(
+                        expected.task.notes,
+                        generated.task?.notes ?? ''
+                    ),
                     temperature: 0,
                     seed: 42,
                     schema: z.object({
                         reasoning: z.string(),
                         score: z.number().min(0).max(1)
                     })
-                })
+                });
+
                 scores.push(response.score);
             }
         }

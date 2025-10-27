@@ -37,6 +37,12 @@ export interface OutputTask {
     notes?: string | null;
 };
 
+export interface Tool {
+    name: string;
+    description: string;
+    parameters?: { name: string, type: 'string' | 'number' | 'boolean', description: string }[];
+}
+
 export interface LmaOutput {
     user_request?: string | null;
     request_satisfied?: boolean | null;
@@ -46,16 +52,26 @@ export interface LmaOutput {
     };
     summary?: { text: string; span: number } | null;
     task?: OutputTask | null;
+    useful_tools?: { name: string; parameters?: Record<string, string | number | boolean | null> }[] | null;
 }
 
 export interface LmaConfig {
-    baseConfig: LLMConfig,
+    baseConfig: LLMConfig & {
+        parallel: boolean;
+    },
     sentimentAnalysisConfig: LLMConfig & {
         scoreSet: number[];
     },
     taskAnalysisConfig: LLMConfig,
-    userRequestDetectionConfig: LLMConfig,
+    userRequestConfig: {
+        satisfactionDetection: LLMConfig,
+        requestDetection: LLMConfig & {
+            mode: 'simple' | 'tools-params' | 'tools';
+            tools?: Tool[];
+        }
+    },
     summarizationConfig: LLMConfig & {
+        maximumTokens?: number;
         C_MIN: number;
         C_MAX: number;
     },

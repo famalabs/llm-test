@@ -1,6 +1,9 @@
 import { LmaConfig } from "./interfaces";
 
 const DEFAULT_CONFIG = {
+    baseConfig: {
+        parallel: false,
+    },
     summarizationConfig: {
         C_MIN: 200,
         C_MAX: 2000
@@ -8,6 +11,11 @@ const DEFAULT_CONFIG = {
     sentimentAnalysisConfig: {
         scoreSet: [-1, -0.6, -0.3, 0, 0.3, 0.6, 1]
     },
+    userRequestConfig: {
+        requestDetection: {
+            mode: 'simple' as 'simple',
+        }
+    }
 }
 
 export const resolveConfig = (lmaConfig: Partial<LmaConfig>): LmaConfig => {
@@ -18,6 +26,7 @@ export const resolveConfig = (lmaConfig: Partial<LmaConfig>): LmaConfig => {
 
     return {
         baseConfig: {
+            ...DEFAULT_CONFIG.baseConfig,
             ...lmaConfig.baseConfig
         },
         sentimentAnalysisConfig: {
@@ -37,10 +46,22 @@ export const resolveConfig = (lmaConfig: Partial<LmaConfig>): LmaConfig => {
             ...DEFAULT_CONFIG.summarizationConfig,
             ...(lmaConfig.summarizationConfig || {}),
         },
-        userRequestDetectionConfig: {
-            provider: lmaConfig.userRequestDetectionConfig?.provider || provider,
-            model: lmaConfig.userRequestDetectionConfig?.model || model,
-            ...(lmaConfig.userRequestDetectionConfig || {})
+
+        userRequestConfig: {
+
+            satisfactionDetection: {
+                provider: lmaConfig.userRequestConfig?.satisfactionDetection?.provider || provider,
+                model: lmaConfig.userRequestConfig?.satisfactionDetection?.model || model,
+                ...(lmaConfig.userRequestConfig?.satisfactionDetection || {})
+            },
+
+            requestDetection: {
+                provider: lmaConfig.userRequestConfig?.requestDetection?.provider || provider,
+                model: lmaConfig.userRequestConfig?.requestDetection?.model || model,
+                ...DEFAULT_CONFIG.userRequestConfig.requestDetection,
+                ...(lmaConfig.userRequestConfig?.requestDetection || {}),
+            },
+
         }
     };
 }

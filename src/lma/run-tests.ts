@@ -9,7 +9,7 @@ import path from 'path';
 import 'dotenv/config';
 
 const main = async () => {
-    const { input, model, provider, debug, verbose, tests, taur } = await yargs(hideBin(process.argv))
+    const { input, model, provider, debug, verbose, tests } = await yargs(hideBin(process.argv))
         .option('input', {
             alias: 'i',
             type: 'string',
@@ -47,20 +47,13 @@ const main = async () => {
             description: 'Specific tests to run (by index -- 0 -> sentiment, 1 -> summarization, 2 -> task analysis, 3 -> user request detection), if not specified, all tests will be run',
             default: []
         })
-        .option('taur', {
-            alias: 'a',
-            type: 'boolean',
-            description: 'Whether to merge task analysis and user request detection into a single test',
-            default: false
-        })
         .parse() as {
             input: string,
             model: string,
             provider: LLMConfigProvider,
             debug: boolean,
             verbose: boolean,
-            tests: number[],
-            taur: boolean
+            tests: number[]
         };
 
     if (tests.length == 0) {
@@ -75,18 +68,10 @@ const main = async () => {
         if (inTests(2)) testStrings.push('task analysis');
         if (inTests(3)) testStrings.push('user request detection');
 
-        if (taur && (!inTests(2) || !inTests(3))) {
-            throw new Error('When using --taur, both task analysis and user request detection tests must be specified.');
-        }
-        else {
-            const last = testStrings.pop();
-            testStrings[testStrings.length - 1] += ` + ${last} (taur mode)`;
-        }
-
         console.log(`Running specified tests: ${testStrings.join(', ')}`);
     }
 
-    const lma = new Lma({ baseConfig: { model, provider } });
+    const lma = new Lma({ baseConfig: { model, provider, parallel: true } });
 
     const data = JSON.parse(await readFile(input, 'utf-8')) as { input: LmaInput, expected_output: LmaOutput }[];
     const predictions: LmaOutput[] = [];
@@ -98,9 +83,9 @@ const main = async () => {
         let start = performance.now();
 
         if (tests.length == 0 || tests.includes(0)) {
-            console.log('Analyzing sentiment...');  
+            console.log('Analyzing sentiment...');
             prediction.sentiment = {
-                single : await lma.getSingleMessageSentiment(input),
+                single: await lma.getSingleMessageSentiment(input),
                 cumulative: await lma.getCumulativeSentiment(input)
             };
             console.log(`Sentiment analysis took ${(performance.now() - start).toFixed(2)} ms`);
@@ -115,37 +100,23 @@ const main = async () => {
             }
         }
 
-        if (taur) {
-            if (tests.length == 0 || (tests.includes(2) && tests.includes(3))) {
+        if (tests.length == 0 || tests.includes(2)) {
+            if (lma.shouldAnalyzeTask(input) || debug) {
                 start = performance.now();
-                console.log('Analyzing task and detecting user request (taur mode)...');
-                const { task, user_request, request_satisfied } = await lma.analyzeTaskAndDetectUserRequest(input);
-                console.log(`Task analysis and user request detection took ${(performance.now() - start).toFixed(2)} ms`);
-
-                prediction.task = task;
-                prediction.user_request = user_request;
-                prediction.request_satisfied = request_satisfied;
+                console.log('Analyzing task...');
+                prediction.task = await lma.analyzeTask(input);
+                console.log(`Task analysis took ${(performance.now() - start).toFixed(2)} ms`);
             }
         }
-        else {
-            if (tests.length == 0 || tests.includes(2)) {
-                if (lma.shouldAnalyzeTask(input) || debug) {
-                    start = performance.now();
-                    console.log('Analyzing task...');
-                    prediction.task = await lma.analyzeTask(input);
-                    console.log(`Task analysis took ${(performance.now() - start).toFixed(2)} ms`);
-                }
-            }
 
-            if (tests.length == 0 || tests.includes(3)) {
-                start = performance.now();
-                console.log('Detecting user request...');
-                const { user_request, request_satisfied } = await lma.detectUserRequest(input);
-                console.log(`User request detection took ${(performance.now() - start).toFixed(2)} ms`);
+        if (tests.length == 0 || tests.includes(3)) {
+            start = performance.now();
+            console.log('Detecting user request...');
+            const { user_request, request_satisfied } = await lma.detectUserRequest(input);
+            console.log(`User request detection took ${(performance.now() - start).toFixed(2)} ms`);
 
-                prediction.user_request = user_request;
-                prediction.request_satisfied = request_satisfied;
-            }
+            prediction.user_request = user_request;
+            prediction.request_satisfied = request_satisfied;
         }
 
         predictions.push(prediction);
@@ -157,11 +128,9 @@ const main = async () => {
             console.log('Prediction:', JSON.stringify(prediction, null, 2));
         }
     }
-
-
     const outputFolder = path.join('output', 'lma');
     createOutputFolderIfNeeded(outputFolder);
-    const output = path.join(outputFolder, `evaluation_model=${model}_provider=${provider}_taur=${taur}.json`);
+    const output = path.join(outputFolder, `evaluation_model=${model}_provider=${provider}.json`);
     await writeFile(output, JSON.stringify({
         predictions,
         expectedOutputs
@@ -171,3 +140,5 @@ const main = async () => {
 }
 
 main();
+
+

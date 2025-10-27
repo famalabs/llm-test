@@ -1,4 +1,4 @@
-export const USER_REQUEST_DETECTION_PROMPT = (message: string) => `
+export const USER_REQUEST_DETECTION_PROMPT = (history: string, message: string) => `
 You are a precise assistant that extracts and summarizes user requests from conversations.
 Given the user's latest message, identify if there is a clear request or question directed at the AI assistant.
 
@@ -37,12 +37,14 @@ Output:
 INPUT
 -----------------------------
 
-USER MESSAGE:"""
-${message}
+CONVERSATION:"""
+${history}
+==============
+user: ${message}
 """
-`
+`.trim();
 
-export const REQUEST_SATISFIED_PROMPT = (history: string, message: string) => `
+export const USER_REQUEST_SATISFIED_PROMPT = (history: string, message: string) => `
 You are a precise assistant that determines if a user's request has been satisfied in a conversation with an AI assistant.
 
 -----------------------------
@@ -70,4 +72,57 @@ ${history}
 ==============
 user: ${message}
 """
-`;
+`.trim();
+
+export const USER_REQUEST_AND_TOOLS_DETECTION_PROMPT = (history: string, message: string, includeToolsParams: boolean, toolsJson: string) => {
+
+  const parameterGoal = includeToolsParams ? '4) Respect parameter names and expected types from the tool definitions. If a value is unknown, omit the "parameters" object entirely.' : '';
+
+  const parameters = includeToolsParams ? `"parameters"?: {           // include only if at least one parameter value is known
+        "<paramName>": string | number | boolean
+      }` : '';
+
+
+  return `
+You are a precise assistant that extracts the user's request and selects useful tools from an allowed list.
+
+-----------------------------
+GOALS
+-----------------------------
+1) Summarize the user's latest request in ONE sentence (third person, same language as the user).
+2) Select ONLY tools from the provided "AVAILABLE_TOOLS". Do NOT invent tools.
+3) For each selected tool, include ONLY parameters that are explicitly present or inferable from the conversation.
+${parameterGoal}
+
+-----------------------------
+STRICT OUTPUT
+-----------------------------
+Return a single JSON object with exactly these keys:
+
+{
+  "user_request": <string | undefined>,
+  "useful_tools": [
+    {
+      "name": string,            // MUST match exactly a name from AVAILABLE_TOOLS
+      ${parameters}
+    }
+  ] | undefined
+}
+
+Notes:
+- If no clear request, set "user_request" to undefined and omit "useful_tools".
+- Do not include comments or extra fields.
+
+-----------------------------
+AVAILABLE_TOOLS
+-----------------------------
+${toolsJson}
+
+-----------------------------
+CONVERSATION
+-----------------------------
+${history}
+==============
+user: ${message}
+`.trim();
+}

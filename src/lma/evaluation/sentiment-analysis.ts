@@ -1,4 +1,4 @@
-import { SentimentScores } from "../sentiment-analysis";
+import { SentimentScores } from "../interfaces";
 
 type EvalResult = { binarized: number; raw: number };
 
