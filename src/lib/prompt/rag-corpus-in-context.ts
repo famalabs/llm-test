@@ -1,9 +1,13 @@
 import { Chunk } from '../chunks/interfaces';
 import { LanguageLabel } from '../nlp';
 
-export const ragCorpusInContext = (promptDocuments: Chunk[], userQuery: string, detectedLanguage: LanguageLabel, fewShots: boolean = false, reasoning: boolean = false, includeCitations: boolean = false): string => {
+export const RAG_CORPUS_IN_CONTEXT_PROMPT = (userQuery: string, promptDocuments: Chunk[], {
+    detectedLanguage, fewShots = false, reasoning = false, includeCitations = false
+}: {
+    detectedLanguage?: LanguageLabel, fewShots?: boolean, reasoning?: boolean, includeCitations?: boolean
+}): string => {
 
-
+    const answerLanguage = detectedLanguage ? detectedLanguage.toUpperCase() : 'the language of the user\'s query';
 
     return `
 You are a medical information assistant. Analyze the provided documents and deliver precise answers based exclusively on the given content.
@@ -17,8 +21,8 @@ GUIDELINES:
 1. Base your answer ONLY on the information explicitly provided.
 2. When information is partial or ambiguous, clearly state these limitations.
 3. Provide complete answers when full information is available.
-4. If no relevant information is available, say that you don't have information to answer the user's question.
-5. Provide the answer in ${detectedLanguage.toUpperCase()}, regardless of the language of the source documents or any other context.
+4. If no relevant information is available, say - using ${answerLanguage} - that you don't have information to answer the user's question.
+5. Provide the answer in ${answerLanguage}, regardless of the language of the source documents or any other context.
 6. Include all pertinent details from the documents without summarizing unless explicitly requested.
 7. Select only the relevant documents to answer the question, avoiding unnecessary information.
 8. Make sure you're not copying sections of text verbatim; instead, synthesize the information into a coherent response.
@@ -38,7 +42,7 @@ ${userQuery}
 STEP BY STEP INSTRUCTIONS:
 1. Carefully read the user's question and identify the key information being requested.
 2. Review the documents to find relevant information.
-3. Formulate your answer in ${detectedLanguage.toUpperCase()}, independently of the language of the documents. Do not shift language during the answer.
+3. Formulate your answer in ${answerLanguage}, independently of the language of the documents. Do not shift language during the answer.
 4. Follow the guidelines provided above.
 5. If there is no relevant information in the documents, do not include any citations!
 ${reasoning ? '6. Provide your reasoning.' : ''}`.trim();

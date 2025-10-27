@@ -107,7 +107,12 @@ export async function computeMetricsForFile(
         }
     }
 
-    let out = `llm, ${mean(evaluations["llm-as-a-judge"].map(e => e.score))}\n`;
+    const llmMean = mean(evaluations["llm-as-a-judge"].map(e => e.score));
+    const times = resultsContent.results.map((r: any) => r.timeMs).filter((v: any) => typeof v === 'number' && isFinite(v));
+    const meanTimeMs = times.length > 0 ? mean(times) : NaN;
+
+    let out = `llm, ${llmMean}, time_ms, ${meanTimeMs}\n`;
+
     out += "#,query,fullref,keyref,candidate,llm_score,llm_explanation\n";
     for (let i = 0; i < resultsContent.results.length; i++) {
         const { question, fullRef, keyRef, candidate } = resultsContent.results[i];
@@ -116,7 +121,7 @@ export async function computeMetricsForFile(
         }","${
             fullRef.replaceAll('"','""')
         }","${
-            keyRef.replaceAll('"', '""')
+            keyRef.replaceAll('"', '"')
         }","${
             candidate.replaceAll('"', '""')
         }",${

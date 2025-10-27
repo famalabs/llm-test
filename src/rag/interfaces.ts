@@ -52,6 +52,13 @@ export interface ChunkFilteringConfig {
      * E.g. 0.4 means only chunks with distance <= 0.4 will be considered for reranking.
      */
     baseThreshold: number;
+
+    /**
+     * Optional hard cap to limit the maximum number of chunks kept after filtering.
+     * Applied after threshold-based filtering, preserving current order. Must be >= 1 if provided.
+     * Useful to cut down the context even when many chunks pass the thresholds (e.g., after reranking).
+     */
+    maxChunks?: number;
 };
 
 export interface RerankingConfig {

@@ -86,10 +86,10 @@ export const USER_REQUEST_AND_TOOLS_DETECTION_PROMPT = (history: string, message
   return `
 You are a precise assistant that extracts the user's request and selects useful tools from an allowed list.
 
------------------------------
-GENERAL USEFUL CONTEXT
------------------------------
-Current Date / Time: ${new Date().toISOString()}
+------------
+Basic context, useful in general: 
+* Current Date / Time: ${new Date().toISOString()}
+------------
 
 -----------------------------
 GOALS

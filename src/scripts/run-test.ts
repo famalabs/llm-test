@@ -64,8 +64,11 @@ async function runSingleTest(testFile: string, configFile: string, parallel: boo
     }
 
     const promises = test.questions.map(({ question, keyRef, fullRef }) => async () => {
+        const start = Date.now();
         const { answer: candidate, citations, chunks } = await rag.search(question);
-        return { question, keyRef, fullRef, candidate, citations: citations ?? [], chunks };
+        const end = Date.now();
+        const timeMs = end - start;
+        return { question, keyRef, fullRef, candidate, citations: citations ?? [], chunks, timeMs };
     });
 
     if (parallel) {

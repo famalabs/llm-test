@@ -32,6 +32,13 @@ export const evaluateToolsDetection = ({
             const expectedTool = expected.find(t => t.name == toolName);
             const generatedTool = generated.find(t => t.name == toolName);
 
+            if (!expectedTool?.parameters && !generatedTool?.parameters) {
+                // correct
+                totalParamAccuracy += 1;
+                totalParamSamples += 1;
+                continue;
+            }
+
             if (expectedTool?.parameters && generatedTool?.parameters) {
 
                 const expectedParams = expectedTool.parameters;

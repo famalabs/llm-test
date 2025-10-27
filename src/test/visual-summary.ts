@@ -10,9 +10,26 @@ type JSONResult = {
   keyRef?: string;
   fullRef?: string;
   candidate?: string;
+  timeMs?: number;
   citations?: Citation[];
   chunks?: Chunk[];
 };
+
+const fmtMilliseconds = (ms: number): string => {
+  const minutes = Math.floor(ms / 60000);
+  ms %= 60000;
+
+  const seconds = Math.floor(ms / 1000);
+  ms %= 1000;
+
+  const parts: string[] = [];
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (seconds > 0) parts.push(`${seconds}s`);
+  if (ms > 0) parts.push(`${ms.toFixed(0)}ms`);
+
+  return parts.join(" ") || "0ms";
+};
+
 
 export const getHeatmapColor = (value: number) => {
   const v = Math.max(0, Math.min(1, value));
@@ -123,7 +140,8 @@ const encodeForDataAttr = (s: string) => encodeURIComponent(s);
 const buildCandidateTooltipHTML = (
   candidate: string,
   items: Array<{ sourceName: string; spanLabel: string; resolvedEncoded: string }>,
-  explanation?: string
+  explanation?: string,
+  timeMs?: number | string
 ) => {
   const list =
     items.length === 0
@@ -145,6 +163,9 @@ const buildCandidateTooltipHTML = (
         .join("")}
         </ul>`;
 
+
+
+
   const exp =
     explanation && explanation.trim().length > 0
       ? `<div class="mt-3">
@@ -152,6 +173,12 @@ const buildCandidateTooltipHTML = (
           <div class="text-xs leading-snug whitespace-pre-wrap">${escapeText(explanation)}</div>
         </div>`
       : "";
+  const timeHtml = (timeMs && String(timeMs).trim().length > 0)
+    ? `<div class="mt-3">
+          <div class="font-semibold text-sm mb-1">Time</div>
+          <div class="text-sm leading-snug">${fmtMilliseconds(Number(timeMs))}</div>
+        </div>`
+    : "";
 
   return `
   <div class="space-y-3">
@@ -159,6 +186,7 @@ const buildCandidateTooltipHTML = (
       <div class="font-semibold text-sm mb-1">Candidate</div>
       <div class="text-sm leading-snug whitespace-pre-wrap">${escapeText(candidate ?? "")}</div>
     </div>
+    ${timeHtml}
     <div>
       <div class="font-semibold text-sm mb-1">Citations</div>
       ${list}
@@ -208,13 +236,17 @@ const main = async () => {
       const csvRaw = await readFile(path.join(scoresDir, file), "utf-8");
       const [meanScoresText, ...csvLines] = csvRaw.split("\n");
 
-      // Prima riga: "llm, <media>"
       let meanScores: Record<string, number> = {};
       if (meanScoresText?.includes(",")) {
-        const [k, v] = meanScoresText.split(",");
-        const key = (k ?? "llm").trim();
-        const val = parseFloat((v ?? "NaN").trim());
-        meanScores = { [key]: val };
+        const parts = meanScoresText.split(",").map(p => p.trim());
+        for (let i = 0; i < parts.length; i += 2) {
+          const k = parts[i];
+          const v = parts[i + 1];
+          if (k && v !== undefined) {
+            const num = parseFloat(v);
+            meanScores[k] = isFinite(num) ? num : NaN;
+          }
+        }
       } else {
         // fallback
         meanScores = { llm: NaN };
@@ -245,10 +277,9 @@ const main = async () => {
     })
   );
 
-  // Ordina per media LLM decrescente (chi non ha valore va in fondo)
   allData.sort((a, b) => {
-    const av = Object.values(a.meanScores)[0] ?? Number.NEGATIVE_INFINITY;
-    const bv = Object.values(b.meanScores)[0] ?? Number.NEGATIVE_INFINITY;
+    const av = typeof a.meanScores.llm === 'number' ? a.meanScores.llm : Number.NEGATIVE_INFINITY;
+    const bv = typeof b.meanScores.llm === 'number' ? b.meanScores.llm : Number.NEGATIVE_INFINITY;
     return (isNaN(bv) ? -Infinity : bv) - (isNaN(av) ? -Infinity : av);
   });
 
@@ -296,25 +327,26 @@ class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${escapeT
   <thead><tr class="bg-gray-200">
     <th class="border border-gray-300 px-3 py-2 w-1/5">File</th>
     <th class="border border-gray-300 px-3 py-2">LLM</th>
+    <th class="border border-gray-300 px-3 py-2">Mean Time</th>
   </tr></thead><tbody>`;
 
   for (const { filePath, displayName, meanScores, config } of allData) {
     const tooltip = escapeAttrQuotesOnly(buildRagConfigTooltipHTML(filePath, config));
+    const llmVal = typeof meanScores.llm == 'number' ? meanScores.llm : NaN;
+    const timeVal = typeof meanScores.time_ms == 'number' ? meanScores.time_ms : NaN;
+    const llmBg = isFinite(llmVal) ? getHeatmapColor(llmVal) : "#f3f4f6";
+    const llmFg = isFinite(llmVal) ? getTextColor(llmVal) : "#111827";
+    const llmContent = isFinite(llmVal) ? llmVal.toFixed(3) : "-";
+    const timeContent = isFinite(timeVal) ? fmtMilliseconds(timeVal) : "-";
+
     html += `<tr>
       <td class="border border-gray-300 px-3 py-2 whitespace-nowrap overflow-hidden text-ellipsis">
         <span class="cursor-help underline decoration-dotted" data-tippy-content="${tooltip}">
           ${escapeText(displayName)}
         </span>
       </td>
-      ${Object.values(meanScores)
-        .map((v) => {
-          const num = typeof v === "number" ? v : NaN;
-          const bg = isFinite(num) ? getHeatmapColor(num) : "#f3f4f6";
-          const fg = isFinite(num) ? getTextColor(num) : "#111827";
-          const content = isFinite(num) ? num.toFixed(3) : "-";
-          return `<td class="border border-gray-300 px-3 py-2 text-center font-mono" style="background:${bg};color:${fg}">${content}</td>`;
-        })
-        .join("")}
+      <td class="border border-gray-300 px-3 py-2 text-center font-mono" style="background:${llmBg};color:${llmFg}">${llmContent}</td>
+      <td class="border border-gray-300 px-3 py-2 text-center font-mono">${escapeText(timeContent)}</td>
     </tr>`;
   }
   html += `</tbody></table>`;
@@ -375,7 +407,9 @@ class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${escapeT
         );
 
         const candidateText = row.candidate ?? res?.candidate ?? "";
-        const cellTip = escapeAttrQuotesOnly(buildCandidateTooltipHTML(candidateText, items, explanation));
+        const timeFromRow = row.timeMs;
+        const timeVal = timeFromRow != undefined ? (isNaN(Number(timeFromRow)) ? timeFromRow : Number(timeFromRow)) : (res?.timeMs ?? undefined);
+        const cellTip = escapeAttrQuotesOnly(buildCandidateTooltipHTML(candidateText, items, explanation, timeVal));
 
         html += `<td class="border border-gray-300 px-3 py-2 text-center font-mono" style="background:${bg};color:${fg}">
           <span class="cursor-help" data-tippy-content="${cellTip}">${isFinite(score) ? score.toFixed(3) : "-"}</span>

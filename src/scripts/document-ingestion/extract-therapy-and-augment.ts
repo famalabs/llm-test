@@ -1,5 +1,5 @@
 import { createOutputFolderIfNeeded, getFileExtension, PATH_NORMALIZATION_MARK } from '../../utils';
-import { therapyExtractionPrompt } from '../../lib/prompt';
+import { THERAPY_EXTRACTION_PROMPT } from '../../lib/prompt';
 import { parseDoc, parseDocx } from '../../lib/ingestion';
 import { generateObject, ModelMessage } from 'ai';
 import { readFile, writeFile } from "fs/promises";
@@ -18,7 +18,7 @@ const extractTherapy = async (text: string) => {
         }),
         temperature: 0,
         messages: [
-            { role: "system", content: therapyExtractionPrompt },
+            { role: "system", content: THERAPY_EXTRACTION_PROMPT() },
             { role: "user", content: `Extract the current therapy from the following medical text:\n\n TEXT:"""${text}"""` }
         ] as ModelMessage[]
     });

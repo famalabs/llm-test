@@ -32,7 +32,7 @@ export interface LmaInput {
 }
 
 export interface OutputTask {
-    status: 'answered' | 'ignored' | 'negated' | 'wait';
+    status?: 'answered' | 'ignored' | 'negated' | 'wait';
     answer?: string | number | boolean | null;
     notes?: string | null;
 };
@@ -71,7 +71,7 @@ export interface LmaConfig {
         }
     },
     summarizationConfig: LLMConfig & {
-        maximumTokens?: number;
+        maximumSentences?: number;
         C_MIN: number;
         C_MAX: number;
     },

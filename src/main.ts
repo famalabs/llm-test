@@ -1,7 +1,7 @@
 import { ModelMessage, stepCountIs, streamText, tool } from 'ai';
 import { VectorStore, ensureIndex } from './vector-store';
 import { Chunk, resolveCitations } from './lib/chunks';
-import { ragChatbotSystemPrompt } from './lib/prompt';
+import { RAG_CHATBOT_SYSTEM_PROMPT } from './lib/prompt';
 import { getLLMProvider } from './llm';
 import { Rag } from './rag';
 import { getUserInput } from './utils';
@@ -65,7 +65,7 @@ const main = async () => {
             model: (await getLLMProvider(ragConfig.llmConfig.provider))(ragConfig.llmConfig.model),
             messages,
             temperature: 0,
-            system: ragChatbotSystemPrompt,
+            system: RAG_CHATBOT_SYSTEM_PROMPT(),
             tools: {
                 getInformation: tool({
                     description: "This tool searches for information in drug package inserts. It accepts the medicine name and a textual query as input. It returns a response based on the content of the leaflet in clear language, optionally citing the section or page of reference.",
@@ -79,7 +79,8 @@ const main = async () => {
                         try {
                             const { answer, citations, reasoning, chunks } = await rag.search(
                                 `Informazioni sul farmaco ${medicineName}: ${textualQuery}`,
-                                useLatestInfo
+                                useLatestInfo,
+                                'italian'
                             );
 
                             out = `Answer: ${answer}\n\n` +

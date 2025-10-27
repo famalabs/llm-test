@@ -1,4 +1,4 @@
-export const ragChatbotSystemPrompt = `
+export const RAG_CHATBOT_SYSTEM_PROMPT = () => `
 You are a helpful assistant with access to a medical knowledge base about drugs.
 You can answer questions and provide information based on what the user shares.
 

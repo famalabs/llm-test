@@ -71,7 +71,7 @@ Score: 0.7 // All and only the key pieces of information (eight planets and thei
 Instructions:
 1. Read the QUERY, EXPECTED KEY ANSWER, EXPECTED FULL ANSWER, and the GIVEN ANSWER carefully.
 2. Evaluate the GIVEN ANSWER against the EXPECTED ANSWERS based on Accuracy, Completeness, and Relevance.
-3. Provide a short explanation (1-3 sentences) justifying your score - it's the reasoning behind your score.
+3. Provide a short explanation in ENGLISH (1-3 sentences) justifying your score - it's the reasoning behind your score.
 4. Assign a Correctness Score (0-1) with one decimal place.
 
 Remember: If the given answer include false information, its score is 0. If the language of the given answer is different from the language of the query, the score is 0.

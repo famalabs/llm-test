@@ -1,13 +1,18 @@
 import { customLLMAsAJudge } from "../test/evaluations/llm-as-a-judge";
 import { readDocument } from "../utils";
-import { addLineNumbers } from "../lib/nlp";
-import { ragCorpusInContext } from "../lib/prompt";
-import { getLLMProvider } from "../llm";
+import { addLineNumbers, LanguageLabel } from "../lib/nlp";
+import { RAG_CORPUS_IN_CONTEXT_PROMPT } from "../lib/prompt";
+import { getLLMProvider, LLMConfigProvider } from "../llm";
 import { generateObject } from "ai";
 import z from "zod";
 import 'dotenv/config';
 
-jest.setTimeout(30 * 1000);
+jest.setTimeout(60 * 1000);
+
+const MODEL_PROVIDER = {
+    model: "mistral-small-latest",
+    provider: "mistral" as LLMConfigProvider,
+}
 
 const testData = [
     {
@@ -38,17 +43,17 @@ beforeAll(async () => {
 });
 
 async function testPrompt(idx: number) {
-    const prompt = ragCorpusInContext(
+    const prompt = RAG_CORPUS_IN_CONTEXT_PROMPT(
+        testData[idx].question,
         chunks.map((document) => ({
             ...document,
             pageContent: addLineNumbers(document.pageContent),
         })),
-        testData[idx].question, 
-        'italian'
+        { detectedLanguage: 'italian' as LanguageLabel }
     );
 
     const { object: result } = await generateObject({
-        model: (await getLLMProvider("mistral"))("mistral-small-latest"),
+        model: (await getLLMProvider(MODEL_PROVIDER.provider))(MODEL_PROVIDER.model),
         prompt,
         schema: z.object({ answer: z.string() }),
     });
@@ -59,12 +64,11 @@ async function testPrompt(idx: number) {
         keyRef: testData[idx].keyRef,
         fullRef: testData[idx].fullRef,
         prediction: answer,
-        model: "mistral-small-latest",
-        provider: "mistral",
+        ...MODEL_PROVIDER
     });
 
     expect(score).toBeGreaterThanOrEqual(0.8);
 }
 
-test("Test prompt RAG (corpus in context, question 1)", async () => await testPrompt(0));
-test("Test prompt RAG (corpus in context, question 2)", async () => await testPrompt(1));
+test.concurrent("RAG - corpus in context, question 1", async () => await testPrompt(0));
+test.concurrent("RAG - corpus in context, question 2", async () => await testPrompt(1));

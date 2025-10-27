@@ -1,6 +1,6 @@
 import { PromptDocument } from "../chunks/interfaces";
 
-export const rerankingPrompt = (promptDocuments: PromptDocument[], userQuery: string, reasoning: boolean = false, fewShots: boolean = false): string =>  `
+export const RERANKING_PROMPT = (promptDocuments: PromptDocument[], userQuery: string, reasoning: boolean = false, fewShots: boolean = false): string => `
 You are an expert system specialized in ranking text passages for Retrieval-Augmented Generation (RAG).
 
 You will be given:
@@ -46,43 +46,84 @@ const REASONING = `
 When formulating your answer, provide reasoning for your conclusions. Explain how specific information from the chunks supports your response, especially when dealing with partial or ambiguous data. This will help clarify the basis of your answers and enhance their reliability.
 `;
 
-const FEW_SHOTS = (reasoning: boolean) =>  `
+const FEW_SHOTS = (reasoning: boolean) => `
 Here are three examples of how to evaluate relevance with multiple chunks per query:
 
 ---
 Example 1:
-QUERY: "What are the symptoms of diabetes?"
+
+CHUNKS:"""
 ====== CHUNK 0 [INDEX = 0] [extracted from document medical_journal] ======
 Increased thirst and frequent urination are common signs.
-${reasoning ? 'Reasoning: Directly mentions two main symptoms of diabetes. This is a very relevant piece of information that partially answers the query.': ''}
-Relevance Score: 0.8
+
 ====== CHUNK 1 [INDEX = 1] [extracted from document medical_journal] ======
 Extreme fatigue and unexplained weight loss may occur.
-${reasoning ? 'Reasoning: Adds more specific symptoms, complementing the information in other chunks. This is highly relevant to the user\'s query.': ''}
-Relevance Score: 0.9
+
 ====== CHUNK 2 [INDEX = 2] [extracted from document health_blog] ======
 Diabetes affects blood sugar levels and requires monitoring.
-${reasoning ? 'Reasoning: Provides general background about the condition but does not list any symptoms. It is topically related but doesn\'t directly answer the question. Moderately relevant.': ''}
-Relevance Score: 0.5
+"""
+
+QUERY: "What are the symptoms of diabetes?"
+
+OUTPUT:
+[
+{
+   "index": 0,
+   "score": 0.8,
+   ${reasoning ? `"reasoning": "This chunk directly lists two primary symptoms of diabetes, which are central to the user's query about symptoms."` : ''}
+},
+{
+   "index": 1,
+   "score": 0.9,
+   ${reasoning ? `"reasoning": "Adds more specific symptoms, complementing the information in other chunks. This is highly relevant to the user's query."` : ''}
+},
+{
+   "index": 2,
+   "score": 0.5,
+   ${reasoning ? `"reasoning": "Provides general background about the condition but does not list any symptoms. It is topically related but doesn't directly answer the question. Moderately relevant."` : ''}
+}
+]
+
 ---
 
 Example 2:
-QUERY: "How does a blockchain work?"
 ====== CHUNK 0 [INDEX = 0] [extracted from document tech_explainer] ======
 A blockchain is a distributed, immutable ledger.
-${reasoning ? 'Reasoning: This chunk provides a high-level definition of what a blockchain *is*, but it does not explain *how* it works. It\'s a useful starting point but incomplete. Fairly relevant.': ''}
-Relevance Score: 0.6
+
 ====== CHUNK 1 [INDEX = 1] [extracted from document crypto_whitepaper] ======
 Transactions are grouped into blocks, and each block is cryptographically linked to the previous one, forming a chain.
-${reasoning ? 'Reasoning: This explains a key part of the mechanism (grouping transactions, cryptographic linking), directly addressing the \'how\' in the query. Very relevant.': ''}
-Relevance Score: 0.8
+
 ====== CHUNK 2 [INDEX = 2] [extracted from document financial_news] ======
 The stock market reached a new all-time high yesterday.
-${reasoning ? 'Reasoning: The content is completely unrelated to blockchain technology. Irrelevant.': ''}
-Relevance Score: 0.0
+
 ====== CHUNK 3 [INDEX = 3] [extracted from document tech_blog] ======
 Bitcoin is a popular cryptocurrency that uses blockchain technology for its public ledger.
-${reasoning ? 'Reasoning: This chunk provides an example of blockchain\'s use but doesn\'t explain its mechanics. The connection is tangential. Slightly relevant.': ''}
-Relevance Score: 0.3
+
+QUERY: "How does a blockchain work?"
+
+OUTPUT:
+[
+{
+   "index": 0,
+   "score": 0.6,
+   ${reasoning ? `"reasoning": "This chunk provides a high-level definition of what a blockchain is, but it does not explain how it works. It's a useful starting point but incomplete. Fairly relevant."` : ''}
+},
+{
+   "index": 1,
+   "score": 0.8,
+   ${reasoning ? `"reasoning": "This explains a key part of the mechanism (grouping transactions, cryptographic linking), directly addressing the 'how' in the query. Very relevant."` : ''}
+},
+{
+   "index": 2,
+   "score": 0.0,
+   ${reasoning ? `"reasoning": "The content is completely unrelated to blockchain technology. Irrelevant."` : ''}
+},
+{
+   "index": 3,
+   "score": 0.3,
+   ${reasoning ? `"reasoning": "This chunk provides an example of blockchain's use but doesn't explain its mechanics. The connection is tangential. Slightly relevant."` : ''}
+}
+]
+
 ---
 `;

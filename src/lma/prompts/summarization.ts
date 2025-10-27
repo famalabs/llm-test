@@ -1,32 +1,50 @@
-export const CHAT_HISTORY_SUMMARIZATION_PROMPT = (partialHistory: string, previousSummary?: string) => {
+export const CHAT_HISTORY_SUMMARIZATION_PROMPT = (
+  partialHistory: string,
+  previousSummary?: string,
+  maximumSentences?: number
+) => {
 
-  const previousSummaryIndications = previousSummary ? `4. **merge the PREVIOUS SUMMARY provided** with this new portion into a single coherent summary.
-   - Do not repeat the exact same words already present in the previous summary.
-   - Keep the chronological and logical flow.` : '';
+  const previousSummaryIndications = previousSummary ? `4. **Merge the PREVIOUS SUMMARY with the NEW MESSAGES** into a single, coherent, logically ordered summary.
+   - Do NOT copy exact wording from the previous summary; rewrite and condense.
+   - Preserve key facts and the chronological flow.
+   - Remove redundancies and merge overlapping information.
+   - If needed, rewrite parts of the previous summary to better integrate the new content.
+   ` : '';
+
+  const maximumSentencesIndications = maximumSentences ? `${previousSummary ? '5' : '4'
+    }. STRICT CONSTRAINT: The final summary must be a maximum of ${maximumSentences} sentences.
+   - Each sentence must end with a period.
+   - If the previous summary was longer, rewrite and compress it.
+   - Do NOT exceed this sentence limit under any circumstances.
+   ` : '';
 
   return `
-You are an expert at summarizing chat conversations between a user and an AI assistant.
-Your task is to **condense the OLDEST portion of the conversation** into a short, clear summary.
-This summary will later replace the original messages to save context length.
+You are an expert at **summarizing chat histories** between a user and an AI assistant.
+Your goal is to **replace the oldest part of the conversation** with a short, accurate, and logically structured summary that preserves all essential context.
 
 -----------------------------
 TASK
 -----------------------------
-1. The text below represents the **beginning of the chat history**, selected because the total conversation length exceeded a maximum threshold.
-2. Your goal is to summarize this portion accurately and compactly while **preserving all key information** needed to understand the rest of the conversation.
+1. Summarize the conversation segment below in a compact but precise way.
+2. Preserve all critical information needed to understand the remaining conversation.
 3. Focus on:
-   - Main topics and user goals
-   - Key questions asked and relevant assistant responses
-   - Important decisions, context, or technical details introduced early on
+   - Main topics, user goals, and key questions
+   - Important assistant responses
+   - Relevant decisions, technical details, or definitions introduced
 ${previousSummaryIndications}
+${maximumSentencesIndications}
 
 -----------------------------
 OUTPUT FORMAT
 -----------------------------
-- Return a json object with a single field "summary" containing the new summary text.
+Return ONLY a JSON object with the following structure:
 {
-  "summary": <string>
+  "summary": "<FINAL SUMMARY TEXT>"
 }
+
+- Do not include any explanations or commentary.
+- Ensure the summary is a single paragraph with clear sentences.
+- Do not use bullet points or lists.
 
 -----------------------------
 INPUT
@@ -34,8 +52,9 @@ INPUT
 
 ${previousSummary ? `PREVIOUS SUMMARY:\n"""\n${previousSummary}\n"""\n\n` : ""}
 
-HISTORY:"""
+HISTORY:
+"""
 ${partialHistory}
 """
 `.trim();
-}
+};

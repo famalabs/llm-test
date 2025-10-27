@@ -10,9 +10,19 @@
         "reasoningEnabled": true,
         "includeCitations": true,
         "fewShotsEnabled": true,
-        "verbose": true
+        "verbose": true, 
+        "reranking": {
+            "llmConfig": {
+                "provider": "openai",
+                "model": "gpt-5-nano"
+            },
+            "fewShotsEnabled": true,
+            "batchSize": 5,
+            "llmEvaluationWeight": 0.7,
+            "reasoningEnabled": true
+        }
     },
     "docStore": {
-        "indexName": "vector_store_index_fixed_size"
+        "indexName": "vs_section_gpt4_300"
     }
 }

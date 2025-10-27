@@ -1,13 +1,13 @@
 import { createOutputFolderIfNeeded } from '../utils';
 import { readFile, writeFile } from 'fs/promises';
 import { LmaInput, LmaOutput } from './interfaces';
+import { example_lma_tools } from './example.tools';
 import { LLMConfigProvider } from '../llm';
 import { hideBin } from 'yargs/helpers';
 import { Lma } from './lma';
 import yargs from "yargs"
 import path from 'path';
 import 'dotenv/config';
-import { example_lma_tools } from './example.tools';
 
 const main = async () => {
     const { input, model, provider, debug, verbose, tests } = await yargs(hideBin(process.argv))

@@ -106,7 +106,7 @@ export class Lma {
             const userReq = await requestPromise;
             output.user_request = userReq.user_request;
             output.request_satisfied = userReq.request_satisfied;
-            output.useful_tools = userReq.useful_tools; // [TODO] : CHIEDERE
+            output.useful_tools = userReq.useful_tools;
             output.task = await taskPromise;
         }
 
@@ -254,7 +254,7 @@ export class Lma {
 
             return {
                 user_request: user_request,
-                request_satisfied: undefined, // [TODO] CHIEDERE
+                request_satisfied: undefined, // [TODO] CHIEDERE -> valutare comunque nel prompt
                 useful_tools
             }
         }
@@ -297,7 +297,7 @@ export class Lma {
         const startIndex = input.summary?.span ?? 0;
         const endIndex = this.getSpanForSummarization(input.history, startIndex);
         const historyChunkText = input.history.slice(startIndex, Math.min(endIndex, input.history.length)).map(h => `${h.sender.toUpperCase()}: ${h.message}`).join('\n');
-        const prompt = CHAT_HISTORY_SUMMARIZATION_PROMPT(historyChunkText, input.summary?.text ?? "");
+        const prompt = CHAT_HISTORY_SUMMARIZATION_PROMPT(historyChunkText, input.summary?.text ?? "", this.config.summarizationConfig.maximumSentences);
         const schema = SUMMARIZATION_SCHEMA();
 
         const { summary: text } = await this.callLLM({ model, provider, prompt, schema });

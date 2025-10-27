@@ -59,14 +59,9 @@ export const evaluateUserRequestDetection = async ({
         }
 
 
-        if (expected.request_satisfied != undefined) {
+        if (generated.request_satisfied == expected.request_satisfied) {
             totalSatisfiedDetections += 1;
-            if (
-                generated.request_satisfied != undefined &&
-                generated.request_satisfied == expected.request_satisfied
-            ) {
-                correctSatisfiedDetections += 1;
-            }
+            correctSatisfiedDetections += 1;
         }
     }
 

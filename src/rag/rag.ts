@@ -1,8 +1,8 @@
 import { applyChunkFiltering, retrieveParentPage, Chunk, PromptDocument, Citation } from "../lib/chunks";
-import { ragCorpusInContext, rerankingPrompt } from "../lib/prompt";
+import { RAG_CORPUS_IN_CONTEXT_PROMPT, RERANKING_PROMPT } from "../lib/prompt";
 import { EMBEDDING_FIELD, VectorStore } from "../vector-store";
 import { RagConfig, RagAnswer } from "./interfaces";
-import { addLineNumbers, detectLanguage } from "../lib/nlp";
+import { addLineNumbers, LanguageLabel } from "../lib/nlp";
 import { escapeRedisValue } from "../lib/redis";
 import { generateObject } from "ai";
 import { resolveConfig } from "./rag.config";
@@ -101,14 +101,16 @@ export class Rag {
         }
 
         if (chunkFiltering) {
+
+            if (chunkFiltering.thresholdMultiplier == undefined && chunkFiltering.baseThreshold == undefined && chunkFiltering.maxChunks == undefined) {
+                throw new Error("Chunk filtering is enabled but no parameters are set.");
+            }
+
             if (chunkFiltering.thresholdMultiplier != undefined) {
                 const val = chunkFiltering.thresholdMultiplier;
                 if (val <= 0 || val >= 1) {
                     throw new Error("Chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
                 }
-            }
-            else {
-                throw new Error("Chunk filtering is enabled, but thresholdMultiplier is not set.");
             }
 
             if (chunkFiltering.baseThreshold != undefined) {
@@ -117,22 +119,27 @@ export class Rag {
                     throw new Error("Chunk filtering baseThreshold must be between 0 (inclusive) and 1 (exclusive).");
                 }
             }
-            else {
-                throw new Error("Chunk filtering is enabled, but baseThreshold is not set.");
+
+            if (chunkFiltering.maxChunks != undefined) {
+                const max = chunkFiltering.maxChunks;
+                if (!Number.isInteger(max) || max < 1) {
+                    throw new Error("Chunk filtering maxChunks must be an integer >= 1 if provided.");
+                }
             }
         }
 
         if (reranking) {
             if (reranking.chunkFiltering) {
-                if (reranking.chunkFiltering.thresholdMultiplier != undefined && reranking.chunkFiltering.baseThreshold != undefined) {
-                    const val = reranking.chunkFiltering.thresholdMultiplier;
-                    if (val <= 0 || val >= 1) {
-                        throw new Error("Reranking chunk filtering thresholdMultiplier must be between 0 and 1 (exclusive).");
-                    }
+
+                if (reranking.chunkFiltering.thresholdMultiplier == undefined && reranking.chunkFiltering.baseThreshold == undefined && reranking.chunkFiltering.maxChunks == undefined) {
+                    throw new Error("Reranking chunk filtering is enabled but no parameters are set.");
                 }
 
-                else {
-                    throw new Error("Reranking chunk filtering is enabled, but thresholdMultiplier or baseThreshold is not set.");
+                if (reranking.chunkFiltering.thresholdMultiplier != undefined) {
+                    const val = reranking.chunkFiltering.thresholdMultiplier;
+                    if (val <= 0 || val >= 1) {
+                        throw new Error("");
+                    }
                 }
 
                 if (reranking.chunkFiltering.baseThreshold != undefined) {
@@ -141,8 +148,12 @@ export class Rag {
                         throw new Error("Reranking chunk filtering baseThreshold must be between 0 (inclusive) and 1 (exclusive).");
                     }
                 }
-                else {
-                    throw new Error("Reranking chunk filtering is enabled, but baseThreshold is not set.");
+
+                if (reranking.chunkFiltering.maxChunks != undefined) {
+                    const max = reranking.chunkFiltering.maxChunks;
+                    if (!Number.isInteger(max) || max < 1) {
+                        throw new Error("Reranking chunk filtering maxChunks must be an integer >= 1 if provided.");
+                    }
                 }
             }
 
@@ -229,7 +240,7 @@ export class Rag {
         this.log("Stored answer in cache store.");
     }
 
-    private async generateAnswer(query: string, chunks: Chunk[]): Promise<RagAnswer> {
+    private async generateAnswer(query: string, chunks: Chunk[], detectedLanguage?: LanguageLabel): Promise<RagAnswer> {
         const { fewShotsEnabled, includeCitations, reasoningEnabled, llmConfig: { model, provider } } = this.config;
 
         const responseSchema: Record<string, ZodType> = {
@@ -248,15 +259,18 @@ export class Rag {
 
         const { object: result } = await generateObject({
             model: (await getLLMProvider(provider))(model),
-            prompt: ragCorpusInContext(
+            prompt: RAG_CORPUS_IN_CONTEXT_PROMPT(
+                query,
                 chunks.map((document) => ({
                     ...document,
                     pageContent: addLineNumbers(document.pageContent)
-                })), query,
-                await detectLanguage(query),
-                fewShotsEnabled,
-                reasoningEnabled,
-                includeCitations
+                })),
+                {
+                    detectedLanguage,
+                    fewShots: fewShotsEnabled,
+                    reasoning: reasoningEnabled,
+                    includeCitations: includeCitations
+                }
             ),
             schema: z.object(responseSchema)
         }) as { object: { answer: string; citations?: Citation[]; reasoning?: string; }; };
@@ -265,7 +279,7 @@ export class Rag {
         return { ...result, chunks };
     }
 
-    public async search(query: string, skipCache: boolean = false): Promise<RagAnswer> {
+    public async search(query: string, skipCache: boolean = false, detectedLanguage?: LanguageLabel): Promise<RagAnswer> {
         if (!this.isInitialized) {
             throw new Error("Rag instance is not initialized. Please call the init() method first.");
         }
@@ -286,7 +300,8 @@ export class Rag {
             chunks = applyChunkFiltering(
                 chunks,
                 this.config.chunkFiltering.thresholdMultiplier,
-                this.config.chunkFiltering.baseThreshold
+                this.config.chunkFiltering.baseThreshold,
+                this.config.chunkFiltering.maxChunks
             );
             this.log(`Chunk filtering applied: ${prevLen} -> ${chunks.length}`);
         }
@@ -309,7 +324,7 @@ export class Rag {
             chunks = await this.rerankChunks(query, chunks);
         }
 
-        const answer = await this.generateAnswer(query, chunks);
+        const answer = await this.generateAnswer(query, chunks, detectedLanguage);
         await this.storeToCache(queryEmbedding, answer);
 
         return answer;
@@ -412,7 +427,7 @@ export class Rag {
 
         for (const group of groupedChunks) {
             const promptDocuments: PromptDocument[] = group.map(c => ({ content: c.pageContent, source: c.source }));
-            const prompt = rerankingPrompt(
+            const prompt = RERANKING_PROMPT(
                 promptDocuments,
                 query,
                 reasoningEnabled,
@@ -444,6 +459,12 @@ export class Rag {
 
             for (const ranking of rankings) {
                 const { index, score } = ranking;
+
+                if (index < 0 || index >= group.length) {
+                    this.log(`Warning: Received invalid index ${index} in reranking results. Skipping.`);
+                    continue;
+                }
+
                 // Since we're scoring distance, we invert the score (1 - score)
                 group[index].distance = (1 - llmEvaluationWeight!) * group[index].distance + llmEvaluationWeight! * (1 - score);
             }
@@ -456,7 +477,8 @@ export class Rag {
             rerankedResults = applyChunkFiltering(
                 rerankedResults,
                 this.config.reranking.chunkFiltering.thresholdMultiplier,
-                this.config.reranking.chunkFiltering.baseThreshold
+                this.config.reranking.chunkFiltering.baseThreshold,
+                this.config.reranking.chunkFiltering.maxChunks
             );
         }
 
