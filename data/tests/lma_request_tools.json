@@ -16,12 +16,12 @@
             ]
         },
         "expected_output": {
-            "user_request_tools": {
-                "request": "L'utente chiede informazioni sugli effetti collaterali dell'Aspirina 325 mg.",
-                "useful_tools": [
-                    {"name": "rag-from-docs"}
-                ]
-            }
+            "user_request": "L'utente chiede informazioni sugli effetti collaterali dell'Aspirina 325 mg.",
+            "useful_tools": [
+                {
+                    "name": "rag-from-docs"
+                }
+            ]
         }
     },
     {
@@ -31,12 +31,12 @@
             "history": []
         },
         "expected_output": {
-            "user_request_tools": {
-                "request": "L'utente chiede il numero di telefono del suo fisioterapista.",
-                "useful_tools": [
-                    {"name": "doctors"}
-                ]
-            }
+            "user_request": "L'utente chiede il numero di telefono del suo fisioterapista.",
+            "useful_tools": [
+                {
+                    "name": "doctors"
+                }
+            ]
         }
     },
     {
@@ -46,14 +46,24 @@
             "history": []
         },
         "expected_output": {
-            "user_request_tools": {
-                "request": "L'utente chiede se la nausea può essere un effetto collaterale di uno dei farmaci prescritti per oggi.",
-                "useful_tools": [
-                    {"name": "rag-from-docs"},
-                    {"name": "logs", "parameters": {"date": "2025-10-23"}},
-                    {"name": "chats", "parameters": {"date": "2025-10-23"}}
-                ]
-            }
+            "user_request": "L'utente chiede se la nausea può essere un effetto collaterale di uno dei farmaci prescritti per oggi.",
+            "useful_tools": [
+                {
+                    "name": "rag-from-docs"
+                },
+                {
+                    "name": "logs",
+                    "parameters": {
+                        "date": "2025-10-23"
+                    }
+                },
+                {
+                    "name": "chats",
+                    "parameters": {
+                        "date": "2025-10-23"
+                    }
+                }
+            ]
         }
     },
     {
@@ -63,13 +73,15 @@
             "history": []
         },
         "expected_output": {
-            "user_request_tools": {
-                "request": "L'utente chiede quale farmaco gli è stato prescritto.",
-                "useful_tools": [
-                    {"name": "chats"},
-                    {"name": "therapy"}
-                ]
-            }
+            "user_request": "L'utente chiede quale farmaco gli è stato prescritto.",
+            "useful_tools": [
+                {
+                    "name": "chats"
+                },
+                {
+                    "name": "therapy"
+                }
+            ]
         }
     },
     {
@@ -88,7 +100,6 @@
                 }
             ]
         },
-        "expected_output": {
-        }
+        "expected_output": {}
     }
 ]

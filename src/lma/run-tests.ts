@@ -7,6 +7,7 @@ import { Lma } from './lma';
 import yargs from "yargs"
 import path from 'path';
 import 'dotenv/config';
+import { example_lma_tools } from './example.tools';
 
 const main = async () => {
     const { input, model, provider, debug, verbose, tests } = await yargs(hideBin(process.argv))
@@ -56,7 +57,9 @@ const main = async () => {
             tests: number[]
         };
 
-    if (tests.length == 0) {
+    const runAllTests = tests.length == 0;
+
+    if (runAllTests) {
         console.log('No tests specified. Running all tests.');
     }
 
@@ -71,52 +74,67 @@ const main = async () => {
         console.log(`Running specified tests: ${testStrings.join(', ')}`);
     }
 
-    const lma = new Lma({ baseConfig: { model, provider, parallel: true } });
+    const modelProvider = { model, provider };
+    const lma = new Lma({
+        baseConfig: { ...modelProvider, parallel: true },
+        userRequestConfig: {
+            satisfactionDetection: { ...modelProvider },
+            requestDetection: { ...modelProvider, mode: 'tools-params', tools: example_lma_tools }
+        }
+    });
 
     const data = JSON.parse(await readFile(input, 'utf-8')) as { input: LmaInput, expected_output: LmaOutput }[];
     const predictions: LmaOutput[] = [];
     const expectedOutputs: LmaOutput[] = [];
 
-    for (const { input, expected_output } of data) {
-        const prediction = {} as LmaOutput;
+    for (const { input, expected_output } of data.slice(0,1)) {
+        let prediction = {} as LmaOutput;
 
         let start = performance.now();
 
-        if (tests.length == 0 || tests.includes(0)) {
-            console.log('Analyzing sentiment...');
-            prediction.sentiment = {
-                single: await lma.getSingleMessageSentiment(input),
-                cumulative: await lma.getCumulativeSentiment(input)
-            };
-            console.log(`Sentiment analysis took ${(performance.now() - start).toFixed(2)} ms`);
+
+        if (runAllTests) {
+            prediction = await lma.mainCall(input);
+            console.log(`All tests took ${(performance.now() - start).toFixed(2)} ms`);
         }
 
-        if (tests.length == 0 || tests.includes(1)) {
-            if (lma.shouldSummarize(input) || debug) {
-                start = performance.now();
-                console.log('Summarizing conversation...');
-                prediction.summary = await lma.summarizeChatHistory(input);
-                console.log(`Summarization took ${(performance.now() - start).toFixed(2)} ms`);
+        else {
+            if (tests.includes(0)) {
+                console.log('Analyzing sentiment...');
+                prediction.sentiment = {
+                    single: await lma.getSingleMessageSentiment(input),
+                    cumulative: await lma.getCumulativeSentiment(input)
+                };
+                console.log(`Sentiment analysis took ${(performance.now() - start).toFixed(2)} ms`);
             }
-        }
-
-        if (tests.length == 0 || tests.includes(2)) {
-            if (lma.shouldAnalyzeTask(input) || debug) {
-                start = performance.now();
-                console.log('Analyzing task...');
-                prediction.task = await lma.analyzeTask(input);
-                console.log(`Task analysis took ${(performance.now() - start).toFixed(2)} ms`);
+    
+            if (tests.includes(1)) {
+                if (lma.shouldSummarize(input) || debug) {
+                    start = performance.now();
+                    console.log('Summarizing conversation...');
+                    prediction.summary = await lma.summarizeChatHistory(input);
+                    console.log(`Summarization took ${(performance.now() - start).toFixed(2)} ms`);
+                }
             }
-        }
-
-        if (tests.length == 0 || tests.includes(3)) {
-            start = performance.now();
-            console.log('Detecting user request...');
-            const { user_request, request_satisfied } = await lma.detectUserRequest(input);
-            console.log(`User request detection took ${(performance.now() - start).toFixed(2)} ms`);
-
-            prediction.user_request = user_request;
-            prediction.request_satisfied = request_satisfied;
+    
+            if (tests.includes(2)) {
+                if (lma.shouldAnalyzeTask(input) || debug) {
+                    start = performance.now();
+                    console.log('Analyzing task...');
+                    prediction.task = await lma.analyzeTask(input);
+                    console.log(`Task analysis took ${(performance.now() - start).toFixed(2)} ms`);
+                }
+            }
+    
+            if (tests.includes(3)) {
+                start = performance.now();
+                console.log('Detecting user request...');
+                const { user_request, request_satisfied } = await lma.detectUserRequest(input);
+                console.log(`User request detection took ${(performance.now() - start).toFixed(2)} ms`);
+    
+                prediction.user_request = user_request;
+                prediction.request_satisfied = request_satisfied;
+            }
         }
 
         predictions.push(prediction);

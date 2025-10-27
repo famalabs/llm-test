@@ -14,7 +14,7 @@ import {
     TASK_ANALYSIS_SCHEMA
 } from './schemas';
 import { getLLMProvider, LLMConfigProvider } from '../llm';
-import { LmaConfig, LmaInput, LmaOutput, OutputTask, SentimentScores, Tool } from './interfaces';
+import { LmaConfig, LmaInput, LmaOutput, SentimentScores, Tool } from './interfaces';
 import { resolveConfig } from './lma.config';
 import { generateObject } from 'ai';
 import z from 'zod';
@@ -273,14 +273,12 @@ export class Lma {
 
     private getSpanForSummarization(history: LmaInput["history"], startIndex: number) {
         const { C_MIN } = this.config.summarizationConfig;
-        let userChars = 0;
+        let chars = 0;
         let i = startIndex;
 
         for (; i < history.length; i++) {
-            if (history[i].sender === 'user') {
-                userChars += history[i].message.length;
-            }
-            if (userChars >= C_MIN) break;
+            chars += history[i].message.length;
+            if (chars >= C_MIN) break;
         }
 
         if (i >= history.length) return history.length;

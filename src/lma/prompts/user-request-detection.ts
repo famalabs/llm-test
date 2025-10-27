@@ -87,6 +87,11 @@ export const USER_REQUEST_AND_TOOLS_DETECTION_PROMPT = (history: string, message
 You are a precise assistant that extracts the user's request and selects useful tools from an allowed list.
 
 -----------------------------
+GENERAL USEFUL CONTEXT
+-----------------------------
+Current Date / Time: ${new Date().toISOString()}
+
+-----------------------------
 GOALS
 -----------------------------
 1) Summarize the user's latest request in ONE sentence (third person, same language as the user).
