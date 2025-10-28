@@ -191,6 +191,7 @@ export class Lma {
             console.warn("Tools provided in configuration will be ignored in 'simple' detection mode.");
         }
 
+        const includeRequestSatisfiedDetection = input.chat_status == 'request';
         const inputHistory = this.stringifyHistory(input);
 
         if (requestDetectionMode == 'simple') {
@@ -206,10 +207,16 @@ export class Lma {
                 model: requestDetectionModel, provider: requestDetectionProvider,
                 prompt: userRequestPrompt, schema: requestDetectionSchema
             }));
-            promises.push(this.callLLM({
-                model: satisfactionDetectionModel, provider: satisfactionDetectionProvider,
-                prompt: requestSatisfiedPrompt, schema: satisfactionDetectionSchema
-            }));
+
+            if (includeRequestSatisfiedDetection) {
+                promises.push(this.callLLM({
+                    model: satisfactionDetectionModel, provider: satisfactionDetectionProvider,
+                    prompt: requestSatisfiedPrompt, schema: satisfactionDetectionSchema
+                }));
+            }
+            else {
+                promises.push(Promise.resolve({ request_satisfied: undefined }));
+            }
 
             if (this.config.baseConfig.parallel) {
                 const results = await Promise.all(promises) as [
@@ -221,7 +228,7 @@ export class Lma {
                     user_request: results[0].user_request,
                     request_satisfied: results[1].request_satisfied,
                     useful_tools: undefined
-                }
+                };
             }
 
             else {
@@ -234,7 +241,7 @@ export class Lma {
                     user_request: results[0].user_request,
                     request_satisfied: results[1].request_satisfied,
                     useful_tools: undefined
-                }
+                };
             }
         }
 
@@ -242,10 +249,16 @@ export class Lma {
             if (!tools || tools.length == 0) throw new Error("Tools must be provided in configuration for 'tools' or 'tools-params' detection mode.");
 
             const includeToolsParams = requestDetectionMode == 'tools-params';
-            const userRequestAndToolsSchema = USER_REQUEST_AND_TOOLS_DETECTION_SCHEMA(includeToolsParams);
-            const userRequestAndToolsPrompt = USER_REQUEST_AND_TOOLS_DETECTION_PROMPT(inputHistory, input.message, includeToolsParams, this.stringifyTools(tools, includeToolsParams));
+            const userRequestAndToolsSchema = USER_REQUEST_AND_TOOLS_DETECTION_SCHEMA(
+                includeToolsParams, includeRequestSatisfiedDetection
+            );
+            const userRequestAndToolsPrompt = USER_REQUEST_AND_TOOLS_DETECTION_PROMPT(
+                inputHistory, input.message,
+                includeToolsParams, this.stringifyTools(tools, includeToolsParams),
+                includeRequestSatisfiedDetection
+            );
 
-            const { user_request, useful_tools } = await this.callLLM({
+            const result = await this.callLLM({
                 model: requestDetectionModel,
                 provider: requestDetectionProvider,
                 prompt: userRequestAndToolsPrompt,
@@ -253,9 +266,9 @@ export class Lma {
             });
 
             return {
-                user_request: user_request,
-                request_satisfied: undefined, // [TODO] CHIEDERE -> valutare comunque nel prompt
-                useful_tools
+                user_request: result.user_request,
+                request_satisfied: result.request_satisfied,
+                useful_tools: result.useful_tools
             }
         }
     }

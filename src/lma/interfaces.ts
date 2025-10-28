@@ -1,4 +1,4 @@
-import { LLMConfig } from "../rag";
+import { LLMConfig } from "../llm";
 
 export type SentimentAnalysisMode = 'single-message' | 'last-message' | 'full-conversation';
 

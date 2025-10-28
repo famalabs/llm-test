@@ -24,5 +24,6 @@
     },
     "docStore": {
         "indexName": "vs_section_gpt4_300"
-    }
+    }, 
+    "language": "detect"
 }

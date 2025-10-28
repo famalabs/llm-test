@@ -14,6 +14,13 @@ import { glob } from "glob";
 import Redis from "ioredis";
 import yargs from "yargs"
 import path from 'path';
+import { detectLanguage } from "../lib/nlp";
+import type { LanguageLabel } from "../lib/nlp/interfaces";
+
+// Allowed runtime language labels (must mirror LanguageLabel union)
+const ALLOWED_LANGUAGES: LanguageLabel[] = [
+    'arabic', 'bulgarian', 'german', 'modern greek', 'english', 'spanish', 'french', 'hindi', 'italian', 'japanese', 'dutch', 'polish', 'portuguese', 'russian', 'swahili', 'thai', 'turkish', 'urdu', 'vietnamese', 'chinese'
+];
 
 async function runSingleTest(testFile: string, configFile: string, parallel: boolean) {
 
@@ -28,10 +35,16 @@ async function runSingleTest(testFile: string, configFile: string, parallel: boo
     const normalizedConfigPath = path.normalize(configFile!);
     const test: { questions: { question: string; fullRef: string, keyRef: string }[] } = await JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
     const joinedConfig = await JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
-    const { rag: ragConfig, docStore: docStoreConfig } = joinedConfig;
+    const { rag: ragConfig, docStore: docStoreConfig, language } = joinedConfig;
+
     if (!ragConfig || !docStoreConfig) {
         throw new Error('Config file must contain both "rag" and "docStore" sections');
     }
+
+    if (language != undefined && language != 'detect' && !ALLOWED_LANGUAGES.includes(language as LanguageLabel)) {
+        throw new Error(`Config "language" must be one of: ${ALLOWED_LANGUAGES.join(', ')}, or "detect"`);
+    }
+    console.log('Using language:', language ?? 'not specified (will use RAG default)');
 
     const indexName = docStoreConfig.indexName;
     if (!indexName) {
@@ -54,19 +67,22 @@ async function runSingleTest(testFile: string, configFile: string, parallel: boo
     await rag.init();
 
     const output: {
-        results: { question: string; keyRef: string; fullRef: string; candidate: string, citations: Citation[], chunks: Chunk[] }[],
+        results: { question: string; keyRef: string; fullRef: string; candidate: string, citations: Citation[], chunks: Chunk[], timeMs: number }[],
         ragConfig: object,
-        docStoreConfig: object
+        docStoreConfig: object,
+        language?: string
     } = {
         results: [],
         ragConfig,
-        docStoreConfig
+        docStoreConfig,
+        ...(language != undefined ? { language: language } : {})
     }
 
-    const promises = test.questions.map(({ question, keyRef, fullRef }) => async () => {
-        const start = Date.now();
-        const { answer: candidate, citations, chunks } = await rag.search(question);
-        const end = Date.now();
+    const promises = test.questions.map(({ question, keyRef, fullRef }) => async () => {      
+        const detectedLang: LanguageLabel = language == 'detect' ? await detectLanguage(question, true) : (language as LanguageLabel);
+        const start = performance.now();
+        const { answer: candidate, citations, chunks } = await rag.search(question, true, detectedLang);
+        const end = performance.now();
         const timeMs = end - start;
         return { question, keyRef, fullRef, candidate, citations: citations ?? [], chunks, timeMs };
     });
@@ -76,7 +92,7 @@ async function runSingleTest(testFile: string, configFile: string, parallel: boo
         const results = await Promise.all(promises.map(p => p()));
         output.results.push(...results);
     }
-    
+
     else {
         console.log('Running tests sequentially...');
         for (const p of tqdm(promises)) {

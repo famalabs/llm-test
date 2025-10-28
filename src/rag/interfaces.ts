@@ -1,18 +1,6 @@
 import { VectorStore } from '../vector-store';
 import { Chunk, Citation } from '../lib/chunks';
-import { LLMConfigProvider } from '../llm';
-
-export interface LLMConfig {
-    /**
-     * Name of the main LLM used for generating answers.
-     */
-    model: string;
-
-    /**
-     * Name of the LLM provider.
-     */
-    provider: LLMConfigProvider;
-}
+import { LLMConfig } from '../llm';
 
 export interface RagAnswer {
     /**
