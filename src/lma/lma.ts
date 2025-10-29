@@ -118,8 +118,6 @@ export class Lma {
     // SENTIMENT ANALYSIS
     // --------------------------------
 
-
-
     public async getSingleMessageSentiment(input: LmaInput) {
         const { provider, model } = this.config.sentimentAnalysisConfig;
 
@@ -173,7 +171,7 @@ export class Lma {
         const schema = TASK_ANALYSIS_SCHEMA(input.task!.type);
         const inputHistory = this.stringifyHistory(input);
         const inputTask = this.stringifyTask(input.task);
-        const prompt = TASK_ANALYSIS_PROMPT(inputHistory, input.message, inputTask);
+        const prompt = TASK_ANALYSIS_PROMPT(inputHistory, input.message, inputTask, input.task!.type);
 
         return await this.callLLM({ model, provider, prompt, schema });
     }

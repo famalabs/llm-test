@@ -2,7 +2,7 @@ import { createOutputFolderIfNeeded, getFileExtension } from '../../utils';
 import { generateObject, ModelMessage } from 'ai';
 import { readFile, writeFile } from "fs/promises";
 import path from 'path';
-import { tableQAPrompt } from '../../lib/prompt';
+import { TABLE_QA_PROMPT } from '../../lib/prompt';
 import { hideBin } from 'yargs/helpers';
 import { parseDoc } from '../../lib/ingestion';
 import { mistral } from '@ai-sdk/mistral';
@@ -21,7 +21,7 @@ const answerQuestion = async (table: string, format: string, question: string, l
         }),
         temperature: 0,
         messages: [
-            { role: "system", content: tableQAPrompt(format) },
+            { role: "system", content: TABLE_QA_PROMPT(format) },
             { role: "user", content: `Here is the ${format.toUpperCase()} table: """\n\n${table}"""\n\nHere is the question:"""\n\n${question}\n\n"""Provide a concise answer in a complete sentence that includes the answer.` }
         ] as ModelMessage[]
     });

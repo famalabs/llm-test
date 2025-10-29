@@ -1,7 +1,7 @@
 import { applyChunkFiltering, retrieveParentPage, Chunk, PromptDocument, Citation } from "../lib/chunks";
 import { RAG_CORPUS_IN_CONTEXT_PROMPT, RERANKING_PROMPT } from "../lib/prompt";
 import { EMBEDDING_FIELD, VectorStore } from "../vector-store";
-import { RagConfig, RagAnswer } from "./interfaces";
+import { RagConfig, RagAnswer, RagPerformance } from "./interfaces";
 import { addLineNumbers, LanguageLabel } from "../lib/nlp";
 import { escapeRedisValue } from "../lib/redis";
 import { generateObject } from "ai";
@@ -279,19 +279,26 @@ export class Rag {
         return { ...result, chunks };
     }
 
-    public async search(query: string, skipCache: boolean = false, detectedLanguage?: LanguageLabel): Promise<RagAnswer> {
+    public async search(query: string, skipCache: boolean = false, detectedLanguage?: LanguageLabel): Promise<RagAnswer & RagPerformance> {
         if (!this.isInitialized) {
             throw new Error("Rag instance is not initialized. Please call the init() method first.");
         }
 
+        const ragPerformance: RagPerformance = { performance: {} };
+
+        let start = performance.now();
         const queryEmbedding = await this.docStore.embedQuery(query);
+        ragPerformance.performance!.embedding = { timeMs: performance.now() - start };
 
         if (!skipCache) {
             const cachedAnswer = await this.checkCache(queryEmbedding);
-            if (cachedAnswer) return cachedAnswer;
+            if (cachedAnswer) return { ...cachedAnswer, ...ragPerformance };
         }
 
+        start = performance.now();
         let chunks = await this.docStore.retrieve(queryEmbedding, this.config.numResults);
+        ragPerformance.performance!.retrieval = { timeMs: performance.now() - start, numChunksRetrieved: chunks.length };
+
         this.log(`Retrieved ${chunks.length} chunks from document store.`);
 
         if (this.config.chunkFiltering && this.config.chunkFiltering.thresholdMultiplier && this.config.chunkFiltering.baseThreshold) {
@@ -308,11 +315,15 @@ export class Rag {
 
         if (this.config.parentPageRetrieval) {
             if (this.config.parentPageRetrieval.type == 'full-section') {
+                start = performance.now();
                 chunks = await this.retrieveParentSection(chunks);
+                ragPerformance.performance!.parentSectionRetrieval = { timeMs: performance.now() - start, numSectionsRetrieved: chunks.length };
             }
 
             else if (this.config.parentPageRetrieval.type == 'lines' && this.config.parentPageRetrieval.offset) {
+                start = performance.now();
                 chunks = await retrieveParentPage(chunks, this.config.parentPageRetrieval.offset);
+                ragPerformance.performance!.parentPageRetrieval = { timeMs: performance.now() - start, numPagesRetrieved: chunks.length };
             }
 
             else {
@@ -321,13 +332,17 @@ export class Rag {
         }
 
         if (this.config.reranking) {
-            chunks = await this.rerankChunks(query, chunks);
+            start = performance.now();
+            const rerankingOutput = await this.rerankChunks(query, chunks);
+            chunks = rerankingOutput.chunks;
+            ragPerformance.performance!.reranking = { timeMs: performance.now() - start, numChunksReranked: rerankingOutput.numChunksReranked, numGroupsReranked: rerankingOutput.numGroupsReranked };
         }
 
+        start = performance.now();
         const answer = await this.generateAnswer(query, chunks, detectedLanguage);
         await this.storeToCache(queryEmbedding, answer);
 
-        return answer;
+        return { ...answer, ...ragPerformance };
     }
 
 
@@ -402,7 +417,7 @@ export class Rag {
     };
 
 
-    public async rerankChunks(query: string, chunks: Chunk[]): Promise<Chunk[]> {
+    public async rerankChunks(query: string, chunks: Chunk[]): Promise<{ chunks: Chunk[], numChunksReranked: number, numGroupsReranked: number }> {
 
         if (!this.config.reranking) {
             throw new Error("Reranking configuration is missing.");
@@ -416,8 +431,6 @@ export class Rag {
             fewShotsEnabled,
         } = this.config.reranking;
 
-        this.log('Running reranking on', chunks.length, 'chunks...');
-
         const groupedChunks: Chunk[][] = [];
 
         for (let i = 0; i < chunks.length; i += batchSize!) {
@@ -425,50 +438,54 @@ export class Rag {
             groupedChunks.push(chunkGroup);
         }
 
-        for (const group of groupedChunks) {
-            const promptDocuments: PromptDocument[] = group.map(c => ({ content: c.pageContent, source: c.source }));
-            const prompt = RERANKING_PROMPT(
-                promptDocuments,
-                query,
-                reasoningEnabled,
-                fewShotsEnabled
-            );
+        this.log('Running reranking on', chunks.length, 'chunks, divided into', groupedChunks.length, 'groups...');
 
-            const rankingSchema: Record<string, z.ZodTypeAny> = {
-                index: z.number(),
-                score: z.number().min(0).max(1)
-            };
+        await Promise.all(
+            groupedChunks.map(async (group) => {
+                const promptDocuments: PromptDocument[] = group.map(c => ({ content: c.pageContent, source: c.source }));
+                const prompt = RERANKING_PROMPT(
+                    promptDocuments,
+                    query,
+                    reasoningEnabled,
+                    fewShotsEnabled
+                );
 
-            if (reasoningEnabled) {
-                rankingSchema.reasoning = z.string();
-            }
+                const rankingSchema: Record<string, z.ZodTypeAny> = {
+                    index: z.number(),
+                    score: z.number().min(0).max(1)
+                };
 
-            const { object: result } = await generateObject({
-                model: (await getLLMProvider(provider))(model),
-                prompt,
-                schema: z.object({
-                    rankings: z.array(
-                        z.object(rankingSchema)
-                    ),
-                })
-            }) as {
-                object: { rankings: Array<{ index: number; score: number; reasoning?: string }> }
-            };
-
-            const { rankings } = result;
-
-            for (const ranking of rankings) {
-                const { index, score } = ranking;
-
-                if (index < 0 || index >= group.length) {
-                    this.log(`Warning: Received invalid index ${index} in reranking results. Skipping.`);
-                    continue;
+                if (reasoningEnabled) {
+                    rankingSchema.reasoning = z.string();
                 }
 
-                // Since we're scoring distance, we invert the score (1 - score)
-                group[index].distance = (1 - llmEvaluationWeight!) * group[index].distance + llmEvaluationWeight! * (1 - score);
-            }
-        }
+                const { object: result } = await generateObject({
+                    model: (await getLLMProvider(provider))(model),
+                    prompt,
+                    schema: z.object({
+                        rankings: z.array(
+                            z.object(rankingSchema)
+                        ),
+                    })
+                }) as {
+                    object: { rankings: Array<{ index: number; score: number; reasoning?: string }> }
+                };
+
+                const { rankings } = result;
+
+                for (const ranking of rankings) {
+                    const { index, score } = ranking;
+
+                    if (index < 0 || index >= group.length) {
+                        this.log(`Warning: Received invalid index ${index} in reranking results. Skipping.`);
+                        continue;
+                    }
+
+                    // Since we're scoring distance, we invert the score (1 - score)
+                    group[index].distance = (1 - llmEvaluationWeight!) * group[index].distance + llmEvaluationWeight! * (1 - score);
+                }
+            })
+        );
 
         let rerankedResults = [...groupedChunks.flat()].sort((a, b) => a.distance - b.distance);
 
@@ -482,7 +499,7 @@ export class Rag {
             );
         }
 
-        return rerankedResults;
+        return { chunks: rerankedResults, numChunksReranked: chunks.length, numGroupsReranked: groupedChunks.length };
     }
 
 }

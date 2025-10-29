@@ -1,0 +1,514 @@
+[
+    {
+        "focus_on": "all",
+        "input": {
+            "task_due": {
+                "name": "connect-human-doctor",
+                "description": "Mettere in contatto l'utente con un medico umano per un confronto rapido."
+            },
+            "chat_status": "request",
+            "user_request": "L'utente vuole parlare con un medico.",
+            "style": "empathetic-clinical, concise",
+            "history": [
+                {
+                    "sender": "user",
+                    "message": "Da stamattina ho mal di stomaco e non mi sento molto bene."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Hai assunto qualche farmaco oggi?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, dhe bimbo, ho preso una compressa di paracetamolo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Hai avuto effetti collaterali?"
+                }
+            ],
+            "summary": {
+                "text": "Paziente riferisce mal di stomaco e malessere generale. Ha assunto una compressa di paracetamolo.",
+                "span": 3
+            }
+        },
+        "expected_output": {
+            "agent_message": "Capito: segnali nausea e vertigini e vuoi parlare con un medico. Posso metterti in contatto subito: preferisci chiamata o video? Nel frattempo, riposa seduto, idratazione a piccoli sorsi e niente guida/scale se senti instabilità. Se compaiono segnali d’allarme (vomito incoercibile, svenimento, “peggior mal di testa di sempre”, dolore toracico, difficoltà respiratoria), chiama subito il 112/118. Vuoi che proceda ora a metterti in linea con un medico?"
+        }
+    },
+    {
+        "focus_on": "all",
+        "input": {
+            "task_due": {
+                "name": "reschedule-appointment",
+                "description": "Annullare la visita di domani e riprogrammarla a lunedì mattina 9–11; preparare e inviare PDF terapia aggiornato."
+            },
+            "chat_status": "request",
+            "user_request": "L'utente vuole annullare la visita di domani e riprogrammarla a lunedì mattina tra le 9 e le 11; inoltre, vuole inviare il PDF della terapia aggiornato.",
+            "style": "empatico-clinico, operativo, assertivo, conciso",
+            "history": [
+                {
+                    "sender": "user",
+                    "message": "Ieri notte ho avuto tosse e un po’ di fiato corto."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Hai una diagnosi di asma? Usi un inalatore?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, asma lieve. Ho il Ventolin."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Lo hai usato oggi? Quante puff?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Due puff stamattina alle 8."
+                },
+                {
+                    "sender": "agent",
+                    "message": "I sintomi sono migliorati? Dolore toracico?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Un po’ meglio, ma ho ancora capogiro e ansia."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Per favore misura la frequenza cardiaca a riposo per 60 secondi (task: heart-rate). Se puoi, anche la saturazione."
+                },
+                {
+                    "sender": "user",
+                    "message": "Non ho il saturimetro. Prendo l’Apple Watch, arrivo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ok, quando ce l’hai dimmelo. Vuoi che prenoti una visita pneumologica per domani alle 18?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, per favore. E puoi mandarmi il piano terapeutico aggiornato in PDF?"
+                },
+                {
+                    "sender": "agent",
+                    "message": "Visita prenotata per domani h 18:00 al Centro Respiro XYZ. Invio il PDF appena mi confermi l’email."
+                },
+                {
+                    "sender": "user",
+                    "message": "La mail è [leonardo@example.com](mailto:leonardo@example.com)"
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ricevuta. Invio il PDF a breve. Intanto, per favore, misura i battiti a riposo."
+                },
+                {
+                    "sender": "user",
+                    "message": "Sto salendo le scale, te la dico appena mi fermo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Perfetto, aspetto. Hai avuto effetti collaterali dai farmaci?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Stamattina ho preso 1000 mg di paracetamolo per il mal di testa, forse troppi."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Nota: dose superiore alla compressa standard da 500 mg. Evita di ripetere. Riesci ora a misurare i battiti?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sto provando, ma l’orologio segna valori ballerini."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Siediti 5 minuti, poi misura di nuovo. Quando hai il numero, scrivimelo. Vuoi che sposti l’appuntamento se non stai bene?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Valuto tra poco. Puoi verificare se c’è disponibilità anche lunedì mattina?"
+                }
+            ],
+            "summary": {
+                "text": "Paziente con asma lieve, usa Ventolin (2 puff alle 8). Tosse e dispnea notturna, lieve capogiro/ansia. Prenotata visita pneumologica per domani h 18:00 (Centro Respiro XYZ). Richiesto PDF piano terapeutico via email ([leonardo@example.com](mailto:leonardo@example.com)). In corso richiesta di misurazione frequenza cardiaca a riposo.",
+                "span": 14
+            }
+        },
+        "expected_output": {
+            "agent_message": "Ok, passo in modalità operativa. Confermami questi punti:\n1) Annullare la visita di domani alle 18:00 al Centro Respiro XYZ.\n2) Riprogrammare lunedì mattina tra le 9 e le 11: preferisci 9:00, 9:30, 10:00, 10:30 o 11:00?\n3) Aggiornare il piano terapeutico e inviare subito il PDF a leonardo@example.com dopo la nuova prenotazione.\nNota sicurezza: se a riposo la FC resta >100 bpm o compaiono dolore toracico, peggior respiro corto o capogiro intenso, valuta controllo urgente / 112."
+        }
+    },
+    {
+        "focus_on": "task.wait",
+        "input": {
+            "task_due": {
+                "name": "set-reminder",
+                "description": "Impostare un promemoria tra 1 ora per l’assunzione dell’antibiotico.",
+                "waited": true
+            },
+            "chat_status": "request",
+            "user_request": "L'utente chiede un promemoria tra un'ora per ricordarsi di prendere l'antibiotico.",
+            "style": "empathetic-clinical, concise",
+            "history": [
+                {
+                    "sender": "user",
+                    "message": "Da stamattina mi gira un po’ la testa."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Hai già preso l'antibiotico come prescritto? (task: medication-intake)"
+                },
+                {
+                    "sender": "user",
+                    "message": "Non ancora, ce l'ho nello zaino."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Entro mezzogiorno sarebbe ideale. Quando pensi di prenderlo?"
+                }
+            ],
+            "summary": {
+                "text": "Paziente con lieve capogiro. Antibiotico prescritto non ancora assunto; agente sollecita assunzione entro mezzogiorno.",
+                "span": 4
+            }
+        },
+        "expected_output": {
+            "agent_message": "Va bene: imposto un promemoria tra 1 ora per ricordarti l’antibiotico. Confermi? Suggerimento pratico: assumilo con un bicchiere d’acqua e, se previsto, dopo un piccolo pasto per ridurre nausea. Se salti una dose, prendila appena te ne ricordi salvo sia quasi ora della successiva (niente doppia dose). Vuoi anche promemoria giornalieri alla stessa ora?"
+        }
+    },
+    {
+        "focus_on": "chat_length",
+        "input": {
+            "task_due": {
+                "name": "send-breathing-and-hydration-plan",
+                "description": "Inviare esercizi di respirazione diaframmatica e schema di idratazione; offrire promemoria idratazione."
+            },
+            "chat_status": "request",
+            "user_request": "L'utente chiede esercizi di respirazione e promemoria per aumentare l’idratazione.",
+            "style": "empathetic-clinical, concise",
+            "history": [
+                {
+                    "sender": "user",
+                    "message": "Da due notti dormo male e ho molta sete."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Capito. Hai una diagnosi di prediabete o diabete?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Prediabete confermato l'anno scorso."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Assumi farmaci o integrazioni attualmente?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Metformina 500 mg la sera."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Hai avuto ipoglicemie o giramenti di testa oggi?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Solo un po' di stanchezza dopo pranzo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ok. Quanta acqua stai bevendo al giorno?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Forse un litro scarso."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Proviamo a salire a 1.5–2 L. Fai attività fisica leggera?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Cammino 20 minuti al giorno, non sempre."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Bene iniziare da lì. Colazione tipica?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Cappuccino e cornetto."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Potremmo virare su yogurt greco + frutta secca. Hai un glucometro in casa?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, con qualche striscia rimasta."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Perfetto. Hai misurato valori recenti?"
+                },
+                {
+                    "sender": "user",
+                    "message": "No, da settimane."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Capisco. Hai avuto infezioni o febbre di recente?"
+                },
+                {
+                    "sender": "user",
+                    "message": "No."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ok. Eventi stressanti ultimamente?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Lavoro intenso e poco sonno."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Fa senso. Ti va di impostare un obiettivo sonno 7 ore?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Proviamo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ottimo. Hai sintomi come vista offuscata?"
+                },
+                {
+                    "sender": "user",
+                    "message": "A volte, ma passa."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ricevuto. Domanda: preferisci misurare glicemia a digiuno domani?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Forse, vediamo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ti spiego: ci serve un valore a digiuno per calibrare dieta e passi successivi."
+                },
+                {
+                    "sender": "user",
+                    "message": "Ok, ma l’ago mi fa ansia."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Possiamo fare respirazioni lente prima della puntura. Hai lancette nuove?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, credo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Bene. Hai fatto pasti molto ricchi oggi?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Pasta a pranzo, pollo la sera."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ok. Hai bevuto alcol?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Un bicchiere di vino."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Nota. Hai possibilità di fare 10 minuti di camminata dopo cena?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, tra poco esco."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ottimo. Impostiamo anche promemoria idratazione?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, ogni 2 ore."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Fatto. Valuti sensori CGM in futuro?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Magari più avanti."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Ok. Ricap: sonno 7h, acqua 2L, passeggiata serale. Manca la misura a digiuno per domani."
+                },
+                {
+                    "sender": "user",
+                    "message": "Mmm, vediamo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Per favore conferma: domattina a digiuno puoi misurare e scrivermi il valore? (task: fasting-glucose)"
+                },
+                {
+                    "sender": "user",
+                    "message": "Non prometto."
+                },
+                {
+                    "sender": "agent",
+                    "message": "C’è qualcosa che ti blocca oltre all’ansia dell’ago?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Forse non ho abbastanza strisce."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Capito. In alternativa farmacia aperta domani. Vuoi che ti mandi una checklist passo-passo?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, potrebbe aiutare."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Inviata checklist. Confermi che domani a digiuno misuri e mi invii il numero in mg/dL? (task: fasting-glucose)"
+                }
+            ],
+            "summary": {
+                "text": "Prediabete in terapia con metformina 500 mg sera; sete aumentata e sonno scarso. Obiettivi: idratazione 1.5–2 L, 7h sonno, camminata serale. Educazione su colazione a basso impatto glicemico. Agente richiede misura glicemia a digiuno per calibrare piano.",
+                "span": 49
+            }
+        },
+        "expected_output": {
+            "agent_message": "Ricevuto: oggi niente puntura. Ti invio un mini-piano pratico richiesto.\n• Respirazione diaframmatica (5–7 min, 3×/giorno): inspira dal naso 4″ gonfiando l’addome, pausa 2″, espira dalla bocca 6–8″. Mantieni spalle rilassate.\n• Idratazione: obiettivo 1.5–2 L/die. Indicativamente 200–250 ml ogni ~2 ore mentre sei sveglio; un bicchiere extra dopo camminata o se fa caldo.\n• Promemoria: vuoi che li imposti ogni 2 ore tra, ad esempio, 9:00 e 21:00?\nPer la glicemia a digiuno, se domani te la senti, posso inviarti una breve checklist di 30″ prima della misurazione. Va bene?"
+        }
+    },
+    {
+        "focus_on": "bad_sentiment",
+        "input": {
+            "task_due": {
+                "name": "handoff-to-human",
+                "description": "Assegnare rapidamente l’utente a un medico umano per chiamata/video.",
+                "ignored": false
+            },
+            "chat_status": "request",
+            "user_request": "L'utente pretende di parlare immediatamente con un medico umano.",
+            "style": "empathetic-clinical, concise",
+            "history": [
+                {
+                    "sender": "user",
+                    "message": "Mi sento uno schifo da stamattina."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Hai febbre, brividi o dolori muscolari?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Brividi e mal di testa. Forse febbre."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Per favore misura la temperatura e dimmi il valore in °C. (task: fever-temperature)"
+                },
+                {
+                    "sender": "user",
+                    "message": "Uff, che rottura. Non posso adesso."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Capisco. Ti serve una guida rapida per la misurazione?"
+                },
+                {
+                    "sender": "user",
+                    "message": "No. Non ho tempo."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Senza un valore è difficile consigliarti al meglio. Riusciresti a misurare tra 10 minuti?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Ti ho detto di no. E poi perché ti serve per forza?"
+                },
+                {
+                    "sender": "agent",
+                    "message": "Il valore orienta se gestire a casa o se serve visita urgente. Anche un'approssimazione misurata aiuterebbe."
+                }
+            ],
+            "summary": {
+                "text": "Sintomi: brividi, cefalea, possibile febbre. L’agente richiede misurazione della temperatura per orientare il triage; l’utente rifiuta di misurare.",
+                "span": 10
+            }
+        },
+        "expected_output": {
+            "agent_message": "Capisco che sia frustrante: facciamo così, ti metto subito in contatto con un medico umano. Preferisci chiamata o video? Intanto una nota rapida: la temperatura misurata aiuta a capire se basta gestione a casa o serve visita; se puoi, una lettura con termometro digitale appena riesci ci dà un dato affidabile. Se nel frattempo compaiono confusione, rigidità del collo, difficoltà a respirare, rash diffuso, dolore toracico o peggioramento rapido, chiama il 112."
+        }
+    },
+    {
+        "focus_on": "good_sentiment",
+        "input": {
+            "task_due": {
+                "name": "send-hydration-and-breathing-plan",
+                "description": "Fornire piano breve per idratazione e respirazione; suggerire eventuale ripetizione misura e raccolta FC."
+            },
+            "chat_status": "request",
+            "user_request": "L'utente chiede un breve piano per idratazione e respirazione diaframmatica per oggi.",
+            "style": "it/empathetic-clinical/concise",
+            "history": [
+                {
+                    "sender": "user",
+                    "message": "Mi sento un po' affannato dopo le scale ma ora sto meglio."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Capito. Hai un saturimetro a casa?"
+                },
+                {
+                    "sender": "user",
+                    "message": "Sì, uno da dito."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Perfetto. Per favore misura la saturazione a riposo: seduto 5 minuti, mano calda, niente smalto. (task: oxygen-saturation)"
+                },
+                {
+                    "sender": "user",
+                    "message": "Ok, preparo tutto. Serve anche la frequenza cardiaca?"
+                },
+                {
+                    "sender": "agent",
+                    "message": "Se il dispositivo la mostra, sì, ma la priorità è la SpO2. Ricordati di respirare normalmente e tenere fermo il dito."
+                },
+                {
+                    "sender": "user",
+                    "message": "Faccio subito. Intanto, se va bene, vorrei anche qualche indicazione su idratazione e respirazione."
+                }
+            ],
+            "summary": {
+                "text": "Affanno lieve post-sforzo, ora compensato. Disponibile saturimetro a dito. Agente richiede SpO2 a riposo con protocollo corretto; utente collaborativo e chiede anche consigli su idratazione/respirazione.",
+                "span": 7
+            }
+        },
+        "expected_output": {
+            "agent_message": "Ottimo lavoro: SpO2 97% a riposo è tipicamente nella norma. Piano rapido per oggi:\n• Idratazione: 8–10 bicchieri (200–250 ml) distribuiti ogni ~2 ore; +300–500 ml dopo sforzo.\n• Respirazione diaframmatica: 5 minuti, 3–4 volte al giorno (schema 4–2–6 oppure 4–7–8 se confortevole). Spalle rilassate, espirazione lenta.\n• Monitor: se vuoi, ripeti SpO2 tra 2–3 ore seduto 5′, mano calda; opzionale: comunicami anche la frequenza cardiaca a riposo.\nServe un promemoria per acqua o respirazione?"
+        }
+    }
+]

@@ -30,7 +30,6 @@ const fmtMilliseconds = (ms: number): string => {
   return parts.join(" ") || "0ms";
 };
 
-
 export const getHeatmapColor = (value: number) => {
   const v = Math.max(0, Math.min(1, value));
   const r = Math.round(255 * (1 - v));
@@ -163,9 +162,6 @@ const buildCandidateTooltipHTML = (
         .join("")}
         </ul>`;
 
-
-
-
   const exp =
     explanation && explanation.trim().length > 0
       ? `<div class="mt-3">
@@ -222,7 +218,6 @@ const main = async () => {
     .parse();
 
   const normalizedInput = input.replaceAll("/", PATH_NORMALIZATION_MARK);
-
 
   const scoresDir = path.join("output", "scores");
   const allScoreFiles = (await readdir(scoresDir)).filter((f) => f.split("_")[0] === normalizedInput);
@@ -383,7 +378,6 @@ class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${escapeT
 
       for (let i = 0; i < (csvData?.length ?? 0); i++) {
         const row: any = csvData[i] ?? {};
-        // ⬇️ allineato al nuovo schema: llm_score e llm_explanation
         const score = parseFloat(row.llm_score ?? row.llm ?? "NaN");
         const explanation = row.llm_explanation ?? "";
 
@@ -425,7 +419,8 @@ class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${escapeT
 <script>
 document.addEventListener('DOMContentLoaded', function(){
 
-  tippy('[data-tippy-content]', {
+  // Config base condivisa per un posizionamento stabile
+  const BASE_TIPPY = {
     theme: 'fg',
     allowHTML: true,
     interactive: true,
@@ -433,22 +428,28 @@ document.addEventListener('DOMContentLoaded', function(){
     delay: [100, 50],
     appendTo: () => document.body,
     arrow: true,
-    placement: 'auto',
-    zIndex: 9998
-  });
+    placement: 'top',       // preferisci "sopra"
+    offset: [0, 8],         // distanza costante dall'elemento
+    zIndex: 9998,
+    // Fix di posizionamento: evita offset strani con contenitori scroll/transform
+    popperOptions: {
+      strategy: 'fixed',
+      modifiers: [
+        { name: 'preventOverflow', options: { boundary: 'viewport', tether: true } },
+        { name: 'computeStyles', options: { adaptive: false } }
+      ]
+    }
+  };
 
+  // Tooltip generici (attributo data-tippy-content)
+  tippy('[data-tippy-content]', BASE_TIPPY);
+
+  // Tooltip su citazioni (delegati)
   tippy.delegate(document.body, {
+    ...BASE_TIPPY,
     target: '.citation-badge',
-    theme: 'fg',
-    allowHTML: true,
-    interactive: true,
-    maxWidth: 520,
     delay: [80, 40],
-    appendTo: () => document.body,
-    arrow: true,
-    placement: 'top',
-    offset: [0, 8],
-    zIndex: 9999,
+    zIndex: 9999, // sopra agli altri
     content(reference){
       const enc = reference.getAttribute('data-resolved-enc');
       return enc ? decodeURIComponent(enc) : '<div class="text-xs text-gray-400">Nessun testo disponibile</div>';

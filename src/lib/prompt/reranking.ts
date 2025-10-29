@@ -66,7 +66,7 @@ Diabetes affects blood sugar levels and requires monitoring.
 QUERY: "What are the symptoms of diabetes?"
 
 OUTPUT:
-[
+{"rankings": [
 {
    "index": 0,
    "score": 0.8,
@@ -82,7 +82,7 @@ OUTPUT:
    "score": 0.5,
    ${reasoning ? `"reasoning": "Provides general background about the condition but does not list any symptoms. It is topically related but doesn't directly answer the question. Moderately relevant."` : ''}
 }
-]
+]}
 
 ---
 
@@ -102,7 +102,7 @@ Bitcoin is a popular cryptocurrency that uses blockchain technology for its publ
 QUERY: "How does a blockchain work?"
 
 OUTPUT:
-[
+{ "rankings": [
 {
    "index": 0,
    "score": 0.6,
@@ -124,6 +124,7 @@ OUTPUT:
    ${reasoning ? `"reasoning": "This chunk provides an example of blockchain's use but doesn't explain its mechanics. The connection is tangential. Slightly relevant."` : ''}
 }
 ]
+}
 
 ---
 `;

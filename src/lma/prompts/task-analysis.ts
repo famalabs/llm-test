@@ -1,4 +1,5 @@
-export const TASK_ANALYSIS_PROMPT = (history: string, message: string, task: string) => `
+export const TASK_ANALYSIS_PROMPT = (history: string, message: string, task: string, type: string) => { 
+  return `
 You are an expert assistant specialized in analyzing **chat conversations between a chatbot and a user**.  
 Your goal is to determine if the **user’s last message** responds to a **pending task** previously requested by the agent.
 
@@ -21,6 +22,8 @@ EXTRACTION RULES (if status = "answered")
      • true if the user confirms or implies execution (“yes”, “I've done it”)  
      • false if they deny or say “not yet”
    - type = string → the descriptive text provided by the user
+
+   [!] Very important: the type for the answer to extract is -> ${type} <-
    
 2. **Add notes ONLY if the user provides extra details** that are:
    - directly relevant to the task
@@ -58,7 +61,7 @@ OUTPUT FORMAT (JSON)
 -----------------------------
 {
   "status": "answered" | "ignored" | "negated" | "wait",
-  "answer": string | number | boolean | null,
+  "answer": ${type} | null,
   "notes": string | null
 }
 
@@ -85,19 +88,19 @@ Output:
 ---
 
 Input Task:
-Name: "Prendi tachipirina"
-Type: "boolean"
-Description: "L'utente deve prendere una pasticca di tachipirina."
+Name: "Controlla quanta tachipirina hai preso"
+Type: "number"
+Description: "L'utente deve indicare quante pasticche di tachipirina ha preso."
 
 Chat History:
-AGENT: "Prendi una pasticca di tachipirina."
+AGENT: "Dimmi quante pasticche di tachipirina hai preso oggi."
 USER: "Ne ho prese 2 per sicurezza 😊, comunque voglio andare in farmacia dopo."
 
 Output:
 {
   "status": "answered",
-  "answer": true,
-  "notes": "L'utente ha preso due pasticche di tachipirina, invece di una."
+  "answer": 2,
+  "notes": null
 }
 
 
@@ -110,7 +113,7 @@ Description: "L'utente deve prendere una pillola di paracetamolo."
 
 Chat History:
 AGENT: "Per favore, prendi una pillola di paracetamolo."
-USER: "NO, ora no. Lo faccio dopo"
+USER: ""
 Output:
 {
   "status": "negated",
@@ -130,4 +133,9 @@ ${message}
 
 TASK TO EVALUATE:
 ${task}
+
+----
+VERY IMPORTANT: the type for the answer to extract is -> ${type} | null (no other type allowed)
+----
 `.trim();
+}

@@ -117,7 +117,7 @@ Return a single JSON object with exactly these keys:
 }
 
 Notes:
-- If no clear request, set "user_request" to undefined and omit "useful_tools".
+- If no clear request, set "user_request" to undefined and omit "useful_tools" (set it to null).
 ${includeUserSatisfiedDetection ? '- If unable to determine if the request is satisfied, set "request_satisfied" to false.' : ''}
 - Do not include comments or extra fields.
 

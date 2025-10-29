@@ -1,0 +1,6 @@
+{
+    "baseConfig": {
+        "model": "gpt-5-nano",
+        "provider": "openai"
+    }
+}

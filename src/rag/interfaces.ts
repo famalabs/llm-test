@@ -2,6 +2,34 @@ import { VectorStore } from '../vector-store';
 import { Chunk, Citation } from '../lib/chunks';
 import { LLMConfig } from '../llm';
 
+export interface RagPerformance {
+    performance?: {
+        retrieval?: {
+            timeMs: number;
+            numChunksRetrieved: number;
+        },
+        embedding?: {
+            timeMs: number;
+        },
+        reranking?: {
+            timeMs: number;
+            numChunksReranked: number;
+            numGroupsReranked: number;
+        },
+        generateAnswer?: {
+            timeMs: number;
+        }, 
+        parentSectionRetrieval?: {
+            timeMs: number;
+            numSectionsRetrieved: number;
+        },
+        parentPageRetrieval?: {
+            timeMs: number;
+            numPagesRetrieved: number;
+        }
+    }
+}
+
 export interface RagAnswer {
     /**
      * The generated answer text.
