@@ -3,7 +3,7 @@
         "focus_on": "all",
         "input": {
             "message": "Ho avuto nausea e un po' di vertigini, comunque vorrei parlare con un medico.",
-            "chat_status": "request",
+            "chat_status": "normal",
             "task": {
                 "name": "side-effects",
                 "type": "string",
@@ -11,16 +11,20 @@
             },
             "history": [
                 {
+                    "sender": "agent",
+                    "message": "Ciao! Come ti senti oggi?"
+                },
+                {
                     "sender": "user",
                     "message": "Da stamattina ho mal di stomaco e non mi sento molto bene."
                 },
                 {
                     "sender": "agent",
-                    "message": "Hai assunto qualche farmaco oggi?"
+                    "message": "Hai assunto qualche farmaco?"
                 },
                 {
                     "sender": "user",
-                    "message": "Sì, dhe bimbo, ho preso una compressa di paracetamolo."
+                    "message": "Sì, ho preso una compressa di paracetamolo."
                 },
                 {
                     "sender": "agent",
@@ -29,55 +33,55 @@
             ],
             "summary": {
                 "text": "Paziente riferisce mal di stomaco e malessere generale. Ha assunto una compressa di paracetamolo.",
-                "span": 3
+                "span": 4
             }
         },
         "expected_output": {
             "user_request": "L'utente vuole parlare con un medico.",
-            "request_satisfied": false,
+            "request_satisfied": null,
             "sentiment": {
                 "single": {
                     "polarity": 0.0,
                     "involvement": 0.3,
                     "energy": 0.0,
-                    "temper": 0.6,
+                    "temper": 0.3,
                     "mood": 0.0,
-                    "empathy": 0.3,
-                    "tone": 0.3,
-                    "registry": 0.6
+                    "empathy": 0.0,
+                    "tone": -0.6,
+                    "registry": 0.0
                 },
                 "cumulative": {
                     "polarity": 0.0,
-                    "involvement": 0.3,
+                    "involvement": 0.6,
                     "energy": 0.0,
                     "temper": 0.6,
                     "mood": 0.0,
-                    "empathy": 0.3,
-                    "tone": 0.3,
-                    "registry": 1
+                    "empathy": 0.0,
+                    "tone": -0.6,
+                    "registry": 0.3
                 }
             },
             "task": {
                 "status": "answered",
                 "answer": "nausea, vertigini"
-            },
-            "summary": {
-                "text": "Paziente riferisce mal di stomaco e malessere generale. Ha assunto una compressa di paracetamolo. Riporta nausea e vertigini e chiede di parlare con un medico.",
-                "span": 3
             }
         }
     },
     {
         "focus_on": "all",
         "input": {
-            "message": "Ok, ora ho misurato: 102 bpm a riposo (ero un po’ agitato). Sto meglio dopo il Ventolin. Per favore annulla l’appuntamento di domani e riprogrammalo per lunedì mattina, tra le 9 e le 11. E mandami il PDF della terapia aggiornato appena puoi.",
-            "chat_status": "request",
+            "message": "Ok, ora ho misurato: 102 bpm a riposo (ero un po’ agitato). Sto meglio dopo il Ventolin. Per favore annulla l’appuntamento di domani e riprogrammalo per lunedì mattina, tra le 9 e le 11.",
+            "chat_status": "normal",
             "task": {
                 "name": "heart-rate",
                 "type": "number",
                 "description": "The heart rate of the patient, measured in beats per minute."
             },
             "history": [
+                {
+                    "sender": "agent",
+                    "message": "Ciao! Come ti senti oggi?"
+                },
                 {
                     "sender": "user",
                     "message": "Ieri notte ho avuto tosse e un po’ di fiato corto."
@@ -100,7 +104,7 @@
                 },
                 {
                     "sender": "agent",
-                    "message": "I sintomi sono migliorati? Dolore toracico?"
+                    "message": "I sintomi sono migliorati? Senti dolore toracico?"
                 },
                 {
                     "sender": "user",
@@ -108,7 +112,7 @@
                 },
                 {
                     "sender": "agent",
-                    "message": "Per favore misura la frequenza cardiaca a riposo per 60 secondi (task: heart-rate). Se puoi, anche la saturazione."
+                    "message": "Per favore misura la frequenza cardiaca a riposo per 60 secondi. Se puoi, anche la saturazione."
                 },
                 {
                     "sender": "user",
@@ -132,7 +136,7 @@
                 },
                 {
                     "sender": "agent",
-                    "message": "Ricevuta. Invio il PDF a breve. Intanto, per favore, misura i battiti a riposo."
+                    "message": "Ricevuta. PDF con la terapia inviato. Intanto, per favore, misura i battiti a riposo."
                 },
                 {
                     "sender": "user",
@@ -157,58 +161,54 @@
                 {
                     "sender": "agent",
                     "message": "Siediti 5 minuti, poi misura di nuovo. Quando hai il numero, scrivimelo. Vuoi che sposti l’appuntamento se non stai bene?"
-                },
-                {
-                    "sender": "user",
-                    "message": "Valuto tra poco. Puoi verificare se c’è disponibilità anche lunedì mattina?"
                 }
             ],
             "summary": {
-                "text": "Paziente con asma lieve, usa Ventolin (2 puff alle 8). Tosse e dispnea notturna, lieve capogiro/ansia. Prenotata visita pneumologica per domani h 18:00 (Centro Respiro XYZ). Richiesto PDF piano terapeutico via email (leonardo@example.com). In corso richiesta di misurazione frequenza cardiaca a riposo.",
-                "span": 14
+                "text": "Il paziente ha avuto tosse e fiato corto notturni, soffre di asma lieve e usa Ventolin.",
+                "span": 4
             }
         },
         "expected_output": {
-            "user_request": "L'utente vuole annullare la visita di domani e riprogrammarla a lunedì mattina tra le 9 e le 11; inoltre, vuole inviare il PDF della terapia aggiornato.",
-            "request_satisfied": false,
+            "user_request": "L'utente vuole annullare la visita di domani e riprogrammarla a lunedì mattina tra le 9 e le 11.",
+            "request_satisfied": null,
             "sentiment": {
                 "single": {
                     "polarity": 0.3,
                     "involvement": 0.6,
-                    "energy": 0.3,
+                    "energy": 0.0,
                     "temper": 0.3,
-                    "mood": 0.3,
+                    "mood": 0.0,
                     "empathy": 0.3,
                     "tone": 0.3,
-                    "registry": 0
+                    "registry": 0.6
                 },
                 "cumulative": {
-                    "polarity": 0,
+                    "polarity": 0.3,
                     "involvement": 0.6,
-                    "energy": 0.3,
+                    "energy": 0.0,
                     "temper": 0.3,
-                    "mood": 0,
+                    "mood": 0.0,
                     "empathy": 0.3,
-                    "tone": 0.3,
-                    "registry": 0
+                    "tone": 0.6,
+                    "registry": 0.6
                 }
             },
             "task": {
                 "status": "answered",
                 "answer": 102,
-                "notes": "Misurazione riferita a riposo ma con agitazione; dispositivo: Apple Watch; possibile sovrastima. Migliorato dopo Ventolin."
+                "notes": "Misurazione riferita a riposo ma con agitazione; dispositivo: Apple Watch."
             },
             "summary": {
-                "text": "Paziente con asma lieve, usa Ventolin (2 puff alle 8). Tosse e dispnea notturna, lieve capogiro/ansia. Prenotata visita pneumologica per domani h 18:00 (Centro Respiro XYZ). Richiesto PDF piano terapeutico via email (leonardo@example.com). In corso richiesta di misurazione frequenza cardiaca a riposo. Paziente ha assunto 1000 mg di paracetamolo per mal di testa, dose superiore alla compressa standard da 500 mg. Evitare di ripetere.",
-                "span": 18
+                "text": "Paziente con asma lieve, usa Ventolin (2 puff alle 8). Tosse e dispnea notturna, lieve capogiro/ansia. Prenotata visita pneumologica per domani h 18:00 (Centro Respiro XYZ). Richiesto PDF piano terapeutico via email (leonardo@example.com). In corso richiesta di misurazione frequenza cardiaca a riposo. Paziente ha assunto 1000 mg di paracetamolo per mal di testa.",
+                "span": 19
             }
         }
     },
     {
-        "focus_on": "task.wait",
+        "focus_on": "all",
         "input": {
-            "message": "Ok, lo prendo dopo pranzo: adesso sono fuori casa. Puoi ricordarmelo tra un'ora?",
-            "chat_status": "request",
+            "message": "Ok, lo prendo dopo pranzo. Puoi ricordarmelo tra un'ora?",
+            "chat_status": "normal",
             "task": {
                 "name": "medication-intake",
                 "type": "boolean",
@@ -216,12 +216,16 @@
             },
             "history": [
                 {
+                    "sender": "agent",
+                    "message": "Ciao! Come ti senti oggi?"
+                },
+                {
                     "sender": "user",
                     "message": "Da stamattina mi gira un po’ la testa."
                 },
                 {
                     "sender": "agent",
-                    "message": "Hai già preso l'antibiotico come prescritto? (task: medication-intake)"
+                    "message": "Hai già preso l'antibiotico come prescritto?"
                 },
                 {
                     "sender": "user",
@@ -233,31 +237,31 @@
                 }
             ],
             "summary": {
-                "text": "Paziente con lieve capogiro. Antibiotico prescritto non ancora assunto; agente sollecita assunzione entro mezzogiorno.",
-                "span": 4
+                "text": "Paziente con lieve capogiro.",
+                "span": 2
             }
         },
         "expected_output": {
             "user_request": "L'utente chiede un promemoria tra un'ora per ricordarsi di prendere l'antibiotico.",
-            "request_satisfied": false,
+            "request_satisfied": null,
             "sentiment": {
                 "single": {
-                    "polarity": 0.3,
+                    "polarity": 0.0,
                     "involvement": 0.6,
-                    "energy": 0.3,
+                    "energy": 0.0,
                     "temper": 0.6,
                     "mood": 0.3,
-                    "empathy": 0.3,
-                    "tone": -0.3,
+                    "empathy": 0.0,
+                    "tone": 0.0,
                     "registry": 0.6
                 },
                 "cumulative": {
-                    "polarity": 0.3,
+                    "polarity": 0.0,
                     "involvement": 0.6,
-                    "energy": 0.3,
+                    "energy": 0.0,
                     "temper": 0.6,
-                    "mood": 0.3,
-                    "empathy": 0.3,
+                    "mood": 0.0,
+                    "empathy": 0.0,
                     "tone": -0.3,
                     "registry": 0.6
                 }
@@ -267,7 +271,7 @@
                 "notes": null
             },
             "summary": {
-                "text": "Paziente con lieve capogiro. Antibiotico prescritto non ancora assunto; l’utente rimanda l’assunzione a dopo pranzo e chiede un promemoria tra un’ora.",
+                "text": "Paziente con lieve capogiro. Antibiotico prescritto non ancora assunto.",
                 "span": 4
             }
         }
@@ -275,7 +279,7 @@
     {
         "focus_on": "chat_length",
         "input": {
-            "message": "No, oggi non la misuro: mi fa impressione pungermi il dito e non ho le strisce. Rimando a domattina a digiuno. Intanto, puoi mandarmi esercizi di respirazione e ricordarmi di bere più acqua?",
+            "message": "Mandami il reminder, poi vediamo domattina. Intanto, puoi mandarmi degli esercizi di respirazione?",
             "chat_status": "request",
             "task": {
                 "name": "fasting-glucose",
@@ -283,6 +287,10 @@
                 "description": "Fasting blood glucose value in mg/dL, measured after at least 8 hours of fasting."
             },
             "history": [
+                {
+                    "sender": "agent",
+                    "message": "Ciao! Come ti senti?"
+                },
                 {
                     "sender": "user",
                     "message": "Da due notti dormo male e ho molta sete."
@@ -369,7 +377,7 @@
                 },
                 {
                     "sender": "agent",
-                    "message": "Fa senso. Ti va di impostare un obiettivo sonno 7 ore?"
+                    "message": "Ti va di impostare un obiettivo sonno 7 ore?"
                 },
                 {
                     "sender": "user",
@@ -425,7 +433,7 @@
                 },
                 {
                     "sender": "agent",
-                    "message": "Nota. Hai possibilità di fare 10 minuti di camminata dopo cena?"
+                    "message": "Hai possibilità di fare 10 minuti di camminata dopo cena?"
                 },
                 {
                     "sender": "user",
@@ -449,7 +457,7 @@
                 },
                 {
                     "sender": "agent",
-                    "message": "Ok. Ricap: sonno 7h, acqua 2L, passeggiata serale. Manca la misura a digiuno per domani."
+                    "message": "Ok. Recap: sonno 7h, acqua 2L, passeggiata serale. Manca la misura a digiuno per domani."
                 },
                 {
                     "sender": "user",
@@ -457,7 +465,7 @@
                 },
                 {
                     "sender": "agent",
-                    "message": "Per favore conferma: domattina a digiuno puoi misurare e scrivermi il valore? (task: fasting-glucose)"
+                    "message": "Per favore conferma: domattina a digiuno puoi misurare e scrivermi il valore?"
                 },
                 {
                     "sender": "user",
@@ -473,7 +481,7 @@
                 },
                 {
                     "sender": "agent",
-                    "message": "Capito. In alternativa farmacia aperta domani. Vuoi che ti mandi una checklist passo-passo?"
+                    "message": "Capito. In alternativa la farmacia è aperta domani. Vuoi che ti mandi una checklist passo-passo?"
                 },
                 {
                     "sender": "user",
@@ -481,26 +489,26 @@
                 },
                 {
                     "sender": "agent",
-                    "message": "Inviata checklist. Confermi che domani a digiuno misuri e mi invii il numero in mg/dL? (task: fasting-glucose)"
+                    "message": "Inviata checklist per mail. Confermi che domani a digiuno misuri e mi invii il numero in mg/dL?"
                 }
             ],
             "summary": {
-                "text": "Prediabete in terapia con metformina 500 mg sera; sete aumentata e sonno scarso. Obiettivi: idratazione 1.5–2 L, 7h sonno, camminata serale. Educazione su colazione a basso impatto glicemico. Agente richiede misura glicemia a digiuno per calibrare piano.",
-                "span": 49
+                "text": "L'utente riferisce insonnia e sete persistente. Ha una diagnosi di prediabete e assume metformina 500 mg la sera. Non ha avuto ipoglicemie, ma un po’ di stanchezza post-prandiale. L’idratazione è insufficiente (circa 1 litro al giorno) e l’attività fisica è saltuaria (20 minuti di camminata). La colazione è zuccherina (cappuccino e cornetto), e si propone una variante più bilanciata (yogurt greco e frutta secca). L’utente possiede un glucometro ma non ha controllato la glicemia da settimane. Nessuna infezione recente.",
+                "span": 20
             }
         },
         "expected_output": {
-            "user_request": "L'utente chiede esercizi di respirazione e promemoria per aumentare l’idratazione.",
-            "request_satisfied": false,
+            "user_request": "L'utente chiede esercizi di respirazione e promemoria per la glicemia domattina.",
+            "request_satisfied": true,
             "sentiment": {
                 "single": {
-                    "polarity": 0,
-                    "involvement": 0.6,
-                    "energy": 0.3,
+                    "polarity": 0.0,
+                    "involvement": 0.3,
+                    "energy": 0.0,
                     "temper": 0.6,
-                    "mood": -0.3,
-                    "empathy": 0.3,
-                    "tone": 0.3,
+                    "mood": 0.0,
+                    "empathy": 0.0,
+                    "tone": -0.3,
                     "registry": 0.6
                 },
                 "cumulative": {
@@ -509,8 +517,8 @@
                     "energy": 0.3,
                     "temper": 0.6,
                     "mood": 0.0,
-                    "empathy": 0.3,
-                    "tone": 0.3,
+                    "empathy": -0.3,
+                    "tone": 0.0,
                     "registry": 0.6
                 }
             },
@@ -519,8 +527,8 @@
                 "notes": "L’utente rifiuta di eseguire la misurazione oggi per ansia da puntura e mancanza di strisce; propone di rimandare a domattina a digiuno."
             },
             "summary": {
-                "text": "Prediabete in terapia con metformina 500 mg sera; sete aumentata e sonno scarso. Obiettivi: idratazione 1.5–2 L, 7h sonno, camminata serale. Educazione su colazione a basso impatto glicemico. Misura glicemia a digiuno richiesta ma rifiutata oggi per ansia e carenza strisce; utente rimanda a domani. Richiesti esercizi di respirazione e promemoria idratazione.",
-                "span": 50
+                "text": "L’utente ha una diagnosi di prediabete e assume metformina 500 mg la sera. Riferisce insonnia, sete persistente, stress lavorativo e stanchezza dopo pranzo. L’idratazione è insufficiente (circa 1 litro al giorno) e l’attività fisica è saltuaria (camminata di 20 minuti). La colazione è ricca di zuccheri (cappuccino e cornetto), e si propone una variante più bilanciata (yogurt greco e frutta secca). Possiede un glucometro con poche strisce residue, ma non ha misurato la glicemia da settimane e prova ansia per la puntura. Si suggerisce respirazione lenta prima della misurazione e si verifica la presenza di lancette. Si propone un piano con obiettivi: sonno di 7 ore, idratazione di 2 litri, camminata serale e misurazione glicemica a digiuno. L’utente è incerto sulla misurazione, ma accetta una checklist passo-passo per facilitare il monitoraggio. Si accenna anche alla possibilità futura di usare sensori CGM.",
+                "span": 51
             }
         }
     },
@@ -536,6 +544,10 @@
             },
             "history": [
                 {
+                    "sender": "agent",
+                    "message": "Ciao! Come ti senti oggi?"
+                },
+                {
                     "sender": "user",
                     "message": "Mi sento uno schifo da stamattina."
                 },
@@ -549,7 +561,7 @@
                 },
                 {
                     "sender": "agent",
-                    "message": "Per favore misura la temperatura e dimmi il valore in °C. (task: fever-temperature)"
+                    "message": "Per favore misura la temperatura e dimmi il valore in °C."
                 },
                 {
                     "sender": "user",
@@ -578,7 +590,7 @@
             ],
             "summary": {
                 "text": "Sintomi: brividi, cefalea, possibile febbre. L’agente richiede misurazione della temperatura per orientare il triage; l’utente rifiuta di misurare.",
-                "span": 10
+                "span": 11
             }
         },
         "expected_output": {
@@ -588,32 +600,30 @@
                 "single": {
                     "polarity": -1,
                     "involvement": -0.6,
-                    "energy": -0.6,
+                    "energy": -1,
                     "temper": -0.6,
-                    "mood": -0.3,
-                    "empathy": -0.6,
-                    "tone": -0.3,
+                    "mood": -0.0,
+                    "empathy": -0.0,
+                    "tone": 0.3,
                     "registry": 0.6
                 },
                 "cumulative": {
                     "polarity": -0.6,
                     "involvement": -0.6,
-                    "energy": -0.3,
+                    "energy": -0.6,
                     "temper": -0.3,
-                    "mood": -0.6,
-                    "empathy": -0.6,
-                    "tone": -0.3,
-                    "registry": 0.6
+                    "mood": 0.0,
+                    "empathy": 0.0,
+                    "tone": 0.0,
+                    "registry": 1
                 }
             },
             "task": {
-                "status": "answered",
-                "answer": 38,
-                "notes": "Valore fornito senza misurazione effettiva su richiesta esplicita di 'mettere 38'; attendibilità bassa."
+                "status": "negated"
             },
             "summary": {
                 "text": "Sintomi compatibili con stato febbrile (brividi, cefalea). L’utente rifiuta la misurazione, fornisce un valore non misurato (38 °C) e richiede di parlare subito con un medico umano.",
-                "span": 11
+                "span": 12
             }
         }
     },
@@ -629,6 +639,10 @@
             },
             "history": [
                 {
+                    "sender": "agent",
+                    "message": "Ciao! Come ti senti?"
+                },
+                {
                     "sender": "user",
                     "message": "Mi sento un po' affannato dopo le scale ma ora sto meglio."
                 },
@@ -642,7 +656,7 @@
                 },
                 {
                     "sender": "agent",
-                    "message": "Perfetto. Per favore misura la saturazione a riposo: seduto 5 minuti, mano calda, niente smalto. (task: oxygen-saturation)"
+                    "message": "Perfetto. Per favore misura la saturazione a riposo: seduto 5 minuti, mano calda, niente smalto."
                 },
                 {
                     "sender": "user",
@@ -655,11 +669,15 @@
                 {
                     "sender": "user",
                     "message": "Faccio subito. Intanto, se va bene, vorrei anche qualche indicazione su idratazione e respirazione."
+                },
+                {
+                    "sender": "agent",
+                    "message": "Cerca di bere almeno 2 litri d'acqua durante tutta la giornata, e respira col diaframma. Aspetto il valore di saturazione."
                 }
             ],
             "summary": {
-                "text": "Affanno lieve post-sforzo, ora compensato. Disponibile saturimetro a dito. Agente richiede SpO2 a riposo con protocollo corretto; utente collaborativo e chiede anche consigli su idratazione/respirazione.",
-                "span": 7
+                "text": "Affanno lieve post-sforzo, ora compensato. Disponibile saturimetro a dito. Agente richiede SpO2 a riposo con protocollo corretto.",
+                "span": 5
             }
         },
         "expected_output": {
@@ -668,33 +686,33 @@
             "sentiment": {
                 "single": {
                     "polarity": 0.6,
-                    "involvement": 0.6,
+                    "involvement": 1,
                     "energy": 0.3,
                     "temper": 0.6,
-                    "mood": 0.3,
+                    "mood": 0.0,
                     "empathy": 0.3,
                     "tone": 0.6,
-                    "registry": 0.3
+                    "registry": 0.6
                 },
                 "cumulative": {
-                    "polarity": 0.3,
-                    "involvement": 0.6,
+                    "polarity": 0.6,
+                    "involvement": 1,
                     "energy": 0.3,
                     "temper": 0.6,
-                    "mood": 0.3,
+                    "mood": 0.0,
                     "empathy": 0.3,
                     "tone": 0.6,
-                    "registry": 0.3
+                    "registry": 0.6
                 }
             },
             "task": {
                 "status": "answered",
                 "answer": 97,
-                "notes": "Misurazione eseguita a riposo dopo 5 minuti, dito indice, mano calda; dispositivo: saturimetro da dito domestico. Utente disponibile a ripetere e fornire FC."
+                "notes": "Misurazione eseguita a riposo dopo 5 minuti, dito indice, mano calda; dispositivo: saturimetro da dito domestico."
             },
             "summary": {
-                "text": "Affanno lieve post-sforzo, ora compensato. SpO2 riferita 97% a riposo con procedura corretta. Utente molto collaborativo, offre di ripetere la misura e fornire FC. Richiesto un piano pratico per idratazione e respirazione diaframmatica.",
-                "span": 8
+                "text": "Affanno lieve post-sforzo, ora compensato. SpO2 riferita 97% a riposo con procedura corretta. Utente molto collaborativo, offre di ripetere la misura e fornire frequenza cardiaca. Richiesto un piano pratico per idratazione e respirazione diaframmatica.",
+                "span": 10
             }
         }
     }
