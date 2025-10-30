@@ -33,6 +33,16 @@ Instructions:
    - Clarity: Be clear and concise in your justifications.
    - No assumptions: Do not infer information beyond what's explicitly stated in the block.
 
+4. Response format (STRICT):
+    - Return ONLY a single JSON object. Do not include explanations, backticks, or any extra text.
+    - The JSON MUST have exactly one top-level key: "rankings".
+    - "rankings" MUST be an array (not an object/map) where EACH element is an object with the fields:
+       - "index": integer, the index of the chunk you are scoring (0 to N-1).
+       - "score": number in [0,1] with at most one decimal (increments of 0.1).
+       ${reasoning ? `- "reasoning": string, a short justification (optional if already provided in instructions).` : ''}
+    - Do NOT return a dictionary like {"0": 0.7, "1": 0.6}. That is INVALID. Use an ARRAY of OBJECTS instead.
+    - Do NOT add any other fields.
+
 CHUNKS: """
 ${promptDocuments.map((doc, idx) => `====== CHUNK ${idx} [INDEX = ${idx}] [extracted from document ${doc.source}] ======\n${doc.content}\n`).join('\n')}
 """
@@ -40,6 +50,12 @@ ${promptDocuments.map((doc, idx) => `====== CHUNK ${idx} [INDEX = ${idx}] [extra
 QUERY: """
 ${userQuery}
 """
+ 
+VALID OUTPUT EXAMPLE:
+{"rankings": [
+   {"index": 0, "score": 0.6${reasoning ? ', "reasoning": "Breve motivazione."' : ''}},
+   {"index": 1, "score": 0.8${reasoning ? ', "reasoning": "Breve motivazione."' : ''}}
+]}
 `
 
 const REASONING = `
