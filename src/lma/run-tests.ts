@@ -1,6 +1,6 @@
 import { createOutputFolderIfNeeded, PATH_NORMALIZATION_MARK } from '../utils';
 import { readFile, writeFile } from 'fs/promises';
-import { LmaInput, LmaOutput } from './interfaces';
+import { LmaInput, LmaOutput, SentimentScores } from './interfaces';
 import { hideBin } from 'yargs/helpers';
 import { Lma } from './lma';
 import yargs from "yargs";
@@ -47,7 +47,7 @@ const main = async () => {
     const lma = new Lma(lmaConfig);
 
     let parsedTestSelection: number[] = [];
-    const runAllTests = testSelection.length == 0;
+    const runAllTests = (testSelection ?? []).length == 0;
 
     if (runAllTests) {
         console.log('No tests specified. Running all tests.');
@@ -73,11 +73,12 @@ const main = async () => {
 
     const runOne = async ({ input, expected_output }: LmaTestCase) => {
         const start = performance.now();
-        let prediction = {} as LmaOutput;
+        let prediction = {} as LmaOutput & { sentiment: { lastMessageLookingAtHistory?: SentimentScores } };
 
         if (runAllTests) {
             prediction = await lma.mainCall(input);
-        } 
+            prediction.sentiment.lastMessageLookingAtHistory = await lma.getLastMessageSentimentLookingAtHistory(input);
+        }
         
         else {
             // --- Selective tests ---
@@ -85,7 +86,8 @@ const main = async () => {
                 console.log('Analyzing sentiment...');
                 prediction.sentiment = {
                     single: await lma.getSingleMessageSentiment(input),
-                    cumulative: await lma.getCumulativeSentiment(input)
+                    cumulative: await lma.getCumulativeSentiment(input), 
+                    lastMessageLookingAtHistory: await lma.getLastMessageSentimentLookingAtHistory(input)
                 };
             }
 
@@ -129,7 +131,9 @@ const main = async () => {
             predictions.push(r.prediction);
             expectedOutputs.push(r.expected_output);
         }
-    } else {
+    } 
+    
+    else {
         console.log('Running LMA tests sequentially...');
         for (const tc of testsData) {
             const r = await runOne(tc);
