@@ -13,7 +13,7 @@ SCHEMA (you MUST comply):
   "therapy_drugs": [
     {
       "drug": string,                   // keep strength/presentation in the name
-      "notes": string | undefined,      // admin notes not about timing logic (e.g., "after meals")
+      "notes": string | undefined,      // notes not about timing logic (e.g., "after meals")
       "schedule": {
         "day": number,                  // start offset in days; 0=today
         "hours": string[] | undefined,  // "HH:MM" 24h, zero-padded, sorted asc, unique
@@ -32,9 +32,10 @@ SCHEMA (you MUST comply):
   ]
 }
 
-# CRITICAL RULES
+---------------------------
+CRITICAL RULES
+---------------------------
 1) Distinguish **strength/presentation** vs **dose**:
-   - Strength (e.g., "500 mg", "160/4.5 mcg", "25,000 IU") stays in \`drug\`.
    - \`dose\` is the numeric count PER ADMINISTRATION (tablets, puffs, ml, drops, units).
    - DO NOT set \`dose\` equal to a mere strength unless the text clearly implies a single administration equals that amount.
 
@@ -74,7 +75,6 @@ OUTPUT REQUIREMENTS
 ---------------------------
 FEW-SHOT EXAMPLES:
 ---------------------------
-
 EXAMPLE A
 TEXT:
 "Omeprazole 20 mg: take 1 capsule once daily for 14 days. Start in 2 days. Take before breakfast."
@@ -118,7 +118,7 @@ OUTPUT:
 {
   "therapy_drugs": [
     {
-      "drug": "Budesonide/Formoterol 160/4.5 mcg",
+      "drug": "Budesonide/Formoterol",
       "schedule": {
         "day": 0,
         "hours": ["08:00","20:00"],
@@ -137,7 +137,7 @@ OUTPUT:
 {
   "therapy_drugs": [
     {
-      "drug": "N-acetylcysteine 600 mg/day",
+      "drug": "N-acetylcysteine",
       "schedule": {
         "day": 0,
         "period_duration": 30,

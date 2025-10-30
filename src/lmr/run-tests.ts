@@ -7,7 +7,7 @@ import yargs from 'yargs';
 import path from 'path';
 import 'dotenv/config';
 
-type LmrTestCase = { input: LmrInput, expected_output: LmrOutput, focus_on?: string };
+type LmrTestCase = { input: LmrInput, expected_output: LmrOutput };
 
 const main = async () => {
 	const { test: testFile, config: configFile, parallel, verbose } = await yargs(hideBin(process.argv))

@@ -38,20 +38,20 @@ const main = async () => {
     const sourceExtension = getFileExtension(source!);
     let text: string | undefined = undefined;
 
-    if (sourceExtension === 'docx') {
+    if (sourceExtension == 'docx') {
         console.log('Will parse .docx file');
         const inputBuffer = await readFile(source!);
         const outputBuffer = await parseDocx(inputBuffer, 'text');
         text = outputBuffer;
     }
-    else if (sourceExtension === 'doc') {
+    else if (sourceExtension == 'doc') {
         console.log('Will parse .doc file');
         const inputBuffer = await readFile(source!);
         const outputBuffer = await parseDoc(inputBuffer, 'text');
         text = outputBuffer;
     }
     else {
-        console.error('Unsupported file type');
+        console.error('Unsupported file type. Only .doc and .docx are supported.');
         process.exit(1);
     }
 

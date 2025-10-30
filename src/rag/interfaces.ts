@@ -118,7 +118,7 @@ export interface ParentPageRetrievalConfig {
     /**
      * Type of parent page retrieval to perform.
      */
-    type: 'lines' | 'full-section';
+    type: 'lines' | 'full-section' | 'chunks';
 }
 
 export interface SemanticCacheConfig {

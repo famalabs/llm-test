@@ -179,8 +179,8 @@ export class Rag {
                 throw new Error(`Invalid parent page retrieval offset: ${parentPageRetrieval.offset}. It must be a positive number.`);
             }
 
-            if (parentPageRetrieval.type == 'lines' && !(parentPageRetrieval.offset)) {
-                throw new Error("Parent page retrieval type is 'lines' but offset is not set.");
+            if ((parentPageRetrieval.type == 'lines' || parentPageRetrieval.type == 'chunks') && !(parentPageRetrieval.offset)) {
+                throw new Error("Parent page retrieval type requires a positive 'offset' when using 'lines' or 'chunks'.");
             }
         }
 
@@ -326,6 +326,12 @@ export class Rag {
                 ragPerformance.performance!.parentPageRetrieval = { timeMs: performance.now() - start, numPagesRetrieved: chunks.length };
             }
 
+            else if (this.config.parentPageRetrieval.type == 'chunks' && this.config.parentPageRetrieval.offset) {
+                start = performance.now();
+                chunks = await this.retrieveChunkNeighbors(chunks, this.config.parentPageRetrieval.offset);
+                ragPerformance.performance!.parentPageRetrieval = { timeMs: performance.now() - start, numPagesRetrieved: chunks.length };
+            }
+
             else {
                 throw new Error("Invalid parent page retrieval configuration.");
             }
@@ -343,6 +349,117 @@ export class Rag {
         await this.storeToCache(queryEmbedding, answer);
 
         return { ...answer, ...ragPerformance };
+    }
+
+    private async retrieveChunkNeighbors(chunks: Chunk[], offset: number): Promise<Chunk[]> {
+
+        const bySource: Record<string, Chunk[]> = {};
+        for (const c of chunks) {
+            if (!bySource[c.source]) bySource[c.source] = [];
+            bySource[c.source].push(c);
+        }
+
+        const outMap = new Map<string, Chunk>();
+
+        const getKey = (c: Chunk) => `${c.source}::${c.id ?? ''}::${c.childId ?? ''}`;
+        const getLineFrom = (c: Chunk) => c?.metadata?.loc?.lines?.from ?? Infinity;
+
+        for (const c of chunks) {
+            const key = getKey(c);
+            outMap.set(key, c);
+        }
+
+        for (const [source, srcChunks] of Object.entries(bySource)) {
+            const { docs } = await this.docStore.query(`@source:{${escapeRedisValue(source)}}`);
+            if (!docs || docs.length == 0) continue;
+
+            const all = docs.map(d => d.fields as Chunk);
+
+            const topLevel = all.filter(c => !c.childId);
+            const byParent: Record<string, Chunk[]> = {};
+
+            for (const c of all) {
+                if (c.childId) {
+                    const pid = c.id;
+                    if (!byParent[pid]) byParent[pid] = [];
+                    byParent[pid].push(c);
+                }
+            }
+
+            topLevel.sort((a, b) => getLineFrom(a) - getLineFrom(b));
+
+            for (const pid of Object.keys(byParent)) {
+                byParent[pid].sort((a, b) => (Number(a.childId) ?? 0) - (Number(b.childId) ?? 0));
+            }
+
+            const pushWithDistance = (base: Chunk, cand: Chunk) => {
+                const key = getKey(cand);
+                const candidate: Chunk = {
+                    pageContent: cand.pageContent,
+                    source: cand.source,
+                    id: cand.id,
+                    childId: cand.childId,
+                    metadata: cand.metadata,
+                    distance: base.distance,
+                } as Chunk;
+                const prev = outMap.get(key);
+                if (!prev || (prev.distance != null && base.distance < prev.distance)) {
+                    outMap.set(key, candidate);
+                }
+            };
+
+            const indexTopLevel = new Map<string, number>();
+            const indexChildren: Record<string, Map<string, number>> = {};
+
+            topLevel.forEach((c, i) => indexTopLevel.set(getKey(c), i));
+
+            for (const [pid, arr] of Object.entries(byParent)) {
+                indexChildren[pid] = new Map<string, number>();
+                arr.forEach((c, i) => indexChildren[pid]!.set(getKey(c), i));
+            }
+
+            for (const base of srcChunks) {
+                const isChild = !base.childId;
+
+                if (isChild) {
+                    const pid = base.id;
+                    const arr = byParent[pid] ?? [];
+                    if (arr.length == 0) continue;
+
+                    const idx = arr.findIndex(c => c.childId == base.childId);
+                    if (idx < 0) continue;
+
+                    for (let k = 1; k <= offset; k++) {
+                        const left = arr[idx - k];
+                        const right = arr[idx + k];
+
+                        if (left) pushWithDistance(base, left);
+                        if (right) pushWithDistance(base, right);
+                    }
+                }
+
+                else {
+                    let idx = topLevel.findIndex(c => c.id == base.id && (c.childId == null || c.childId === undefined));
+
+                    if (idx < 0) {
+                        const from = getLineFrom(base);
+                        idx = topLevel.findIndex(c => getLineFrom(c) == from);
+                    }
+
+                    if (idx < 0) continue;
+
+                    for (let k = 1; k <= offset; k++) {
+                        const left = topLevel[idx - k];
+                        const right = topLevel[idx + k];
+
+                        if (left) pushWithDistance(base, left);
+                        if (right) pushWithDistance(base, right);
+                    }
+                }
+            }
+        }
+
+        return Array.from(outMap.values()).sort((a, b) => a.distance - b.distance);
     }
 
 

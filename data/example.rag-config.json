@@ -1,7 +1,7 @@
 {
     "rag": {
         "provider": "openai",
-        "llm": "gpt-5-nano",
+        "model": "gpt-5-nano",
         "numResults": 10,
         "parentPageRetrieval": {
             "offset": 5,

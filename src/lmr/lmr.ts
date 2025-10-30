@@ -1,7 +1,7 @@
 import { OPENER_PROMPT, CLOSER_PROMPT, FIRST_TIME_TASK_REQUEST_PROMPT, PRECEDENTLY_IGNORED_TASK_REQUEST_PROMPT, WAITED_TASK_REQUEST_PROMPT, ANSWER_USER_REQUEST_PROMPT } from "./prompts";
 import { LmrConfig, LmrInput, LmrOutput } from "./interfaces";
 import { getLLMProvider, LLMConfigProvider } from "../llm";
-import { generateObject, generateText } from "ai";
+import { generateObject, generateText, stepCountIs } from "ai";
 import { exampleLmrTools } from "./lmr.tools";
 import { resolveConfig } from "./lmr.config";
 import { z } from "zod/v4";
@@ -58,6 +58,7 @@ export class Lmr {
         const llmModel = (await getLLMProvider(provider))(model);
 
         if (input.user_request) {
+
             if (input.chat_status != 'request') {
                 console.warn('LMR input has user_request but chat_status is not "request". Proceeding anyway.');
             }
@@ -75,6 +76,7 @@ export class Lmr {
                     userInfo,
                     input.user_info?.language ?? 'italian'
                 ),
+                stopWhen: stepCountIs(5)
             });
 
             return {

@@ -1,5 +1,5 @@
 import { LLMConfigProvider } from "../../llm";
-import { LmaOutput } from "../interfaces";
+import { LmaOutput, SentimentScores } from "../interfaces";
 import { evaluateSentimentAnalysis } from "./sentiment-analysis";
 import { evalauteTaskAnalysis as evaluateTaskAnalysis } from "./task-analysis";
 import { evaluateUserRequestDetection } from "./user-request-detection";
@@ -12,13 +12,14 @@ export const evaluate = async ({
     provider = 'mistral'
 }: {
     expectedOutputs: LmaOutput[],
-    generatedOutputs: LmaOutput[],
+    generatedOutputs: (LmaOutput & { sentiment: { lastMessageLookingAtHistory?: SentimentScores } })[],
     model: string,
     provider: LLMConfigProvider
 }) => {
 
     let singleSentimentAnalysisScore: { raw: number, binarized: number } | null = null;
     let cumulativeSentimentAnalysisScore: { raw: number, binarized: number } | null = null;
+    let lastMessageLookingAtHistoryScore: { raw: number, binarized: number } | null = null;
     let userRequestAccuracyAndEvaluation: { userRequestPresenceAccuracy: number | null, requestSatisfiedAccuracy: number | null, averageUserRequestScore: number | null } | null = null;
     let toolsDetection: { toolNameIoU: number | null, toolParamAccuracy: number | null } | null = null;
     let taskAnalysis: { taskAnswerAccuracy: number | null, taskStatusAccuracy: number | null, taskNotesAverageScore: number | null } | null = null;
@@ -32,6 +33,12 @@ export const evaluate = async ({
             expectedScores: expectedOutputs.map(e => e.sentiment.cumulative),
             generatedScores: generatedOutputs.map(e => e.sentiment.cumulative)
         });
+        if (generatedOutputs.some(g => g.sentiment.lastMessageLookingAtHistory)) {
+            lastMessageLookingAtHistoryScore = evaluateSentimentAnalysis({
+                expectedScores: expectedOutputs.map(e => e.sentiment.single),
+                generatedScores: generatedOutputs.map(e => e.sentiment.lastMessageLookingAtHistory!)
+            });
+        }
     }
 
     if (generatedOutputs.some(g => g.user_request != undefined && g.request_satisfied != undefined)) {
@@ -62,7 +69,8 @@ export const evaluate = async ({
     return {
         sentimentAnalysis: {
             single: singleSentimentAnalysisScore,
-            cumulative: cumulativeSentimentAnalysisScore
+            cumulative: cumulativeSentimentAnalysisScore, 
+            ...(lastMessageLookingAtHistoryScore ? { lastMessageLookingAtHistory: lastMessageLookingAtHistoryScore } : {})
         },
         userRequest: userRequestAccuracyAndEvaluation,
         toolsDetection, 
