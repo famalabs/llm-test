@@ -1,5 +1,5 @@
 import { createOutputFolderIfNeeded, getFileExtension, PATH_NORMALIZATION_MARK } from '../../utils';
-import { GET_THERAPY_STRUCTURE_PROMPT } from '../../lib/prompt';
+import { GET_THERAPY_STRUCTURE_PROMPT, THERAPY_EXTRACTION_PROMPT } from '../../lib/prompt';
 import { parseDoc, parseDocx } from '../../lib/ingestion';
 import { generateObject, ModelMessage } from 'ai';
 import { readFile, writeFile } from "fs/promises";
@@ -51,6 +51,27 @@ const getTherapyStructure = async (text: string, model: string, provider: LLMCon
 };
 
 
+const extractTherapy = async (text: string, model: string, provider: LLMConfigProvider) => {
+
+    const llm = (await getLLMProvider(provider))(model);
+
+    const { object: result } = await generateObject({
+        model: llm,
+        schema: z.object({
+            markdown: z.string().describe('Single Markdown string containing ONLY a well-formatted drug table with all current therapy information (no extra text), using the same language as the input text.')
+        }),
+        temperature: 0,
+        messages: [
+            { role: "system", content: THERAPY_EXTRACTION_PROMPT() },
+            { role: "user", content: `Extract the current therapy from the following medical text:\n\n TEXT:"""${text}"""` }
+        ] as ModelMessage[]
+    });
+
+    return result.markdown;
+};
+
+
+
 const main = async () => {
     const argv = await yargs(hideBin(process.argv))
         .option('source', { alias: 's', type: 'string', demandOption: true, description: 'Path to the source file (.doc or .docx)' })
@@ -81,18 +102,25 @@ const main = async () => {
         process.exit(1);
     }
 
-    if (!text) throw new Error('No conversion result returned.')
+    if (!text) {
+        throw new Error('No conversion result returned.');
+    }
+    
+    console.log('Extracting therapy table...');
+    let start = performance.now();
+    const markdown = await extractTherapy(text, model, provider as LLMConfigProvider);
+    console.log(`Therapy table extraction took ${performance.now() - start} milliseconds`);
 
-    console.log('Extracting therapy...');
-    const start = performance.now();
-    const therapyDrugs = await getTherapyStructure(text, model, provider as LLMConfigProvider);
-    const end = performance.now();
-    console.log(`Therapy extraction took ${end - start} milliseconds`);
+
+    console.log('Extracting structure...');
+    start = performance.now();
+    const therapyDrugs = await getTherapyStructure(markdown, model, provider as LLMConfigProvider);
+    console.log(`Structure extraction took ${performance.now() - start} milliseconds`);
 
     const outDir = createOutputFolderIfNeeded('output', 'document-ingestion', 'therapy');
     let outputFile = path.join(outDir, `structured-therapy-${source!.replaceAll('/', PATH_NORMALIZATION_MARK)}.json`);
     await writeFile(outputFile, JSON.stringify(therapyDrugs, null, 2));
-    console.log('Extracted therapy written to:', outputFile);
+    console.log('Extracted structured therapy written to:', outputFile);
 }
 
 

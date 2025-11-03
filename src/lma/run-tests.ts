@@ -44,18 +44,16 @@ const main = async () => {
     const testsData: LmaTestCase[] = await JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
     const lmaConfig = await JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
 
-    // in run-test.ts  (this script) summarization is always run on whole chat history.
-
     if (lmaConfig.summarizationConfig.C_MAX || lmaConfig.summarizationConfig.C_MIN ) {
-        console.warn('Overriding LMA config summarization C_MAX and C_MIN to Infinity for this test run.');
+        console.warn('Overriding LMA config summarization C_MAX to MIN_SAFE_INTEGER and C_MIN to MAX_SAFE_INTEGER for this test run.');
     }
 
     const lma = new Lma({
         ...lmaConfig,
         summarizationConfig: {
             ...lmaConfig.summarizationConfig,
-            C_MAX: Infinity,
-            C_MIN: Infinity,
+            C_MAX: Number.MIN_SAFE_INTEGER,
+            C_MIN: Number.MAX_SAFE_INTEGER,
         }
     });
 

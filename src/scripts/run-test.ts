@@ -17,7 +17,6 @@ import path from 'path';
 import { detectLanguage } from "../lib/nlp";
 import type { LanguageLabel } from "../lib/nlp/interfaces";
 
-// Allowed runtime language labels (must mirror LanguageLabel union)
 const ALLOWED_LANGUAGES: LanguageLabel[] = [
     'arabic', 'bulgarian', 'german', 'modern greek', 'english', 'spanish', 'french', 'hindi', 'italian', 'japanese', 'dutch', 'polish', 'portuguese', 'russian', 'swahili', 'thai', 'turkish', 'urdu', 'vietnamese', 'chinese'
 ];
@@ -44,7 +43,7 @@ async function runSingleTest(testFile: string, configFile: string, parallel: boo
     if (language != undefined && language != 'detect' && !ALLOWED_LANGUAGES.includes(language as LanguageLabel)) {
         throw new Error(`Config "language" must be one of: ${ALLOWED_LANGUAGES.join(', ')}, or "detect"`);
     }
-    console.log('Using language:', language ?? 'not specified (will use RAG default)');
+    console.log('Using language:', language ?? 'not specified (will use RAG in-prompt language detection system)');
 
     const indexName = docStoreConfig.indexName;
     if (!indexName) {

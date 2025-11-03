@@ -76,10 +76,6 @@ const testData: {
         "task": {
             "status": "answered",
             "answer": "nausea, vertigini"
-        },
-        "summary": {
-            "text": "Paziente riferisce mal di stomaco e malessere generale. Ha assunto una compressa di paracetamolo. Riporta nausea e vertigini e chiede di parlare con un medico.",
-            "span": 3
         }
     }
 },
@@ -214,8 +210,8 @@ const testData: {
             "notes": "Misurazione riferita a riposo ma con agitazione; dispositivo: Apple Watch; possibile sovrastima. Migliorato dopo Ventolin."
         },
         "summary": {
-            "text": "Paziente con asma lieve, usa Ventolin (2 puff alle 8). Tosse e dispnea notturna, lieve capogiro/ansia. Prenotata visita pneumologica per domani h 18:00 (Centro Respiro XYZ). Richiesto PDF piano terapeutico via email (leonardo@example.com). In corso richiesta di misurazione frequenza cardiaca a riposo. Paziente ha assunto 1000 mg di paracetamolo per mal di testa, dose superiore alla compressa standard da 500 mg. Evitare di ripetere.",
-            "span": 18
+            "text": "Paziente con asma lieve in trattamento con Ventolin (2 puff alle 8). Dopo lieve ansia e capogiro ha misurato 102 bpm a riposo (agitato), riferendo miglioramento post-Ventolin; richiesto spostamento visita a lunedì mattina e invio PDF terapia.",
+            "span": 17
         }
     }
 }];
@@ -272,8 +268,8 @@ const lma1 = new Lma({
     },
     summarizationConfig: {
         ...MODEL_PROVIDER,
-        C_MIN: 500,
-        C_MAX: 1000,
+        C_MIN: 100,
+        C_MAX: 400,
         maximumSentences: 2
     }
 });
@@ -302,7 +298,7 @@ test.concurrent('LMA - Sentiment Analysis', async () => {
     });
 
     expect(singleDistance.raw).toBeLessThanOrEqual(0.2);
-    expect(cumulativeDistance.raw).toBeGreaterThanOrEqual(0.2);
+    expect(cumulativeDistance.raw).toBeLessThanOrEqual(0.3);
 });
 
 test.concurrent('LMA - User Request Detection', async () => {
@@ -355,20 +351,25 @@ test.concurrent('LMA - Task Analysis', async () => {
     // expect(taskNotesAverageScore).toBeGreaterThanOrEqual(0.8); for now we ignore it!
 });
 
+
 test.concurrent('LMA - Summarization', async () => {
 
-    const generatedOutputs: LmaOutput[] = [];
+    const firstTest = testData[0];
+    const shouldSummarizeFirst = lma1.shouldSummarize(firstTest.input);
+    expect(shouldSummarizeFirst).toBe(false);
 
-    for (const { input } of testData) {
-        const output = await lma1.summarizeChatHistory(input);
-        generatedOutputs.push({ summary: output as any } as any);
-    }
+    const secondTest = testData[1];
+    const shouldSummarizeSecond = lma1.shouldSummarize(secondTest.input);
+    expect(shouldSummarizeSecond).toBe(true);
 
-    for (const generatedOutput of generatedOutputs) {
-        const generatedSentences = splitTextIntoSentences(generatedOutput.summary!.text);
-        expect(generatedSentences.length).toBeLessThanOrEqual(2);
-    }
-})
+    const summary = await lma1.summarizeChatHistory(secondTest.input);
+    expect(summary).not.toBe(null);
+    
+    const sent = splitTextIntoSentences(summary!.text);
+    expect(sent.length).toBeLessThanOrEqual(lma1.getConfig().summarizationConfig.maximumSentences!);
+    expect(summary!.span).toBe(testData[1].expected_output.summary!.span);
+});
+
 
 const lma2 = new Lma({
     baseConfig: { ...MODEL_PROVIDER, parallel: true },

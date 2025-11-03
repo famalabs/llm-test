@@ -26,6 +26,10 @@ export class Lma {
         this.config = resolveConfig(lmaConfig);
     }
 
+    public getConfig() {
+        return this.config;
+    }
+
     private async callLLM<Schema extends z.ZodTypeAny>(params: { model: string, provider: LLMConfigProvider, prompt: string, schema: Schema }): Promise<z.infer<Schema>> {
         const { model, provider, prompt, schema } = params;
         const llmModel = (await getLLMProvider(provider))(model);
@@ -246,27 +250,64 @@ export class Lma {
         else {
             if (!tools || tools.length == 0) throw new Error("Tools must be provided in configuration for 'tools' or 'tools-params' detection mode.");
 
+            // In modalità 'tools' e 'tools-params' la verifica della soddisfazione va fatta con una chiamata separata
             const includeToolsParams = requestDetectionMode == 'tools-params';
+
+            // 1) Rilevazione richiesta + strumenti (senza soddisfazione)
             const userRequestAndToolsSchema = USER_REQUEST_AND_TOOLS_DETECTION_SCHEMA(
-                includeToolsParams, includeRequestSatisfiedDetection
+                includeToolsParams, /* includeRequestSatisfiedDetection */ false
             );
             const userRequestAndToolsPrompt = USER_REQUEST_AND_TOOLS_DETECTION_PROMPT(
                 inputHistory, input.message,
                 includeToolsParams, this.stringifyTools(tools, includeToolsParams),
-                includeRequestSatisfiedDetection
+                /* includeUserSatisfiedDetection */ false
             );
 
-            const result = await this.callLLM({
+            // 2) (Opzionale) Verifica soddisfazione separata
+            const satisfactionDetectionSchema = USER_SATISFACTION_DETECTION_SCHEMA();
+            const requestSatisfiedPrompt = USER_REQUEST_SATISFIED_PROMPT(inputHistory, input.message);
+
+            const promises = [] as Promise<any>[];
+            promises.push(this.callLLM({
                 model: requestDetectionModel,
                 provider: requestDetectionProvider,
                 prompt: userRequestAndToolsPrompt,
                 schema: userRequestAndToolsSchema
-            });
+            }));
 
-            return {
-                user_request: result.user_request,
-                request_satisfied: result.request_satisfied,
-                useful_tools: result.useful_tools
+            if (includeRequestSatisfiedDetection) {
+                promises.push(this.callLLM({
+                    model: satisfactionDetectionModel,
+                    provider: satisfactionDetectionProvider,
+                    prompt: requestSatisfiedPrompt,
+                    schema: satisfactionDetectionSchema
+                }));
+            }
+            else {
+                promises.push(Promise.resolve({ request_satisfied: undefined }));
+            }
+
+            if (this.config.baseConfig.parallel) {
+                const [reqToolsRes, satisfiedRes] = await Promise.all(promises) as [
+                    { user_request?: string; useful_tools?: any },
+                    { request_satisfied?: boolean }
+                ];
+
+                return {
+                    user_request: reqToolsRes.user_request,
+                    request_satisfied: satisfiedRes.request_satisfied,
+                    useful_tools: reqToolsRes.useful_tools
+                };
+            }
+            else {
+                const results = [] as any[];
+                for (const p of promises) results.push(await p);
+
+                return {
+                    user_request: results[0].user_request,
+                    request_satisfied: results[1].request_satisfied,
+                    useful_tools: results[0].useful_tools
+                };
             }
         }
     }
@@ -288,31 +329,44 @@ export class Lma {
         let i = startIndex;
 
         for (; i < history.length; i++) {
-            chars += history[i].message.length;
+            const msg = history[i];
+            chars += msg.message.length;
             if (chars >= C_MIN) break;
         }
 
         if (i >= history.length) return history.length;
-        return i + 1;
+        return i + 1; // include i-esimo
     }
 
     public shouldSummarize(input: LmaInput) {
-        return this.getInputLengthForSummarization(input) <= this.config.summarizationConfig.C_MAX;
+        return this.getInputLengthForSummarization(input) > this.config.summarizationConfig.C_MAX;
     }
 
     public async summarizeChatHistory(input: LmaInput) {
-        if (!this.shouldSummarize(input)) {
-            return;
-        }
-        const { provider, model } = this.config.summarizationConfig;
+        if (!this.shouldSummarize(input)) return;
+
+        const { provider, model, maximumSentences } = this.config.summarizationConfig;
         const startIndex = input.summary?.span ?? 0;
         const endIndex = this.getSpanForSummarization(input.history, startIndex);
-        const historyChunkText = input.history.slice(startIndex, Math.min(endIndex, input.history.length)).map(h => `${h.sender.toUpperCase()}: ${h.message}`).join('\n');
-        const prompt = CHAT_HISTORY_SUMMARIZATION_PROMPT(historyChunkText, input.summary?.text ?? "", this.config.summarizationConfig.maximumSentences);
+
+        const historyChunkText = input.history
+            .slice(startIndex, Math.min(endIndex, input.history.length))
+            .map(h => `${h.sender.toUpperCase()}: ${h.message}`)
+            .join('\n');
+
+        const prevSummary = input.summary?.text ?? "";
+        const prompt = CHAT_HISTORY_SUMMARIZATION_PROMPT(historyChunkText, prevSummary, maximumSentences);
         const schema = SUMMARIZATION_SCHEMA();
 
-        const { summary: text } = await this.callLLM({ model, provider, prompt, schema });
+        const { summary: newText } = await this.callLLM({ model, provider, prompt, schema });
 
-        return { text, span: Math.min(endIndex, input.history.length) };
+        const normalizedPrev = (prevSummary || "").trim();
+        const normalizedNew = (newText || "").trim();
+
+        if (normalizedNew == normalizedPrev || normalizedNew.length === 0) {
+            return { text: "", span: Math.min(endIndex, input.history.length) };
+        }
+
+        return { text: newText, span: Math.min(endIndex, input.history.length) };
     }
 }
