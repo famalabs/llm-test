@@ -1,0 +1,337 @@
+{
+    "therapies": [
+        {
+            "prompt": "Aspirina una volta al giorno per 10 giorni alle 8:00 del mattino",
+            "expected_therapies": [{
+                "drug_name": "Aspirina",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 1, "hour": "08:00" }
+                    ],
+                    "duration": 10
+                }
+            }]
+        },
+        {
+            "prompt": "Paracetamolo 500 mg ogni 2 giorni per 14 giorni per due volte al giorno alle 9:00 e alle 21:00",
+            "expected_therapies": [{
+                "drug_api": "Paracetamolo 500 mg",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 1, "hour": "09:00" },
+                        { "dose": 1, "hour": "21:00" }
+                    ],
+                    "duration": 14,
+                    "period_duration": 2,
+                    "period_days": [
+                        { "day": 0 }
+                    ]
+                }
+            }]
+        },
+        {
+            "prompt": "Ibuprofene lunedì mercoledì e venerdì alle 14:00, a stomaco pieno",
+            "expected_therapies": [{
+                "drug_api": "Ibuprofene",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 1, "hour": "14:00", "hour_text": "a stomaco pieno" }
+                    ],
+                    "period_duration": 7,
+                    "period_days": [
+                        { "day": 0 },
+                        { "day": 2 },
+                        { "day": 4 }
+                    ]
+                }
+            }]
+        },
+        {
+            "prompt": "Amoxicillina una volta al mese, iniziare tra 3 giorni",
+            "expected_therapies": [{
+                "drug_api": "Amoxicillina",
+                "schedule": {
+                    "day": 3,
+                    "timetable": [
+                        { "dose": 1 }
+                    ],
+                    "period_duration": 30,
+                    "period_days": [
+                        { "day": 0 }
+                    ]
+                }
+            }]
+        },
+        {
+            "prompt": "Vitamina D il lunedì alle 8:00 e il giovedì alle 20:00 per 8 settimane",
+            "expected_therapies": [{
+                "drug_api": "Vitamina D",
+                "schedule": {
+                    "day": 0,
+                    "duration": 56,
+                    "period_duration": 7,
+                    "period_days": [
+                        { "day": 0, "timetable": [{ "dose": 1, "hour": "08:00" }] },
+                        { "day": 3, "timetable": [{ "dose": 1, "hour": "20:00" }] }
+                    ]
+                }
+            }]
+        },
+        {
+            "prompt": "Xanax 2 volte al mese a distanza di almeno 10 giorni",
+            "expected_therapies": [{
+                "drug_name": "Xanax",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 1 }
+                    ],
+                    "period_duration": 30,
+                    "period_days": [
+                        { "day": 0 },
+                        { "day": 10 }
+                    ]
+                }
+            }]
+        },
+        {
+            "prompt": "Metformina 500 mg due volte al giorno per 30 giorni",
+            "expected_therapies": [{
+                "drug_api": "Metformina 500 mg",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 1 },
+                        { "dose": 1 }
+                    ],
+                    "duration": 30
+                }
+            }]
+        },
+        {
+            "prompt": "Clopidogrel 75 mg una volta al giorno per 6 mesi, prenderlo subito dopo l'Aspirina",
+            "expected_therapies": [{
+                "drug_api": "Clopidogrel 75 mg",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 1, "hour_text": "subito dopo l'Aspirina" }
+                    ],
+                    "duration": 180
+                }
+            }]
+        },
+        {
+            "prompt": "Bisoprololo Mylan 2,5 mg una compressa ogni mattina",
+            "expected_therapies": [{
+                "drug_api": "Bisoprololo Mylan 2,5 mg",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 1, "hour_text": "mattina" }
+                    ]
+                }
+            }]
+        },
+        {
+            "prompt": "Magnesio pidolato lunedì un flacone la mattina, mentre venerdì sia mattina che sera",
+            "expected_therapies": [{
+                "drug_api": "Magnesio pidolato",
+                "schedule": {
+                    "day": 0,
+                    "period_duration": 7,
+                    "period_days": [
+                        { 
+                            "day": 0, 
+                            "timetable": [{"dose": 1, "hour_text": "mattina"}]
+                        },
+                        { 
+                            "day": 4, 
+                            "timetable": [
+                                {"dose": 1, "hour_text": "mattina"}, 
+                                {"dose": 1, "hour_text": "sera"}
+                            ]
+                        }
+                    ]
+                }
+            }]
+        },
+        {
+            "prompt": "voriconazolo (es. VFEND) 200 mg 2 cp x 2",
+            "expected_therapies": [{
+                "drug_name": "VFEND",
+                "drug_api": "Voriconazolo 200 mg",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 2 },
+                        { "dose": 2 }
+                    ]
+                }
+            }]
+        },
+        {
+            "prompt": "Alprazolam (Xanax) 0,5 mg al bisogno, max 2 volte al giorno",
+            "expected_therapies": [{
+                "drug_name": "Xanax",
+                "drug_api": "Alprazolam 0,5 mg",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 1 },
+                        { "dose": 1 }
+                    ]
+                },
+                "optional": true
+            }]
+        },
+        {
+            "prompt": "Furosemide 250 mg (Laxis) al bisogno, in assenza di stimolo della diuresi",
+            "expected_therapies": [{
+                "drug_name": "Laxis",
+                "drug_api": "Furosemide 250 mg",
+                "schedule": {
+                    "day": 0
+                },
+                "optional": true,
+                "notes": "in assenza di stimolo della diuresi"
+            }]
+        },
+        {
+            "prompt": "Pregabalin 25mg: 1 cp + 2 cp",
+            "expected_therapies": [{
+                "drug_api": "Pregabalin 25 mg",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 1 },
+                        { "dose": 2 }
+                    ]
+                }
+            }]
+        },
+        {
+            "prompt": "colecalciferolo 100.000 UI 5 gocce/die",
+            "expected_therapies": [{
+                "drug_api": "Colecalciferolo 100.000 UI",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 5 }
+                    ]
+                }
+            }]
+        },
+        {
+            "prompt": "Beclometasone/Formoterolo/Glicopirronio (Trimbow) 87/5/9 mcg 2 puff x2",
+            "expected_therapies": [{
+                "drug_name": "Trimbow",
+                "drug_api": "Beclometasone/Formoterolo/Glicopirronio 87/5/9 mcg",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 2 },
+                        { "dose": 2 }
+                    ]
+                }
+            }]
+        },
+        {
+            "prompt": "Risedronato 35 mg una volta a settimana, la mattina a digiuno con un bicchiere d'acqua",
+            "expected_therapies": [{
+                "drug_api": "Risedronato 35 mg",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 1, "hour_text": "mattina a digiuno" }
+                    ],
+                    "period_duration": 7,
+                    "period_days": [
+                        { "day": 0 }
+                    ]
+                },
+                "notes": "assumere con un bicchiere d'acqua"
+            }]
+        },
+        {
+            "prompt": "Oki 30 mg per 6 giorni 3 volte al giorno dopo i pasti",
+            "expected_therapies": [{
+                "drug_name": "Oki 30 mg",
+                "schedule": {
+                    "day": 0,
+                    "timetable": [
+                        { "dose": 1, "hour_text": "dopo un pasto" },
+                        { "dose": 1, "hour_text": "dopo un pasto" },
+                        { "dose": 1, "hour_text": "dopo un pasto" }
+                    ],
+                    "duration": 6
+                }
+            }]
+        },
+        {
+            "prompt": "Brufen la mattina e sera dopo mangiato, non mettersi alla guida subito dopo. Dopo 4 giorni prendere al bisogno",
+            "expected_therapies": [
+                {
+                    "drug_name": "Brufen",
+                    "schedule": {
+                        "day": 0,
+                        "timetable": [
+                            { "dose": 1, "hour_text": "mattina dopo mangiato" },
+                            { "dose": 1, "hour_text": "sera dopo mangiato" }
+                        ],
+                        "duration": 4
+                    },
+                    "notes": "non mettersi alla guida subito dopo l'assunzione"
+                },
+                {
+                    "drug_name": "Brufen",
+                    "schedule": {
+                        "day": 4,
+                        "timetable": [
+                            { "dose": 1, "hour_text": "mattina dopo mangiato" },
+                            { "dose": 1, "hour_text": "sera dopo mangiato" }
+                        ]
+                    },
+                    "optional": true,
+                    "notes": "non mettersi alla guida subito dopo l'assunzione"
+                }
+            ]
+        },
+        {
+            "prompt": "Ezetimibe 10/5 mg 1 cp 2 volte a settimana, dopo 2 mesi ridurre a 1 cp a settimana",
+            "expected_therapies": [
+                {
+                    "drug_api": "Ezetimibe 10/5 mg",
+                    "schedule": {
+                        "day": 0,
+                        "timetable": [
+                            { "dose": 1 }
+                        ],
+                        "duration": 60,
+                        "period_duration": 7,
+                        "period_days": [
+                            { "day": 0 },
+                            { "day": 1 }
+                        ]
+                    }
+                },
+                {
+                    "drug_api": "Ezetimibe 10/5 mg",
+                    "schedule": {
+                        "day": 60,
+                        "timetable": [
+                            { "dose": 1 }
+                        ],
+                        "period_duration": 7,
+                        "period_days": [
+                            { "day": 0 }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}
