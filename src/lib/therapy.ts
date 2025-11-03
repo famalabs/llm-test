@@ -14,18 +14,13 @@ export type DaySchedule<T extends object = object> = DayHourSchedule<T> & {
   period_days?: DayHourSchedule<T>[];
 };
 
-// *= se io segno che period_duration = 1 -> devo prendere il farmaco ogni giorno -> dentro period_days metto gli orari specifici
-// se io segno che period_duration = 2 -> devo prendere il farmaco ogni due giorni
-
 /*
-Altri esempi:
+Esempi:
 
 "Devo prendere il farmaco una volta al giorno per 10 giorni alle 8:00 del mattino"
 day = 0 // il giorno in cui inizia la terapia e.g. se fosse "inzia tra 5 giorni" -> day = 5
 hours = ["08:00"] // orario di default in cui si prende il farmaco
 duration = 10
-period_duration = 1 // una volta al giorno
-period_days = undefined // se sono specificati qui degli orari, questi sovrascrivono l'orario di default
  
 "Devo prendere il farmaco ogni 2 giorni per 14 giorni per due volte al giorno alle 9:00 e alle 21:00"
 day = 0
@@ -38,7 +33,7 @@ period_days = [{ day: 0 }]
 day = 0
 hours = ["12:00"]
 duration = undefined
-period_duration = 7 // una volta alla settimana (ciclicità)
+period_duration = 7 // ciclicità settimanale
 period_days = [
   { day: 0 }, // lunedì
   { day: 2 }, // mercoledì
@@ -56,7 +51,7 @@ period_days = [{ day: 0 }] // il primo giorno del periodo (giorno 0)
 day = 0
 hours = undefined
 duration = 56 // 8 settimane
-period_duration = 7 // una volta alla settimana
+period_duration = 7 // ciclicità settimanale
 period_days = [
   { day: 0, hours: ["08:00"] }, // lunedì alle 8:00
   { day: 3, hours: ["20:00"] }  // giovedì alle 20:00
@@ -64,13 +59,25 @@ period_days = [
 */
 
 export type TherapyDrug = {
-  drug: string; // nome farmaco
-  notes?: string; // "da prendere a stomaco pieno", "da prendere dopo i pasti", ecc. (note che non hanno a che fare con lo schedule)
+  // drug (almeno uno tra drug_name e drug_api deve essere specificato)
+  drug_name?: string; // nome commerciale completo
+  drug_api?: string; // principio attivo
   schedule: DaySchedule<{
-    dose: number;
+    dose: number; // dosi per assunzione (es. "2 compresse")
+    times?: number; // numero di volte al giorno (es. "3 volte al giorno")
+    hours_text?: string; // indicazioni libere sugli orari (es. "mattina e sera", "dopo i pasti", ecc.)
   }>;
+  optional?: boolean; // se il farmaco è opzionale (es. al bisogno)
+  notes?: string; // indicazioni aggiuntive da seguire se non specificate altrove, quali: condizioni particolari, informazioni sui giorni.. (es. "in presenza di X..", 2 volte a settimana")
 };
 
-// test con dosi e durata
-// test con orari
-// test con periodi
+/*
+
+Note:
+- se period_duration è maggiore di 1, period_days deve contenere almeno un elemento, e viceversa
+- se duration è definito, il calcolo dello schedule termina dopo "day + duration" giorni
+- day è il giorno di inizio della terapia (giorno 0)
+- se manca hours, times è obbligatorio (es 2 volte al giorno) -> times: 2
+- problema: se manca il day nel caso di period_days (es 2 volte a settimana) -> day: -1 oppure undefined ??
+
+*/
