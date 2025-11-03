@@ -17,12 +17,20 @@ export const evaluate = async ({
     provider: LLMConfigProvider
 }) => {
 
-    let singleSentimentAnalysisScore: { raw: number, binarized: number } | null = null;
-    let cumulativeSentimentAnalysisScore: { raw: number, binarized: number } | null = null;
-    let lastMessageLookingAtHistoryScore: { raw: number, binarized: number } | null = null;
-    let userRequestAccuracyAndEvaluation: { userRequestPresenceAccuracy: number | null, requestSatisfiedAccuracy: number | null, averageUserRequestScore: number | null } | null = null;
+    let singleSentimentAnalysisScore: { means: { raw: number, binarized: number }, allRawMeans: number[], allBinMeans: number[] } | null = null;
+    let cumulativeSentimentAnalysisScore: { means: { raw: number, binarized: number }, allRawMeans: number[], allBinMeans: number[] } | null = null;
+    let lastMessageLookingAtHistoryScore: { means: { raw: number, binarized: number }, allRawMeans: number[], allBinMeans: number[] } | null = null;
+    let userRequestAccuracyAndEvaluation: {
+        userRequestPresenceAccuracy: number | null,
+        requestSatisfiedAccuracy: number | null,
+        averageUserRequestScore: number | null,
+        userRequestScores: number[] | null
+    } | null = null;
     let toolsDetection: { toolNameIoU: number | null, toolParamAccuracy: number | null } | null = null;
-    let taskAnalysis: { taskAnswerAccuracy: number | null, taskStatusAccuracy: number | null, taskNotesAverageScore: number | null } | null = null;
+    let taskAnalysis: {
+        taskAnswerAccuracy: number | null, taskStatusAccuracy: number | null, taskNotesAverageScore: number | null,
+        taskNotesScores: number[] | null
+    } | null = null;
 
     if (generatedOutputs.some(g => g.sentiment) && expectedOutputs.some(e => e.sentiment)) {
         singleSentimentAnalysisScore = evaluateSentimentAnalysis({
@@ -69,11 +77,11 @@ export const evaluate = async ({
     return {
         sentimentAnalysis: {
             single: singleSentimentAnalysisScore,
-            cumulative: cumulativeSentimentAnalysisScore, 
+            cumulative: cumulativeSentimentAnalysisScore,
             ...(lastMessageLookingAtHistoryScore ? { lastMessageLookingAtHistory: lastMessageLookingAtHistoryScore } : {})
         },
         userRequest: userRequestAccuracyAndEvaluation,
-        toolsDetection, 
+        toolsDetection,
         taskAnalysis,
     };
 };

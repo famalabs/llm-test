@@ -1,14 +1,14 @@
 import { LLMConfigProvider } from "../llm"
-import { LmaOutput } from "./interfaces";
+import { LmrInput, LmrOutput } from "./interfaces";
 import { hideBin } from "yargs/helpers"
 import { readFile, writeFile } from "fs/promises";
 import { evaluate } from "./evaluation";
 import yargs from "yargs"
 import 'dotenv/config';
-import { createOutputFolderIfNeeded } from "../utils";
 import path from "path";
+import { createOutputFolderIfNeeded } from "../utils";
 
-const main = async ()=> {
+const main = async () => {
     const { input, model, provider } = await yargs(hideBin(process.argv))
         .option('input', {
             alias: 'i',
@@ -34,17 +34,18 @@ const main = async ()=> {
             model: string,
             provider: LLMConfigProvider
         };
-        
-    const data = JSON.parse(await readFile(input, 'utf-8')) as { predictions: LmaOutput[], expectedOutputs: LmaOutput[] };
-    const results = await evaluate({
+
+    const data = JSON.parse(await readFile(input, 'utf-8')) as { predictions: LmrOutput[], expectedOutputs: { key_ref: string, full_ref: string }[], inputs: LmrInput[] };
+    const evaluations = await evaluate({
+        lmrInputs: data.inputs,
         expectedOutputs: data.expectedOutputs,
         generatedOutputs: data.predictions,
         model,
         provider
     });
     
-    const outputFile = path.join(createOutputFolderIfNeeded('output', 'lma'), 'scores.json');
-    await writeFile(outputFile, JSON.stringify(results, null, 2), 'utf-8');
+    const outputFile = path.join(createOutputFolderIfNeeded('output', 'lmr'), 'scores.json');  
+    await writeFile(outputFile, JSON.stringify(evaluations, null, 2), 'utf-8');
     console.log('Evaluation results written to', outputFile);
 }
 

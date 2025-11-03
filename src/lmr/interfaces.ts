@@ -38,7 +38,7 @@ export interface LmrInput {
         span: number;
     };
 
-    tools?: AiSdkTool[];
+    tools?: Record<string, AiSdkTool>;
 }
 
 export interface LmrOutput {

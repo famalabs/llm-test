@@ -1,7 +1,5 @@
 import { SentimentScores } from "../interfaces";
 
-type EvalResult = { binarized: number; raw: number };
-
 export const evaluateSentimentAnalysis = ({
     generatedScores,
     expectedScores,
@@ -10,7 +8,7 @@ export const evaluateSentimentAnalysis = ({
     generatedScores: SentimentScores[];
     expectedScores: SentimentScores[];
     threshold?: number; // default 0
-}): EvalResult => {
+}) => {
     if (generatedScores.length != expectedScores.length) {
         throw new Error("Generated scores and expected scores arrays must have the same length.");
     }
@@ -39,7 +37,11 @@ export const evaluateSentimentAnalysis = ({
     const meanOfMeans = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
 
     return {
-        raw: meanOfMeans(allRawMeans),
-        binarized: meanOfMeans(allBinMeans),
+        means: {
+            raw: meanOfMeans(allRawMeans),
+            binarized: meanOfMeans(allBinMeans),
+        },
+        allRawMeans,
+        allBinMeans,
     };
 };

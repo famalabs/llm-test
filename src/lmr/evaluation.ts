@@ -38,6 +38,8 @@ export const evaluate = async ({
 
     const averageScore = scores.length == 0 ? null : scores.reduce((a, b) => a + b, 0) / scores.length;
 
-    return averageScore;
-
+    return {
+        mean: averageScore,
+        scores
+    }
 }

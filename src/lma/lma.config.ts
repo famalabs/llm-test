@@ -20,9 +20,7 @@ const DEFAULT_CONFIG = {
 }
 
 export const resolveConfig = (lmaConfig: Partial<LmaConfig>): LmaConfig => {
-    // Validate initial config shape and use the parsed (narrowed) value
     const parsed = InitialLmaConfigSchema.parse(lmaConfig);
-
     const provider = parsed.baseConfig.provider;
     const model = parsed.baseConfig.model;
 
@@ -68,7 +66,6 @@ export const resolveConfig = (lmaConfig: Partial<LmaConfig>): LmaConfig => {
     };
 }
 
-// Zod schema for validating the initial LMA configuration
 const LLMConfigSchema = z.object({
     provider: z.enum(["mistral", "google", "openai"]),
     model: z.string().min(1),

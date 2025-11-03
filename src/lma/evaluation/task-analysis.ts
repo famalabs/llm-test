@@ -94,6 +94,7 @@ export const evalauteTaskAnalysis = async ({
     return {
         taskAnswerAccuracy,
         taskStatusAccuracy,
-        taskNotesAverageScore
+        taskNotesAverageScore, 
+        taskNotesScores: scores.length > 0 ? scores : null
     };
 }

@@ -2,16 +2,11 @@ import { LmrInput } from "../interfaces";
 
 export const FIRST_TIME_TASK_REQUEST_PROMPT = (
     style: string,
-    userInfo: LmrInput['user_info'] | undefined,
     task: string,
     conversationHistory: string,
+    language?: string,
     openerSection?: string
 ) => {
-    const language = userInfo?.language || 'italian';
-    const name = userInfo?.name?.trim();
-    const surname = userInfo?.surname?.trim();
-    const gender = userInfo?.gender;
-
     return `
 -----------------------------
 FIRST-TIME TASK REQUEST
@@ -35,36 +30,28 @@ ${task}
 Conversation History Context:
 ${conversationHistory || '(no prior context)'}
 
-User profile (if available):
-${JSON.stringify({ name, surname, gender }, null, 2)}
-
 Output:
-- Produce ONLY the assistant message text to send to the user (no meta, no JSON, no labels).
+- Produce ONLY the assistant message text to send to the user (no meta, no JSON, no labels):
+{
+    "agent_message" : <message>
+}
 
-[!] IMPORTANT: Respond in: "${language.toUpperCase()}"
+[!] IMPORTANT: Respond in: "${language ? language.toUpperCase() : 'the original language of the conversation'}"
 `.trim();
 }
 
 
 export const PRECEDENTLY_IGNORED_TASK_REQUEST_PROMPT = (
     style: string,
-    userInfo: LmrInput['user_info'] | undefined,
     task: string,
     conversationHistory: string,
-    openerSection?: string
+    language?: string
 ) => {
-    const language = userInfo?.language || 'italian';
-    const name = userInfo?.name?.trim();
-    const surname = userInfo?.surname?.trim();
-    const gender = userInfo?.gender;
-
     return `
 -----------------------------
 IGNORED TASK – POLITE REMINDER
 -----------------------------
 You are composing the next assistant message to gently revisit a task that was previously ignored (no response received). Avoid sounding repetitive or scolding.
-
-${openerSection ? `Indications for opening the conversation: """\n${openerSection}\n"""` : ''}
 
 Requirements:
 - Style: ${style}
@@ -81,34 +68,29 @@ Conversation History Context:
 ${conversationHistory || '(no prior context)'}
 
 User profile (if available):
-${JSON.stringify({ name, surname, gender }, null, 2)}
 
 Output:
-- Produce ONLY the assistant message text to send to the user (no meta, no JSON, no labels).
+- Produce ONLY the assistant message text to send to the user (no meta, no JSON, no labels):
+{
+    "agent_message" : <message>
+}
 
-[!] IMPORTANT: Respond in: "${language.toUpperCase()}"
+[!] IMPORTANT: Respond in: "${language ? language.toUpperCase() : 'the original language of the conversation'}"
 `.trim();
 }
 
 export const WAITED_TASK_REQUEST_PROMPT = (
     style: string,
-    userInfo: LmrInput['user_info'] | undefined,
     task: string,
-    conversationHistory: string,
-    openerSection?: string
+    conversationHistory: string, 
+    language?: string
 ) => {
-    const language = userInfo?.language || 'italian';
-    const name = userInfo?.name?.trim();
-    const surname = userInfo?.surname?.trim();
-    const gender = userInfo?.gender;
 
     return `
 -----------------------------
 WAITED TASK – ACK & NUDGE
 -----------------------------
 You are composing the next assistant message for a task currently in a WAIT state: we already asked and we're waiting for the user's results/feedback.
-
-${openerSection ? `Indications for opening the conversation: """\n${openerSection}\n"""` : ''}
 
 Requirements:
 - Style: ${style}
@@ -123,12 +105,12 @@ ${task}
 Conversation History Context:
 ${conversationHistory || '(no prior context)'}
 
-User profile (if available):
-${JSON.stringify({ name, surname, gender }, null, 2)}
-
 Output:
-- Produce ONLY the assistant message text to send to the user (no meta, no JSON, no labels).
+- Produce ONLY the assistant message text to send to the user (no meta, no JSON, no labels):
+{
+    "agent_message" : <message>
+}
 
-[!] IMPORTANT: Respond in: "${language.toUpperCase()}"
+[!] IMPORTANT: Respond in: "${language ? language.toUpperCase() : 'the original language of the conversation'}"
 `.trim();
 }

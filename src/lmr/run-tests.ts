@@ -33,6 +33,7 @@ const main = async () => {
 
 	const lmr = new Lmr(lmrConfig);
 
+	const inputs : LmrInput[] = [];
 	const predictions: LmrOutput[] = [];
 	const expectedOutputs: LmrOutput[] = [];
 
@@ -41,7 +42,7 @@ const main = async () => {
 		const prediction = await lmr.mainCall(input);
 		const elapsed = performance.now() - start;
 		if (verbose) console.log(`Test completed in ${elapsed.toFixed(2)} ms`);
-		return { prediction, expected_output };
+		return { prediction, expected_output, input };
 	};
 
 	if (parallel) {
@@ -50,6 +51,7 @@ const main = async () => {
 		for (const r of results) {
 			predictions.push(r.prediction);
 			expectedOutputs.push(r.expected_output);
+			inputs.push(r.input);
 		}
 	} else {
 		console.log('Running LMR tests sequentially...');
@@ -57,6 +59,7 @@ const main = async () => {
 			const r = await runOne(tc);
 			predictions.push(r.prediction);
 			expectedOutputs.push(r.expected_output);
+			inputs.push(r.input);
 		}
 	}
 
@@ -65,7 +68,7 @@ const main = async () => {
 	const outDir = createOutputFolderIfNeeded('output', 'lmr', 'candidates');
 	const outPath = path.join(outDir, `${normalizedTestFile}_${normalizedConfigFile}.json`);
 
-	await writeFile(outPath, JSON.stringify({ predictions, expectedOutputs }, null, 2), 'utf-8');
+	await writeFile(outPath, JSON.stringify({ predictions, expectedOutputs, inputs }, null, 2), 'utf-8');
 	console.log('LMR output written to', outPath);
 }
 

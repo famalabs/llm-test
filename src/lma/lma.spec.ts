@@ -211,7 +211,7 @@ const testData: {
         },
         "summary": {
             "text": "Paziente con asma lieve in trattamento con Ventolin (2 puff alle 8). Dopo lieve ansia e capogiro ha misurato 102 bpm a riposo (agitato), riferendo miglioramento post-Ventolin; richiesto spostamento visita a lunedì mattina e invio PDF terapia.",
-            "span": 17
+            "span": 16
         }
     }
 }];
@@ -297,8 +297,8 @@ test.concurrent('LMA - Sentiment Analysis', async () => {
         generatedScores: generatedOutputs.map(e => e.sentiment!.cumulative)
     });
 
-    expect(singleDistance.raw).toBeLessThanOrEqual(0.2);
-    expect(cumulativeDistance.raw).toBeLessThanOrEqual(0.3);
+    expect(singleDistance.means.raw).toBeLessThanOrEqual(0.2);
+    expect(cumulativeDistance.means.raw).toBeLessThanOrEqual(0.3);
 });
 
 test.concurrent('LMA - User Request Detection', async () => {

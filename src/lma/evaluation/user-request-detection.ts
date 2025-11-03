@@ -75,5 +75,6 @@ export const evaluateUserRequestDetection = async ({
         userRequestPresenceAccuracy,
         requestSatisfiedAccuracy,
         averageUserRequestScore,
+        userRequestScores: scores.length > 0 ? scores : null,
     };
 };

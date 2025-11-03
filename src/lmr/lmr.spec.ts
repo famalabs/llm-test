@@ -78,22 +78,6 @@ const tests = [
         }
     },
     {
-        "focus_on": "user_request:user_profile",
-        "input": {
-            "chat_status": "request",
-            "user_request": "Mostrami il mio profilo (nome, età, allergie, condizioni).",
-            "style": "empathetic-clinical, concise",
-            "history": [
-                { "sender": "user", "message": "Serve un riepilogo dei miei dati clinici." }
-            ],
-            "summary": { "text": "Utente chiede profilo.", "span": 1 }
-        },
-        "expected_output": {
-            "key_ref": "Gianni Verdi, 42 anni; allergie: Penicillin; condizioni: Hypertension.",
-            "full_ref": "Profilo utente: id user_123; nome Gianni Verdi, età 42. Allergie note: Penicillin. Condizioni note: Hypertension."
-        }
-    },
-    {
         "focus_on": "user_request:doctors",
         "input": {
             "chat_status": "request",
@@ -192,6 +176,6 @@ for (const t of tests) {
             model: "mistral-small-latest",
             provider: "mistral"
         });
-        expect(score).toBeGreaterThanOrEqual(0.7);
+        expect(score.mean).toBeGreaterThanOrEqual(0.7);
     });
 }

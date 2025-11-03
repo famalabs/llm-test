@@ -1,4 +1,4 @@
-import { OPENER_PROMPT, CLOSER_PROMPT, FIRST_TIME_TASK_REQUEST_PROMPT, PRECEDENTLY_IGNORED_TASK_REQUEST_PROMPT, WAITED_TASK_REQUEST_PROMPT, ANSWER_USER_REQUEST_PROMPT } from "./prompts";
+import { OPENER_PROMPT, CLOSER_PROMPT, FIRST_TIME_TASK_REQUEST_PROMPT, PRECEDENTLY_IGNORED_TASK_REQUEST_PROMPT, WAITED_TASK_REQUEST_PROMPT, ANSWER_USER_REQUEST_PROMPT, LMR_SYSTEM_PROMPT } from "./prompts";
 import { LmrConfig, LmrInput, LmrOutput } from "./interfaces";
 import { getLLMProvider, LLMConfigProvider } from "../llm";
 import { generateObject, generateText, stepCountIs } from "ai";
@@ -47,7 +47,10 @@ export class Lmr {
     private async callLLM<Schema extends z.ZodTypeAny>(params: { model: string, provider: LLMConfigProvider, prompt: string, schema: Schema }): Promise<z.infer<Schema>> {
         const { model, provider, prompt, schema } = params;
         const llmModel = (await getLLMProvider(provider))(model);
-        const { object: response } = await generateObject({ model: llmModel, prompt: prompt, schema: schema });
+        const { object: response } = await generateObject({
+            system: LMR_SYSTEM_PROMPT(),
+            model: llmModel, prompt: prompt, schema: schema
+        });
         return response as z.infer<Schema>;
     }
 
@@ -65,11 +68,13 @@ export class Lmr {
 
             const userInfo = this.stringifyUserInfo(input.user_info);
             const history = this.stringifyHistory(input);
-            const tools = exampleLmrTools;
+            // Prefer caller-provided tools (filtered), fallback to the default toolbox
+            const tools = input.tools ?? exampleLmrTools;
 
             const { text } = await generateText({
                 model: llmModel,
                 tools: tools,
+                system: LMR_SYSTEM_PROMPT(),
                 prompt: ANSWER_USER_REQUEST_PROMPT(
                     history,
                     input.user_request,
@@ -99,25 +104,21 @@ export class Lmr {
 
             // 2) Task in wait state: acknowledge and nudge
             else if (input.task_due && input.task_due.waited) {
-                const opener = input.chat_status == 'open' ? OPENER_PROMPT(input.style, input.user_info) : undefined;
                 prompt = WAITED_TASK_REQUEST_PROMPT(
                     input.style,
-                    input.user_info,
                     this.stringifyTask(input.task_due),
                     this.stringifyHistory(input),
-                    opener
+                    input.user_info?.language
                 );
             }
 
             // 3) Previously ignored task: gentle reminder
             else if (input.task_due && input.task_due.ignored && !input.task_due.waited) {
-                const opener = input.chat_status == 'open' ? OPENER_PROMPT(input.style, input.user_info) : undefined;
                 prompt = PRECEDENTLY_IGNORED_TASK_REQUEST_PROMPT(
                     input.style,
-                    input.user_info,
                     this.stringifyTask(input.task_due),
                     this.stringifyHistory(input),
-                    opener
+                    input.user_info?.language
                 );
             }
 
@@ -126,10 +127,10 @@ export class Lmr {
                 const opener = input.chat_status == 'open' ? OPENER_PROMPT(input.style, input.user_info) : undefined;
                 prompt = FIRST_TIME_TASK_REQUEST_PROMPT(
                     input.style,
-                    input.user_info,
                     this.stringifyTask(input.task_due),
                     this.stringifyHistory(input),
-                    opener
+                    opener,
+                    input.user_info?.language
                 );
             }
 
@@ -137,7 +138,7 @@ export class Lmr {
             else if (input.chat_status == 'open') {
                 prompt = OPENER_PROMPT(
                     input.style,
-                    input.user_info
+                    input.user_info,
                 );
             }
 

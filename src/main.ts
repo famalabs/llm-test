@@ -1,120 +1,202 @@
-import { ModelMessage, stepCountIs, streamText, tool } from 'ai';
-import { VectorStore, ensureIndex } from './vector-store';
-import { Chunk, resolveCitations } from './lib/chunks';
-import { RAG_CHATBOT_SYSTEM_PROMPT } from './lib/prompt';
-import { getLLMProvider } from './llm';
-import { Rag } from './rag';
-import { getUserInput } from './utils';
-import { sleep } from './utils';
-import Redis from 'ioredis';
-import z from 'zod';
+import { writeFile } from 'fs/promises';
+import { LLMConfig, LLMConfigProvider } from './llm';
+import { createOutputFolderIfNeeded, getUserInput } from './utils';
+import { Lmr, LmrOutput } from './lmr';
+import { Lma, LmaInput, LmaOutput, InputTask } from './lma';
+import { exampleLmrTools } from './lmr/lmr.tools';
+import { TaskDue, LmrInput } from './lmr/interfaces';
+import path from 'path';
 
-const docStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-const docStoreIndexName = 'vector_store_index_fixed_size';
-const docStoreIndexSchema = ['pageContent', 'TEXT', 'source', 'TAG', 'id', 'TAG', "childId", "TAG"]; // metadata non va indicizzato.
-const docStore = new VectorStore<Chunk>({
-    client: docStoreRedisClient,
-    indexName: docStoreIndexName,
-    fieldToEmbed: 'pageContent'
-});
+const MODEL_PROVIDER = {
+    model: 'gpt-4.1-mini',
+    provider: 'openai' as LLMConfigProvider,
+}
+const LMR_STYLE = 'Joyful';
+const LMR_TASKS: InputTask[] = [
+    { name: "heart-rate", type: "number", description: "The heart rate of the patient, measured in beats per minute." },
+    { name: "paracetamol", type: "boolean", description: "The patient must assume 500 mg of paracetamol." },
+    { name: "strange-feelings", type: "string", description: "The patient must tell whether they are experiencing any strange feelings." }
+];
 
-// const cacheStoreRedisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-// const cacheStoreIndexName = 'cache_store_index';
-// const cacheStoreIndexSchema: string[] = []; // Non dobbiamo indicicazzare niente
-// const cacheStore = new VectorStore<RagAnswer>({
-//     client: cacheStoreRedisClient,
-//     indexName: cacheStoreIndexName,
-// });
-
-const rag = new Rag({
-    llmConfig: {
-        provider: 'mistral',
-        model: 'mistral-small-latest',
-    },
-    numResults: 10,
-    reasoningEnabled: true,
-    includeCitations: false,
-    fewShotsEnabled: false,
-    verbose: true,
-    docStore,
-    parentPageRetrieval: {
-        type: 'lines',
-        offset: 5,
+type SessionEntry = { lmrOutput?: LmrOutput, lmaOutput?: LmaOutput, userInput?: string, lmrInput?: LmrInput, lmaInput?: LmaInput, lmrLatencyMs?: number, lmaLatencyMs?: number };
+class SessionRec {
+    private logFilePath: string;
+    private data: { config: { llmConfig: LLMConfig, lmrTasks: InputTask[], lmrStyle: string }, session: SessionEntry[] };
+    constructor() {
+        this.logFilePath = path.join(
+            createOutputFolderIfNeeded('output', 'lm-ar'),
+            'session-' + Date.now() + '.json'
+        );
+        this.data = {
+            config: { 
+                llmConfig: MODEL_PROVIDER, 
+                lmrStyle: LMR_STYLE, 
+                lmrTasks: LMR_TASKS
+            }, 
+            session :[]
+        }
     }
-});
+    async registerStep({ lmrOutput, lmaOutput, userInput, lmaInput, lmrInput, lmrLatencyMs, lmaLatencyMs }: SessionEntry) {
+        const internalLmrInput = lmrInput ? { ...lmrInput } : undefined;
+        if (internalLmrInput) delete internalLmrInput.tools;
+        this.data.session.push({ lmrOutput, lmaOutput, userInput, lmaInput, lmrInput: internalLmrInput, lmrLatencyMs, lmaLatencyMs });
+        await writeFile(this.logFilePath, JSON.stringify(this.data, null, 2), 'utf-8');
+    }
+}
 
-const messages: ModelMessage[] = [];
+const lma = new Lma({ baseConfig: { ...MODEL_PROVIDER, parallel: true } });
+const lmr = new Lmr({ baseConfig: { ...MODEL_PROVIDER } });
 
 const main = async () => {
 
-    await ensureIndex(docStoreRedisClient, docStoreIndexName, docStoreIndexSchema);
-    // await ensureIndex(cacheStoreRedisClient, cacheStoreIndexName, cacheStoreIndexSchema);
+    const session = new SessionRec();
 
-    await rag.init();
-    rag.printSummary();
+    let currentTaskIndex = 0;
+    const taskFlags: Record<number, { ignored?: boolean; waited?: boolean }> = {};
+    let summary: LmaInput['summary'] = undefined;
+    let pendingRequest = false;
 
-    const ragConfig = rag.getConfig();
+    const hasPendingTasks = () => currentTaskIndex < LMR_TASKS.length;
+
+    const currentTaskDue = (): TaskDue | null => {
+        if (!hasPendingTasks()) return null;
+        const t = LMR_TASKS[currentTaskIndex];
+        const flags = taskFlags[currentTaskIndex] || {};
+        return { name: t.name, description: t.description, ...flags };
+    };
+
+    const openingInput: LmrInput = {
+        chat_status: 'open',
+        style: LMR_STYLE,
+        history: [],
+        task_due: currentTaskDue(),
+    };
+
+    const lmrStartTime = performance.now();
+    const openingMessage = await lmr.mainCall(openingInput);
+    const lmrEndTime = performance.now();
+
+    await session.registerStep({ lmrInput: openingInput, lmrOutput: openingMessage, lmrLatencyMs: lmrEndTime - lmrStartTime });
+
+    const messages: { sender: 'agent' | 'user', message: string }[] = [
+        { sender: 'agent', message: openingMessage.agent_message }
+    ];
+
+    console.log('AGENT:', openingMessage.agent_message, '\n');
+
+    const requestDetectionMode = lma.getConfig().userRequestConfig.requestDetection.mode;
 
     while (true) {
-        const userQuery = await getUserInput('>> ');
-        messages.push({ role: 'user', content: userQuery });
+        const userMsg = await getUserInput('USER: ');
+        messages.push({ sender: 'user', message: userMsg });
 
-        const start = performance.now();
+        const chatStatusForLma: LmaInput['chat_status'] = pendingRequest
+            ? 'request'
+            : hasPendingTasks() ? 'normal' : 'close';
 
-        const result = streamText({
-            model: (await getLLMProvider(ragConfig.llmConfig.provider))(ragConfig.llmConfig.model),
-            messages,
-            temperature: 0,
-            system: RAG_CHATBOT_SYSTEM_PROMPT(),
-            tools: {
-                getInformation: tool({
-                    description: "This tool searches for information in drug package inserts. It accepts the medicine name and a textual query as input. It returns a response based on the content of the leaflet in clear language, optionally citing the section or page of reference.",
-                    inputSchema: z.object({
-                        medicineName: z.string().describe('the name of the medicine, e.g., Aspirina'),
-                        textualQuery: z.string().describe('the information to search for, e.g., What are the side effects?'),
-                        useLatestInfo: z.boolean().optional().describe('whether to use the latest information available (default: false)'),
-                    }),
-                    execute: async ({ medicineName, textualQuery, useLatestInfo }) => {
-                        let out = 'No answer could be found.';
-                        try {
-                            const { answer, citations, reasoning, chunks } = await rag.search(
-                                `Informazioni sul farmaco ${medicineName}: ${textualQuery}`,
-                                useLatestInfo,
-                                'italian'
-                            );
+        const lmaInput: LmaInput = {
+            message: userMsg,
+            chat_status: chatStatusForLma,
+            history: messages,
+            summary: summary ?? undefined,
+            task: hasPendingTasks() ? LMR_TASKS[currentTaskIndex] : undefined,
+        };
 
-                            out = `Answer: ${answer}\n\n` +
-                                (citations && citations.length > 0 ? 'Citations:\n' + await resolveCitations(citations, chunks) + '\n\n' : '') +
-                                (reasoning ? 'Reasoning:\n\n' + reasoning : '');
-                        }
-                        catch (error) {
-                            console.error('Error during RAG processing:', error);
-                        }
-                        return out;
-                    },
-                }),
-            },
-            stopWhen: stepCountIs(5),
-            onStepFinish: async ({ toolResults }) => {
-                if (toolResults.length === 0) return;
-                console.log('\n\t[TOOL CALLS:', toolResults.map(el => el.toolName + '(' + JSON.stringify(el.input) + ')').join(', '), ']\n');
+        const lmaStartTime = performance.now();
+        const lmaOutput = await lma.mainCall(lmaInput);
+        const lmaEndTime = performance.now();
+
+        if (lmaOutput.summary) {
+            summary = lmaOutput.summary;
+        }
+
+
+        if (lmaOutput.task && hasPendingTasks()) {
+            const status = lmaOutput.task.status;
+
+            if (status == 'answered') { // we can move on
+                currentTaskIndex += 1;
             }
+            else if (status == 'negated') {
+                console.warn('[!] CURRENT TASK NEGATED. Moving to next task.');
+                currentTaskIndex += 1;
+            }
+            else if (status == 'ignored') {
+                taskFlags[currentTaskIndex] = { ...(taskFlags[currentTaskIndex] || {}), ignored: true };
+            }
+            else if (status == 'wait') {
+                taskFlags[currentTaskIndex] = { ...(taskFlags[currentTaskIndex] || {}), waited: true };
+            }
+        }
+
+        const hasUserReq = !!(lmaOutput.user_request);
+        const reqSatisfied = lmaOutput.request_satisfied == true;
+        pendingRequest = hasUserReq && !reqSatisfied;
+
+        const chatStatusForLmr: LmrInput['chat_status'] = pendingRequest
+            ? 'request'
+            : (
+                hasPendingTasks()
+                    ? 'normal'
+                    : 'close'
+            );
+
+
+        let lmrTools: typeof exampleLmrTools | undefined;
+
+        if (chatStatusForLmr == 'request') {
+            if (requestDetectionMode == 'simple') {
+                lmrTools = exampleLmrTools;
+            }
+            else {
+                const useful = lmaOutput.useful_tools || [];
+                const filtered: Partial<typeof exampleLmrTools> = {};
+                for (const { name } of useful) {
+                    const tool = exampleLmrTools[name as keyof typeof exampleLmrTools];
+                    if (tool) {
+                        filtered[name as keyof typeof exampleLmrTools] = tool as any;
+                    }
+                    else {
+                        console.warn(`[!] Useful tool "${name}" not found in LMR toolbox.`);
+                    }
+                }
+                if (Object.keys(filtered).length > 0) {
+                    lmrTools = filtered as typeof exampleLmrTools;
+                }
+            }
+        }
+
+        const lmrInput: LmrInput = {
+            chat_status: chatStatusForLmr,
+            style: LMR_STYLE,
+            history: messages,
+            summary: summary ?? undefined,
+            user_request: chatStatusForLmr == 'request' ? (lmaOutput.user_request || undefined) : undefined,
+            task_due: chatStatusForLmr != 'request' ? currentTaskDue() : undefined,
+        };
+
+        if (lmrTools) {
+            lmrInput.tools = lmrTools;
+        }
+
+        const lmrStartTime = performance.now();
+        const lmrOutput = await lmr.mainCall(lmrInput);
+        const lmrEndTime = performance.now();
+
+        messages.push({ sender: 'agent', message: lmrOutput.agent_message });
+        console.log('AGENT:', lmrOutput.agent_message, '\n');
+
+        await session.registerStep({
+            userInput: userMsg,
+            lmaInput,
+            lmaOutput,
+            lmrInput,
+            lmrOutput,
+            lmrLatencyMs: lmrEndTime - lmrStartTime,
+            lmaLatencyMs: lmaEndTime - lmaStartTime
         });
 
-        let fullResponse = '';
-        process.stdout.write('\nAssistant: ');
-        for await (const delta of result.textStream) {
-            fullResponse += delta;
-            process.stdout.write(delta);
-        }
-        process.stdout.write('\n\n');
-
-        const elapsed = performance.now() - start;
-        console.log(`\n\n=== Response completed in ${(elapsed / 1000).toFixed(2)} seconds.\n\n===`);
-
-        messages.push({ role: 'assistant', content: fullResponse });
-
-        await sleep(2);
+        if (chatStatusForLmr == 'close') break;
     }
 }
 

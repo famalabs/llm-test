@@ -30,17 +30,12 @@ export const OPENER_PROMPT = (
 -----------------------------
 OPENER (Greeting)
 -----------------------------
-Before responding, prepend your message with a short, personalized greeting.
+Generate a personalized greeting for the user based on the following instructions.
 
 Requirements:
 - Style: ${style}
 - Length: 1 sentence only, no emojis, no Markdown headers, no lists.
 - Personalization: ${personalization}.
-- Do not include extra content or questions in the greeting (those go in the main response).
-
-Usage:
-- Start the message with the greeting, then continue with the main response.
-- No blank lines before the greeting.
 
 User profile (if available):
 ${JSON.stringify({ name, surname, gender }, null, 2)}

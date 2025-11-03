@@ -1,16 +1,18 @@
 {
     "rag": {
-        "provider": "openai",
-        "model": "gpt-5-nano",
+        "llmConfig": {
+            "provider": "openai",
+            "model": "gpt-5-nano"
+        },
         "numResults": 10,
         "parentPageRetrieval": {
             "offset": 5,
-            "type" : "lines"
+            "type": "lines"
         },
         "reasoningEnabled": true,
         "includeCitations": true,
         "fewShotsEnabled": true,
-        "verbose": true, 
+        "verbose": true,
         "reranking": {
             "llmConfig": {
                 "provider": "openai",
@@ -24,6 +26,6 @@
     },
     "docStore": {
         "indexName": "vs_section_gpt4_300"
-    }, 
+    },
     "language": "detect"
 }
