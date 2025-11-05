@@ -5,14 +5,14 @@ import { sleep } from "../../../utils";
 import z from "zod";
 
 const execute = async ({
-    prediction,
+    candidate,
     keyRef,
     fullRef,
     query,
     model, 
     provider
 }: {
-    prediction: string,
+    candidate: string,
     keyRef: string,
     fullRef: string,
     query?: string,
@@ -29,7 +29,7 @@ const execute = async ({
         score: z.number().min(0).max(1)
     });
 
-    const prompt = llmAsAJudgePrompt(query, keyRef, fullRef, prediction);
+    const prompt = llmAsAJudgePrompt(query, keyRef, fullRef, candidate);
     const getResponse = async () => {
         const { object: result } = await generateObject({
             model: (await getLLMProvider(provider))(model),

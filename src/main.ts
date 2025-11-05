@@ -3,7 +3,7 @@ import { LLMConfig, LLMConfigProvider } from './llm';
 import { createOutputFolderIfNeeded, getUserInput } from './utils';
 import { Lmr, LmrOutput } from './lmr';
 import { Lma, LmaInput, LmaOutput, InputTask } from './lma';
-import { exampleLmrTools } from './lmr/lmr.tools';
+import { lmrToolbox } from './lmr/lmr.tools';
 import { TaskDue, LmrInput } from './lmr/interfaces';
 import path from 'path';
 
@@ -97,7 +97,7 @@ const main = async () => {
         const lmaInput: LmaInput = {
             message: userMsg,
             chat_status: chatStatusForLma,
-            history: messages,
+            history: [...messages],
             summary: summary ?? undefined,
             task: hasPendingTasks() ? LMR_TASKS[currentTaskIndex] : undefined,
         };
@@ -142,26 +142,26 @@ const main = async () => {
             );
 
 
-        let lmrTools: typeof exampleLmrTools | undefined;
+        let lmrTools: typeof lmrToolbox | undefined;
 
         if (chatStatusForLmr == 'request') {
             if (requestDetectionMode == 'simple') {
-                lmrTools = exampleLmrTools;
+                lmrTools = lmrToolbox;
             }
             else {
                 const useful = lmaOutput.useful_tools || [];
-                const filtered: Partial<typeof exampleLmrTools> = {};
+                const filtered: Partial<typeof lmrToolbox> = {};
                 for (const { name } of useful) {
-                    const tool = exampleLmrTools[name as keyof typeof exampleLmrTools];
+                    const tool = lmrToolbox[name as keyof typeof lmrToolbox];
                     if (tool) {
-                        filtered[name as keyof typeof exampleLmrTools] = tool as any;
+                        filtered[name as keyof typeof lmrToolbox] = tool as any;
                     }
                     else {
                         console.warn(`[!] Useful tool "${name}" not found in LMR toolbox.`);
                     }
                 }
                 if (Object.keys(filtered).length > 0) {
-                    lmrTools = filtered as typeof exampleLmrTools;
+                    lmrTools = filtered as typeof lmrToolbox;
                 }
             }
         }
@@ -169,7 +169,7 @@ const main = async () => {
         const lmrInput: LmrInput = {
             chat_status: chatStatusForLmr,
             style: LMR_STYLE,
-            history: messages,
+            history: [...messages],
             summary: summary ?? undefined,
             user_request: chatStatusForLmr == 'request' ? (lmaOutput.user_request || undefined) : undefined,
             task_due: chatStatusForLmr != 'request' ? currentTaskDue() : undefined,

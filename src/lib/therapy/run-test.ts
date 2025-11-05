@@ -7,6 +7,7 @@ import 'dotenv/config';
 import { extractStructuredTherapy, extractTherapyAsMarkdownTable } from './core';
 import { LLMConfigProvider } from '../../llm';
 import { tqdm } from 'node-console-progress-bar-tqdm';
+import { TherapyDrug } from './interfaces';
 
 const main = async () => {
     const { test: testFile, parallel, model, provider } = await yargs(hideBin(process.argv))
@@ -24,48 +25,47 @@ const main = async () => {
 
     const normalizedTestPath = path.normalize(testFile);
 
-    const testsData = (JSON.parse(await readFile(normalizedTestPath, 'utf-8'))).therapies;
+    const testsData = (JSON.parse(await readFile(normalizedTestPath, 'utf-8'))) as {
+        input: string,
+        expected_output: TherapyDrug
+    }[];
 
-    const tests = [];
+    const results = [];
 
-    const runOne = async ({ prompt, expected_therapies }: {
-        prompt: string,
-        expected_therapies: any
+    const runOne = async ({ input, expected_output }: {
+        input: string,
+        expected_output: any
     }) => {
-        const mdTable = await extractTherapyAsMarkdownTable(prompt, model, provider);
+        const start = performance.now();
+        const mdTable = await extractTherapyAsMarkdownTable(input, model, provider);
         const candidate = await extractStructuredTherapy(mdTable, model, provider);
+        const elapsed = performance.now() - start;
 
-        return { candidate, expected_therapies, prompt };
+        return { candidate, expected_output, input, metadata: { time_ms: elapsed } };
     };
 
     if (parallel) {
         console.log('Running Therapy tests in parallel...');
-        const results = await Promise.all(testsData.map((tc: any) => runOne(tc)));
-        for (const r of results) {
-            tests.push({
-                candidate: r.candidate,
-                expectedTherapies: r.expected_therapies,
-                prompt: r.prompt
-            });
+        const testResults = await Promise.all(testsData.map((tc: any) => runOne(tc)));
+        for (const r of testResults) {
+            results.push({ ...r });
         }
     }
 
     else {
         console.log('Running Therapy tests sequentially...');
         for (const tc of tqdm(testsData)) {
-            const r = await runOne(tc as { prompt: string, expected_therapies: any });
-            tests.push({
-                candidate: r.candidate,
-                expectedTherapies: r.expected_therapies,
-                prompt: r.prompt
-            });
+            const r = await runOne(tc);
+            results.push({ ...r });
         }
     }
     const normalizedTestFile = normalizedTestPath.replaceAll(path.sep, PATH_NORMALIZATION_MARK);
     const outDir = createOutputFolderIfNeeded('output', 'therapy', 'candidates');
     const outPath = path.join(outDir, `${normalizedTestFile}.json`);
 
-    await writeFile(outPath, JSON.stringify(tests, null, 2), 'utf-8');
+    await writeFile(outPath, JSON.stringify({
+        results, config: { therapyConfig: { baseConfig: { model, provider } } }
+    }, null, 2), 'utf-8');
     console.log('Therapy output written to', outPath);
 };
 

@@ -6,6 +6,7 @@ import { Lmr } from './lmr';
 import yargs from 'yargs';
 import path from 'path';
 import 'dotenv/config';
+import { tqdm } from 'node-console-progress-bar-tqdm';
 
 type LmrTestCase = { input: LmrInput, expected_output: LmrOutput };
 
@@ -28,38 +29,32 @@ const main = async () => {
 	const normalizedTestPath = path.normalize(testFile);
 	const normalizedConfigPath = path.normalize(configFile);
 
-	const tests: LmrTestCase[] = await JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
-	const lmrConfig = await JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
+	const tests: LmrTestCase[] = JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
+	const lmrConfig = JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
 
 	const lmr = new Lmr(lmrConfig);
 
-	const inputs : LmrInput[] = [];
-	const predictions: LmrOutput[] = [];
-	const expectedOutputs: LmrOutput[] = [];
+	const results = [];
 
 	const runOne = async ({ input, expected_output }: LmrTestCase) => {
 		const start = performance.now();
-		const prediction = await lmr.mainCall(input);
+		const { agent_message: candidate, metadata } = await lmr.mainCall(input);
 		const elapsed = performance.now() - start;
 		if (verbose) console.log(`Test completed in ${elapsed.toFixed(2)} ms`);
-		return { prediction, expected_output, input };
+		return { candidate, expected_output, input, metadata: { ...(metadata ?? {}), time_ms: elapsed } };
 	};
 
 	if (parallel) {
 		console.log('Running LMR tests in parallel...');
 		const results = await Promise.all(tests.map(tc => runOne(tc)));
 		for (const r of results) {
-			predictions.push(r.prediction);
-			expectedOutputs.push(r.expected_output);
-			inputs.push(r.input);
+			results.push({ ...r })
 		}
 	} else {
 		console.log('Running LMR tests sequentially...');
-		for (const tc of tests) {
+		for (const tc of tqdm(tests)) {
 			const r = await runOne(tc);
-			predictions.push(r.prediction);
-			expectedOutputs.push(r.expected_output);
-			inputs.push(r.input);
+			results.push({ ...r });
 		}
 	}
 
@@ -68,7 +63,7 @@ const main = async () => {
 	const outDir = createOutputFolderIfNeeded('output', 'lmr', 'candidates');
 	const outPath = path.join(outDir, `${normalizedTestFile}_${normalizedConfigFile}.json`);
 
-	await writeFile(outPath, JSON.stringify({ predictions, expectedOutputs, inputs }, null, 2), 'utf-8');
+	await writeFile(outPath, JSON.stringify({ results, config: { lmrConfig } }, null, 2), 'utf-8');
 	console.log('LMR output written to', outPath);
 }
 

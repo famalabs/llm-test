@@ -8,7 +8,7 @@ import { parseDoc } from '../../lib/ingestion';
 import { mistral } from '@ai-sdk/mistral';
 import { tqdm } from 'node-console-progress-bar-tqdm';
 import { z } from 'zod';
-import questions from '../../../data/rag-table-tests.json';
+import questions from '../../../data/tests/rag-table-tests.json' assert { type: "json" };
 import yargs from "yargs";
 import 'dotenv/config';
 
@@ -62,10 +62,10 @@ const main = async () => {
     let output = '=============== RAG Table Extraction and QA ===============\n\n';
     output += '========================================================\n\n';
 
-    for (const { question, expectedAnswer } of tqdm(questions.questions)) {
-        output += `### Question: ${question}\n\n`;
-        output += `### Expected Answer: ${expectedAnswer}\n\n`;
-        const answer = await answerQuestion(parsed, format!, question, llm!);
+    for (const { input, expected_output } of tqdm(questions)) {
+        output += `### Question: ${input}\n\n`;
+        output += `### Expected Answer: ${expected_output}\n\n`;
+        const answer = await answerQuestion(parsed, format!, input, llm!);
         output += `### Actual Answer: ${answer}\n\n`;
         output += '========================================================\n\n';
     }

@@ -6,6 +6,7 @@ import { Lma } from './lma';
 import yargs from "yargs";
 import path from 'path';
 import 'dotenv/config';
+import { tqdm } from 'node-console-progress-bar-tqdm';
 
 type LmaTestCase = { input: LmaInput, expected_output: LmaOutput, focus_on?: string };
 
@@ -41,10 +42,10 @@ const main = async () => {
     const normalizedTestPath = path.normalize(testFile);
     const normalizedConfigPath = path.normalize(configFile);
 
-    const testsData: LmaTestCase[] = await JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
-    const lmaConfig = await JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
+    const testsData: LmaTestCase[] = JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
+    const lmaConfig = JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
 
-    if (lmaConfig.summarizationConfig.C_MAX || lmaConfig.summarizationConfig.C_MIN ) {
+    if (lmaConfig.summarizationConfig.C_MAX || lmaConfig.summarizationConfig.C_MIN) {
         console.warn('Overriding LMA config summarization C_MAX to MIN_SAFE_INTEGER and C_MIN to MAX_SAFE_INTEGER for this test run.');
     }
 
@@ -62,8 +63,8 @@ const main = async () => {
 
     if (runAllTests) {
         console.log('No tests specified. Running all tests.');
-    } 
-    
+    }
+
     else {
         parsedTestSelection = testSelection.split(',').map(s => parseInt(s.trim())).filter(i => !isNaN(i));
         if (parsedTestSelection.length == 0) {
@@ -79,25 +80,24 @@ const main = async () => {
         console.log(`Running specified tests: ${testStrings.join(', ')}`);
     }
 
-    const predictions: LmaOutput[] = [];
-    const expectedOutputs: LmaOutput[] = [];
+    const results = [];
 
     const runOne = async ({ input, expected_output }: LmaTestCase) => {
         const start = performance.now();
-        let prediction = {} as LmaOutput & { sentiment: { lastMessageLookingAtHistory?: SentimentScores } };
+        let candidate = {} as LmaOutput & { sentiment: { lastMessageLookingAtHistory?: SentimentScores } };
 
         if (runAllTests) {
-            prediction = await lma.mainCall(input);
-            prediction.sentiment.lastMessageLookingAtHistory = await lma.getLastMessageSentimentLookingAtHistory(input);
+            candidate = await lma.mainCall(input);
+            candidate.sentiment.lastMessageLookingAtHistory = await lma.getLastMessageSentimentLookingAtHistory(input);
         }
-        
+
         else {
             // --- Selective tests ---
             if (parsedTestSelection.includes(0)) {
                 console.log('Analyzing sentiment...');
-                prediction.sentiment = {
+                candidate.sentiment = {
                     single: await lma.getSingleMessageSentiment(input),
-                    cumulative: await lma.getCumulativeSentiment(input), 
+                    cumulative: await lma.getCumulativeSentiment(input),
                     lastMessageLookingAtHistory: await lma.getLastMessageSentimentLookingAtHistory(input)
                 };
             }
@@ -105,22 +105,22 @@ const main = async () => {
             if (parsedTestSelection.includes(1)) {
                 if (lma.shouldSummarize(input) || debug) {
                     console.log('Summarizing conversation...');
-                    prediction.summary = await lma.summarizeChatHistory(input);
+                    candidate.summary = await lma.summarizeChatHistory(input);
                 }
             }
 
             if (parsedTestSelection.includes(2)) {
                 if (lma.shouldAnalyzeTask(input) || debug) {
                     console.log('Analyzing task...');
-                    prediction.task = await lma.analyzeTask(input);
+                    candidate.task = await lma.analyzeTask(input);
                 }
             }
 
             if (parsedTestSelection.includes(3)) {
                 console.log('Detecting user request...');
                 const { user_request, request_satisfied } = await lma.detectUserRequest(input);
-                prediction.user_request = user_request;
-                prediction.request_satisfied = request_satisfied;
+                candidate.user_request = user_request;
+                candidate.request_satisfied = request_satisfied;
             }
         }
 
@@ -129,27 +129,25 @@ const main = async () => {
             console.log(`Test completed in ${elapsed.toFixed(2)} ms`);
             console.log('Input:', JSON.stringify(input, null, 2));
             console.log('Expected Output:', JSON.stringify(expected_output, null, 2));
-            console.log('Prediction:', JSON.stringify(prediction, null, 2));
+            console.log('Candidate:', JSON.stringify(candidate, null, 2));
         }
 
-        return { prediction, expected_output };
+        return { candidate, expected_output, input, metadata: { time_ms: elapsed } };
     };
 
     if (parallel) {
         console.log('Running LMA tests in parallel...');
         const results = await Promise.all(testsData.map(tc => runOne(tc)));
         for (const r of results) {
-            predictions.push(r.prediction);
-            expectedOutputs.push(r.expected_output);
+            results.push({ ...r });
         }
-    } 
-    
+    }
+
     else {
         console.log('Running LMA tests sequentially...');
-        for (const tc of testsData) {
+        for (const tc of tqdm(testsData)) {
             const r = await runOne(tc);
-            predictions.push(r.prediction);
-            expectedOutputs.push(r.expected_output);
+            results.push({ ...r });
         }
     }
 
@@ -158,7 +156,7 @@ const main = async () => {
     const outDir = createOutputFolderIfNeeded('output', 'lma', 'candidates');
     const outPath = path.join(outDir, `${normalizedTestFile}_${normalizedConfigFile}.json`);
 
-    await writeFile(outPath, JSON.stringify({ predictions, expectedOutputs, lmaConfig }, null, 2), 'utf-8');
+    await writeFile(outPath, JSON.stringify({ results, config: { lmaConfig } }, null, 2), 'utf-8');
     console.log('LMA output written to', outPath);
 };
 

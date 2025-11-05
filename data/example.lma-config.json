@@ -1,6 +1,6 @@
 {
     "baseConfig": {
-        "model": "gpt-5-nano",
+        "model": "gpt-4.1-nano",
         "provider": "openai",
         "parallel": true
     },
@@ -14,20 +14,20 @@
             0.6,
             1
         ],
-        "model": "gpt-5-nano",
+        "model": "gpt-4.1-nano",
         "provider": "openai"
     },
     "taskAnalysisConfig": {
-        "model": "gpt-5-nano",
+        "model": "gpt-4.1-nano",
         "provider": "openai"
     },
     "userRequestConfig": {
         "satisfactionDetection": {
-            "model": "gpt-5-nano",
+            "model": "gpt-4.1-nano",
             "provider": "openai"
         },
         "requestDetection": {
-            "model": "gpt-5-nano",
+            "model": "gpt-4.1-nano",
             "provider": "openai",
             "mode": "tools-params",
             "tools": [
@@ -73,7 +73,7 @@
         }
     },
     "summarizationConfig": {
-        "model": "gpt-5-nano",
+        "model": "gpt-4.1-nano",
         "provider": "openai",
         "maximumSentences": 3,
         "C_MIN": 100,

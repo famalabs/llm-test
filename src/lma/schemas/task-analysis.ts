@@ -7,8 +7,8 @@ export const TASK_ANALYSIS_SCHEMA = (answerType: 'string' | 'number' | 'boolean'
 
     const schema = z.object({
         status: z.enum(['answered', 'ignored', 'negated', 'wait']).describe("Task status"),
-        answer: zAnswerType.optional().nullable().describe("Task answer, present only if status is 'answered'"),
-        notes: z.string().optional().nullable().describe("Additional notes, present only if status is 'answered'")
+        answer: zAnswerType.nullish().describe("Task answer, present only if status is 'answered'"),
+        notes: z.string().nullish().describe("Additional notes, present only if status is 'answered'")
     }); 
     return schema;
 }

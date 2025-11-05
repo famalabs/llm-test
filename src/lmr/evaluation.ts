@@ -3,43 +3,60 @@ import { customLLMAsAJudge } from '../test/evaluations/llm-as-a-judge';
 import { LLMConfigProvider } from "../llm";
 
 export const evaluate = async ({
-    lmrInputs,
-    expectedOutputs,
-    generatedOutputs,
+    results, 
     model,
     provider
 }: {
-    lmrInputs: LmrInput[],
-    expectedOutputs: { key_ref: string, full_ref: string }[],
-    generatedOutputs: LmrOutput[],
+    results: {
+        input: LmrInput,
+        expected_output: { key_ref: string, full_ref: string },
+        candidate: LmrOutput, 
+        metadata?: Record<string, any>
+    }[],
     model?: string,
     provider?: LLMConfigProvider
 }) => {
 
-    if (expectedOutputs.length != generatedOutputs.length) {
-        throw new Error('Expected and generated outputs length mismatch.');
+    const output = {
+        tests: [] as {
+            test: {
+                input: LmrInput,
+                expected_output: { key_ref: string, full_ref: string },
+                candidate: LmrOutput, 
+                metadata?: Record<string, any>
+            },
+            metrics: {
+                agentMessageScore: number
+            }
+        }[],
+        summary: {}
     }
 
-    const scores = [];
+    for (let i = 0; i < results.length; i++) {
 
-    for (let i = 0; i < expectedOutputs.length; i++) {
-        const { key_ref: expectedKeyRef, full_ref: expectedFullRef } = expectedOutputs[i];
-        const generated = generatedOutputs[i];
+        const test = results[i];
+
+        const { key_ref: expectedKeyRef, full_ref: expectedFullRef } = test.expected_output;
+        const generated = test.candidate;
         const { score } = await customLLMAsAJudge.execute({
-            prediction: generated.agent_message,
+            candidate: generated.agent_message,
             keyRef: expectedKeyRef,
             fullRef: expectedFullRef,
-            query: JSON.stringify(lmrInputs[i]),
+            query: JSON.stringify(test.input),
             model,
             provider
         });
-        scores.push(score);
+
+        output.tests.push({
+            test,
+            metrics: { agentMessageScore: score }
+        });
     }
 
-    const averageScore = scores.length == 0 ? null : scores.reduce((a, b) => a + b, 0) / scores.length;
-
     return {
-        mean: averageScore,
-        scores
+        tests: output.tests,
+        summary: {
+            averageAgentMessageScore: output.tests.length == 0 ? null : output.tests.reduce((acc: number, b) => acc + b.metrics.agentMessageScore, 0) / output.tests.length
+        }
     }
 }

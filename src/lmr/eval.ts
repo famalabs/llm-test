@@ -35,16 +35,14 @@ const main = async () => {
             provider: LLMConfigProvider
         };
 
-    const data = JSON.parse(await readFile(input, 'utf-8')) as { predictions: LmrOutput[], expectedOutputs: { key_ref: string, full_ref: string }[], inputs: LmrInput[] };
+    const data = JSON.parse(await readFile(input, 'utf-8')) as { results: { expected_output: { key_ref: string, full_ref: string }, input: LmrInput, candidate: LmrOutput }[] };
     const evaluations = await evaluate({
-        lmrInputs: data.inputs,
-        expectedOutputs: data.expectedOutputs,
-        generatedOutputs: data.predictions,
+        results: data.results,
         model,
         provider
     });
-    
-    const outputFile = path.join(createOutputFolderIfNeeded('output', 'lmr'), 'scores.json');  
+
+    const outputFile = path.join(createOutputFolderIfNeeded('output', 'lmr'), 'scores.json');
     await writeFile(outputFile, JSON.stringify(evaluations, null, 2), 'utf-8');
     console.log('Evaluation results written to', outputFile);
 }

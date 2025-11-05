@@ -6,13 +6,10 @@ import yargs from "yargs";
 import path from "path";
 
 type JSONResult = {
-  question?: string;
-  keyRef?: string;
-  fullRef?: string;
-  candidate?: string;
-  timeMs?: number;
-  citations?: Citation[];
-  chunks?: Chunk[];
+  input: string;
+  expected_output: { key_ref: string; full_ref: string };
+  candidate: string;
+  metadata?: { citations?: Citation[]; chunks?: Chunk[]; time_ms?: number | string };
 };
 
 const fmtMilliseconds = (ms: number): string => {
@@ -52,9 +49,11 @@ const titleize = (s: string) =>
     .replace(/^./, (c) => c.toUpperCase());
 
 const normalizeConfigShape = (parsed: any): { rag: Record<string, any>; docStore: Record<string, any> } => {
+  // New shape written by src/scripts/run-test.ts: { config: { ragConfig, docStoreConfig, language? }, results: [...] }
+  const cfgRoot = parsed?.config ?? {};
   return {
-    rag: parsed?.ragConfig ?? {},
-    docStore: parsed?.docStoreConfig ?? {}
+    rag: cfgRoot?.ragConfig ?? {},
+    docStore: cfgRoot?.docStoreConfig ?? {}
   };
 };
 
@@ -385,8 +384,9 @@ class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${escapeT
         const fg = isFinite(score) ? getTextColor(score) : "#111827";
 
         const res: JSONResult | undefined = results?.[i];
-        const citations = res?.citations ?? [];
-        const chunks = res?.chunks ?? [];
+        const meta = res?.metadata ?? {};
+        const citations: Citation[] = meta?.citations ?? [];
+        const chunks: Chunk[] = meta?.chunks ?? [];
 
         // Preparo i badge citazioni
         const items = await Promise.all(
@@ -401,8 +401,7 @@ class="bg-gray-200 font-light mt-1.5 text-xl rounded-full px-3 py-0.5">${escapeT
         );
 
         const candidateText = row.candidate ?? res?.candidate ?? "";
-        const timeFromRow = row.timeMs;
-        const timeVal = timeFromRow != undefined ? (isNaN(Number(timeFromRow)) ? timeFromRow : Number(timeFromRow)) : (res?.timeMs ?? undefined);
+        const timeVal = meta?.time_ms ?? undefined;
         const cellTip = escapeAttrQuotesOnly(buildCandidateTooltipHTML(candidateText, items, explanation, timeVal));
 
         html += `<td class="border border-gray-300 px-3 py-2 text-center font-mono" style="background:${bg};color:${fg}">

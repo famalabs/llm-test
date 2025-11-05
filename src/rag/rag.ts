@@ -251,7 +251,7 @@ export class Rag {
                     startLine: z.number(),
                     endLine: z.number()
                 })
-            ),
+            ).nullish(),
             reasoning: z.string()
         }
         if (!includeCitations) delete responseSchema.citations;
@@ -275,6 +275,7 @@ export class Rag {
             schema: z.object(responseSchema)
         }) as { object: { answer: string; citations?: Citation[]; reasoning?: string; }; };
 
+        if (includeCitations && !result.citations) result.citations = [];
 
         return { ...result, chunks };
     }

@@ -276,6 +276,7 @@ const lma1 = new Lma({
 
 test.concurrent('LMA - Sentiment Analysis', async () => {
 
+    const metrics = [];
     const generatedOutputs: LmaOutput[] = [];
     const expectedOutputs: LmaOutput[] = [];
 
@@ -284,42 +285,45 @@ test.concurrent('LMA - Sentiment Analysis', async () => {
         const cumulative = await lma1.getCumulativeSentiment(input);
         generatedOutputs.push({ sentiment: { single, cumulative } });
         expectedOutputs.push(expected_output);
+
+        metrics.push({
+            single: allEval.evaluateSentimentAnalysis({
+                generatedScore: single,
+                expectedScore: expected_output.sentiment!.single
+            }),
+            cumulative: allEval.evaluateSentimentAnalysis({
+                generatedScore: cumulative,
+                expectedScore: expected_output.sentiment!.cumulative
+            })
+        })
     }
 
+    const averageSingleRawDistance = metrics.reduce((sum, m) => sum + m.single.raw, 0) / metrics.length;
+    const averageCumulativeRawDistance = metrics.reduce((sum, m) => sum + m.cumulative.raw, 0) / metrics.length;
 
-    const singleDistance = allEval.evaluateSentimentAnalysis({
-        expectedScores: expectedOutputs.map(e => e.sentiment!.single),
-        generatedScores: generatedOutputs.map(e => e.sentiment!.single)
-    });
-
-    const cumulativeDistance = allEval.evaluateSentimentAnalysis({
-        expectedScores: expectedOutputs.map(e => e.sentiment!.cumulative),
-        generatedScores: generatedOutputs.map(e => e.sentiment!.cumulative)
-    });
-
-    expect(singleDistance.means.raw).toBeLessThanOrEqual(0.2);
-    expect(cumulativeDistance.means.raw).toBeLessThanOrEqual(0.3);
+    expect(averageSingleRawDistance).toBeLessThanOrEqual(0.2);
+    expect(averageCumulativeRawDistance).toBeLessThanOrEqual(0.3);
 });
 
 test.concurrent('LMA - User Request Detection', async () => {
 
     const generatedOutputs: LmaOutput[] = [];
     const expectedOutputs: LmaOutput[] = [];
+    const metrics = [];
 
     for (const { input, expected_output } of testData) {
         const output = await lma1.detectUserRequest(input);
         generatedOutputs.push(output as LmaOutput);
         expectedOutputs.push(expected_output);
+        metrics.push(await allEval.evaluateUserRequestDetection({
+            generatedOutput: output as LmaOutput,
+            expectedOutput: expected_output
+        }));
     }
 
-    const {
-        userRequestPresenceAccuracy,
-        requestSatisfiedAccuracy,
-        averageUserRequestScore
-    } = await allEval.evaluateUserRequestDetection({
-        expectedOutputs,
-        generatedOutputs,
-    });
+    const userRequestPresenceAccuracy = metrics.filter(m => m.correctPresenceDetections ? 1 : 0).length / metrics.length;
+    const requestSatisfiedAccuracy = metrics.filter(m => m.correctSatisfiedDetections ? 1 : 0).length / metrics.length;
+    const averageUserRequestScore = metrics.reduce((sum, m) => sum + m.userRequestScore, 0) / metrics.length;
 
     expect(userRequestPresenceAccuracy).toBe(1);
     expect(requestSatisfiedAccuracy).toBe(1);
@@ -330,21 +334,22 @@ test.concurrent('LMA - Task Analysis', async () => {
 
     const generatedOutputs: LmaOutput[] = [];
     const expectedOutputs: LmaOutput[] = [];
+    const metrics = [];
 
     for (const { input, expected_output } of testData) {
         const output = await lma1.analyzeTask(input);
         generatedOutputs.push({ task: output as any } as any);
         expectedOutputs.push(expected_output);
+        const metric = (await allEval.evaluateTaskAnalysis({
+            generatedOutput: { task: output } as any,
+            expectedOutput: expected_output
+        }));
+        metrics.push(metric);
     }
 
-    const {
-        taskAnswerAccuracy,
-        taskStatusAccuracy,
-        taskNotesAverageScore
-    } = await allEval.evalauteTaskAnalysis({
-        expectedOutputs,
-        generatedOutputs,
-    });
+    const taskAnswerAccuracy = metrics.reduce((sum, m) => sum + (m.correctTaskAnswer ? 1 : 0), 0) / metrics.length;
+    const taskStatusAccuracy = metrics.reduce((sum, m) => sum + (m.correctTaskStatus ? 1 : 0), 0) / metrics.length;
+    const averageNotesScore = metrics.reduce((sum, m) => sum + m.taskNoteScore, 0) / metrics.length;
 
     expect(taskAnswerAccuracy).toBe(1);
     expect(taskStatusAccuracy).toBe(1);
@@ -364,7 +369,7 @@ test.concurrent('LMA - Summarization', async () => {
 
     const summary = await lma1.summarizeChatHistory(secondTest.input);
     expect(summary).not.toBe(null);
-    
+
     const sent = splitTextIntoSentences(summary!.text);
     expect(sent.length).toBeLessThanOrEqual(lma1.getConfig().summarizationConfig.maximumSentences!);
     expect(summary!.span).toBe(testData[1].expected_output.summary!.span);
@@ -383,21 +388,21 @@ test.concurrent('LMA - Tools Detection', async () => {
 
     const generatedOutputs: LmaOutput[] = [];
     const expectedOutputs: LmaOutput[] = [];
+    const metrics = [];
 
     for (const { input, expected_output } of toolTestData) {
         const output = await lma2.detectUserRequest(input);
         generatedOutputs.push(output as LmaOutput);
         expectedOutputs.push(expected_output as LmaOutput);
+        metrics.push(allEval.evaluateToolsDetection({
+            generatedOutput: output as LmaOutput,
+            expectedOutput: expected_output as LmaOutput
+        }));
     }
 
-    const {
-        toolNameIoU,
-        toolParamAccuracy
-    } = allEval.evaluateToolsDetection({
-        expectedOutputs,
-        generatedOutputs,
-    });
+    const averageToolNameIoU = metrics.reduce((sum, m) => sum + m.toolNameIoU!, 0) / metrics.length;
+    const averageToolParamAccuracy = metrics.reduce((sum, m) => sum + m.toolParamAccuracy!, 0) / metrics.length;
 
-    expect(toolNameIoU).toBe(1);
-    expect(toolParamAccuracy).toBe(1);
+    expect(averageToolNameIoU).toBe(1);
+    expect(averageToolParamAccuracy).toBe(1);
 });

@@ -1,39 +1,20 @@
 import { createOutputFolderIfNeeded, getFileExtension, PATH_NORMALIZATION_MARK } from '../../utils';
-import { THERAPY_EXTRACTION_PROMPT } from '../../lib/prompt';
 import { parseDoc, parseDocx } from '../../lib/ingestion';
-import { generateObject, ModelMessage } from 'ai';
 import { readFile, writeFile } from "fs/promises";
-import { mistral } from '@ai-sdk/mistral';
 import { hideBin } from 'yargs/helpers';
-import { z } from 'zod';
 import yargs from "yargs";
 import path from 'path';
 import 'dotenv/config';
-
-const extractTherapy = async (text: string) => {
-    const { object: result } = await generateObject({
-        model: mistral('mistral-small-latest'),
-        schema: z.object({
-            markdown: z.string().describe('Single Markdown string containing ONLY a well-formatted drug table with all current therapy information (no extra text), using the same language as the input text.')
-        }),
-        temperature: 0,
-        messages: [
-            { role: "system", content: THERAPY_EXTRACTION_PROMPT() },
-            { role: "user", content: `Extract the current therapy from the following medical text:\n\n TEXT:"""${text}"""` }
-        ] as ModelMessage[]
-    });
-
-    return result.markdown;
-};
-
+import { extractTherapyAsMarkdownTable } from '../../lib/therapy';
+import { LLMConfigProvider } from '../../llm';
 
 const main = async () => {
-    const argv = await yargs(hideBin(process.argv))
+    const { source, model, provider } = await yargs(hideBin(process.argv))
         .option('source', { alias: 's', type: 'string', demandOption: true, description: 'Path to the source file (.doc or .docx)' })
+        .option('model', { alias: 'm', type: 'string', default: 'mistral-small-latest', description: 'LLM model id, e.g., mistral-small-latest', demandOption: true })
+        .option('provider', { alias: 'p', type: 'string', default: 'mistral', description: 'LLM provider, e.g., mistral', demandOption: true, choices: ['mistral', 'openai', 'google'] })
         .help()
         .parse();
-        
-    const { source } = argv;
 
     const sourceExtension = getFileExtension(source!);
     let text: string | undefined = undefined;
@@ -58,9 +39,9 @@ const main = async () => {
     if (!text) throw new Error('No conversion result returned.')
 
     console.log('Extracting therapy...');
-    const rawTherapy = await extractTherapy(text);
+    const rawTherapy = await extractTherapyAsMarkdownTable(text, model, provider as LLMConfigProvider);
 
-    const outDir = createOutputFolderIfNeeded('output','document-ingestion','therapy');
+    const outDir = createOutputFolderIfNeeded('output', 'document-ingestion', 'therapy');
     let outputFile = path.join(outDir, `therapy-${source!.replaceAll('/', PATH_NORMALIZATION_MARK)}.md`);
     await writeFile(outputFile, rawTherapy);
     console.log('Extracted therapy written to:', outputFile);

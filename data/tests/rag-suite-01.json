@@ -1,74 +1,100 @@
-{
-    "questions": [
-        {
-            "question": "Quali sono le controindicazioni di OKI?",
-            "fullRef": "OKI 30 mg supposte è controindicato in diverse condizioni e situazioni. Di seguito sono elencate tutte le controindicazioni riportate dalle fonti: - Ipersensibilità al ketoprofene o a uno qualsiasi degli eccipienti. - Reazioni allergiche a ketoprofene, ASA o altri FANS (asma, broncospasmo, orticaria, anafilassi). - Severa insufficienza cardiaca. - Ulcera peptica attiva o storia di ulcere ricorrenti. - Precedente sanguinamento o perforazione gastrointestinale da FANS. - Diatesi emorragica. - Grave insufficienza epatica o renale. - Leucopenia o piastrinopenia. - Disturbi gravi della coagulazione. - Colite ulcerosa, gastrite, dispepsia cronica. - Storia di emorragia gastrointestinale. - Terzo trimestre di gravidanza (rischio per madre e feto). - Proctite o anamnesi di proctorragia. - Bambini < 6 anni.",
-            "keyRef": "OKI è controindicato in caso di ulcere, sanguinamenti gastrointestinali, gravi problemi cardiaci, epatici o renali, disturbi della coagulazione, allergie a FANS, nel terzo trimestre di gravidanza e nei bambini sotto i 6 anni."
-        },
-        {
-            "question": "OKI crea dipendenza?",
-            "fullRef": "Non è noto che il farmaco OKI 30 mg supposte dia origine a fenomeni di assuefazione o di dipendenza.",
-            "keyRef": "Non ci sono evidenze che OKI crei dipendenza."
-        },
-        {
-            "question": "Qual è il dosaggio massimo giornaliero di OKI per un bambino di 25 Kg?",
-            "fullRef": "OKI 30 mg supposte per un bambino di 25 kg (di almeno 6 anni, peso minore di 30 kg): - Dose per somministrazione: 1–2 mg/kg. - Una supposta da 30 mg = 1,2 mg/kg, quindi corretta. - Schema: 1 supposta 2–3 volte al giorno. - Dose massima: 3 supposte = 90 mg al giorno. - Nota: usare la dose minima efficace, monitorare rischio gastrointestinale. Per bambini sotto i 6 anni OKI è controindicato.",
-            "keyRef": "Dosaggio di max 3 supposte al giorno per bambini di almeno 6 anni. Controindicato sotto i 6 anni."
-        },
-        {
-            "question": "Posso prendere xanax a 16 anni?",
-            "fullRef": "Non ho informazioni sufficienti per rispondere alla tua domanda. Non ci sono informazioni su Xanax nei documenti forniti. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche sull'uso di Xanax a 16 anni.",
-            "keyRef": "Non ci sono informazioni per rispondere."
-        },
-        {
-            "question": "Posso mangiare qualsiasi cosa voglia dopo aver preso Aspirina?",
-            "fullRef": "Gli effetti dell'alcool e di Aspirina 325 mg sommati aumentano del rischio di sanguinamento gastrointestinale. Inoltre, è opportuno non somministrare altri farmaci per via orale entro 1-2 ore dall'impiego del prodotto. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni riguardo alimenti o farmaci specifici. In ogni caso, è consigliato assumere il prodotto a stomaco pieno, preferibilmente dopo i pasti principali.",
-            "keyRef": "Dopo 1-2 ore dall'assunzione è sconsigliato prendere altri farmaci. Inoltre è sconsigliata l'assunzione di alcool."
-        },
-        {
-            "question": "Spiegami perché OKI va mangiata a stomaco pieno.",
-            "fullRef": "OKI 30 mg supposte è una supposta e non va mangiata. L’assunzione orale di FANS richiede stomaco pieno per ridurre rischi gastrointestinali, ma con OKI supposta questa precauzione non è necessaria. Consultare un medico o farmacista per ulteriori dettagli.",
-            "keyRef": "OKI è una supposta, non va mangiata; non serve stomaco pieno."
-        },
-        {
-            "question": "Per quali disturbi si usa Aspirina 325 mg?",
-            "fullRef": "Aspirina 325 mg è un analgesico (antidolorifico: riduce il dolore), antinfiammatorio ed antipiretico (antifebbrile: riduce la febbre). Aspirina 325 mg è utile per il trattamento sintomatico di mal di testa e di denti, nevralgie, dolori mestruali, dolori reumatici e muscolari e per la terapia sintomatica di stati febbrili e sindromi influenzali e da raffreddamento.",
-            "keyRef": "Usata per mal di testa, nevralgie, dolori (denti, mestruali, muscolari, reumatici), stati febbrili e sintomi influenzali."
-        },
-        {
-            "question": "Qual è la dose di Aspirina consigliata per adulti?",
-            "fullRef": "La dose consigliata per adulti è di 1 o 2 compresse di Aspirina 325 mg come dose singola, ripetendo, se necessario, la dose ad intervalli di 4-8 ore fino a 2-3 volte al giorno. È importante non superare le dosi indicate senza il consiglio del medico e assumere il medicinale a stomaco pieno, preferibilmente dopo i pasti principali. Utilizzare sempre il dosaggio minimo efficace ed aumentarlo solo se non è sufficiente ad alleviare i sintomi (dolore e febbre). I pazienti anziani dovrebbero attenersi ai dosaggi minimi sopraindicati.",
-            "keyRef": "Adulti: 1–2 compresse ogni 4–8 ore, max 2–3 volte al giorno."
-        },
-        {
-            "question": "Si può usare l'aspirina in gravidanza o durante l’allattamento?",
-            "fullRef": "Aspirina 325 mg è controindicata nell'ultimo trimestre di gravidanza e nell'allattamento. Nel primo e secondo trimestre di gravidanza, Aspirina deve essere usata solo dopo aver consultato il medico e aver valutato con lui il rapporto rischio/beneficio nel proprio caso. Consultate il medico nel caso sospettiate uno stato di gravidanza o desideriate pianificare una maternità.",
-            "keyRef": "Controindicata in allattamento e ultimo trimestre di gravidanza. Uso solo su parere medico nel primo o secondo trimestre."
-        },
-        {
-            "question": "L'aspirina è adatta a bambini e ragazzi sotto i 16 anni?",
-            "fullRef": "Aspirina 325 mg è controindicata nei bambini e ragazzi di età inferiore ai 16 anni.",
-            "keyRef": "Controindicata sotto i 16 anni."
-        },
-        {
-            "question": "L'aspirina si può assumere con Warfarin o metotrexato ad alte dosi?",
-            "fullRef": "Aspirina 325 mg non va assunta insieme a terapia di Warfarin o terapia di Metotrexato con dosi maggiori o uguali a 15 mg a settimana, salvo diversa prescrizione medica.",
-            "keyRef": "Controindicata con warfarin o metotrexato ad alto dosaggio (maggiore o uguale a 15 mg/settimana)."
-        },
-        {
-            "question": "Aspirina e OKI si possono assumere nello stesso periodo?",
-            "fullRef": "Aspirina 325 mg (acido acetilsalicilico) e Oki 30 mg supposte (ketoprofene) appartengono entrambi alla categoria di FANS: assumerli insieme aumenta il rischio di sanguinamenti e ulcerazioni gastrointestinali, inclusi gli inibitori selettivi delle cicloossigenasi-2. È necessario consultare un medico prima.",
-            "keyRef": "Non assumerli insieme senza parere medico."
-        },
-        {
-            "question": "OKI si può assumere insieme ad altri FANS?",
-            "fullRef": "L'uso concomitante di OKi 30 mg supposte con altri FANS deve essere evitato, inclusi gli inibitori selettivi delle cicloossigenasi-2. L'uso concomitante di due o più FANS aumenta il rischio di effetti indesiderati, in particolare sanguinamenti e ulcerazioni gastrointestinali.",
-            "keyRef": "Evitare l'assunzione insieme ad altri FANS."
-        },
-        {
-            "question": "OKI è controindicato durante la gravidanza?",
-            "fullRef": "Durante il primo e il secondo trimestre di gravidanza, il OKI 30 mg supposte (ketoprofene) non deve essere somministrato se non in casi strettamente necessari e dopo aver consultato il medico, mandenendo le dosi minime possibili. Durante il terzo trimestre di gravidanza, OKI è controindicato in quanto può esporre sia la madre che il feto a gravi rischi.",
-            "keyRef": "OKI è controindicato in gravidanza, soprattutto durante il terzo trimestre."
+[
+    {
+        "input": "Quali sono le controindicazioni di OKI?",
+        "expected_output": {
+            "full_ref": "OKI 30 mg supposte è controindicato in diverse condizioni e situazioni. Di seguito sono elencate tutte le controindicazioni riportate dalle fonti: - Ipersensibilità al ketoprofene o a uno qualsiasi degli eccipienti. - Reazioni allergiche a ketoprofene, ASA o altri FANS (asma, broncospasmo, orticaria, anafilassi). - Severa insufficienza cardiaca. - Ulcera peptica attiva o storia di ulcere ricorrenti. - Precedente sanguinamento o perforazione gastrointestinale da FANS. - Diatesi emorragica. - Grave insufficienza epatica o renale. - Leucopenia o piastrinopenia. - Disturbi gravi della coagulazione. - Colite ulcerosa, gastrite, dispepsia cronica. - Storia di emorragia gastrointestinale. - Terzo trimestre di gravidanza (rischio per madre e feto). - Proctite o anamnesi di proctorragia. - Bambini < 6 anni.",
+            "key_ref": "OKI è controindicato in caso di ulcere, sanguinamenti gastrointestinali, gravi problemi cardiaci, epatici o renali, disturbi della coagulazione, allergie a FANS, nel terzo trimestre di gravidanza e nei bambini sotto i 6 anni."
         }
-    ]
-}
+    },
+    {
+        "input": "OKI crea dipendenza?",
+        "expected_output": {
+            "full_ref": "Non è noto che il farmaco OKI 30 mg supposte dia origine a fenomeni di assuefazione o di dipendenza.",
+            "key_ref": "Non ci sono evidenze che OKI crei dipendenza."
+        }
+    },
+    {
+        "input": "Qual è il dosaggio massimo giornaliero di OKI per un bambino di 25 Kg?",
+        "expected_output": {
+            "full_ref": "OKI 30 mg supposte per un bambino di 25 kg (di almeno 6 anni, peso minore di 30 kg): - Dose per somministrazione: 1–2 mg/kg. - Una supposta da 30 mg = 1,2 mg/kg, quindi corretta. - Schema: 1 supposta 2–3 volte al giorno. - Dose massima: 3 supposte = 90 mg al giorno. - Nota: usare la dose minima efficace, monitorare rischio gastrointestinale. Per bambini sotto i 6 anni OKI è controindicato.",
+            "key_ref": "Dosaggio di max 3 supposte al giorno per bambini di almeno 6 anni. Controindicato sotto i 6 anni."
+        }
+    },
+    {
+        "input": "Posso prendere xanax a 16 anni?",
+        "expected_output": {
+            "full_ref": "Non ho informazioni sufficienti per rispondere alla tua domanda. Non ci sono informazioni su Xanax nei documenti forniti. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni specifiche sull'uso di Xanax a 16 anni.",
+            "key_ref": "Non ci sono informazioni per rispondere."
+        }
+    },
+    {
+        "input": "Posso mangiare qualsiasi cosa voglia dopo aver preso Aspirina?",
+        "expected_output": {
+            "full_ref": "Gli effetti dell'alcool e di Aspirina 325 mg sommati aumentano del rischio di sanguinamento gastrointestinale. Inoltre, è opportuno non somministrare altri farmaci per via orale entro 1-2 ore dall'impiego del prodotto. Ti consiglio di consultare un medico o un farmacista per ottenere indicazioni riguardo alimenti o farmaci specifici. In ogni caso, è consigliato assumere il prodotto a stomaco pieno, preferibilmente dopo i pasti principali.",
+            "key_ref": "Dopo 1-2 ore dall'assunzione è sconsigliato prendere altri farmaci. Inoltre è sconsigliata l'assunzione di alcool."
+        }
+    },
+    {
+        "input": "Spiegami perché OKI va mangiata a stomaco pieno.",
+        "expected_output": {
+            "full_ref": "OKI 30 mg supposte è una supposta e non va mangiata. L’assunzione orale di FANS richiede stomaco pieno per ridurre rischi gastrointestinali, ma con OKI supposta questa precauzione non è necessaria. Consultare un medico o farmacista per ulteriori dettagli.",
+            "key_ref": "OKI è una supposta, non va mangiata; non serve stomaco pieno."
+        }
+    },
+    {
+        "input": "Per quali disturbi si usa Aspirina 325 mg?",
+        "expected_output": {
+            "full_ref": "Aspirina 325 mg è un analgesico (antidolorifico: riduce il dolore), antinfiammatorio ed antipiretico (antifebbrile: riduce la febbre). Aspirina 325 mg è utile per il trattamento sintomatico di mal di testa e di denti, nevralgie, dolori mestruali, dolori reumatici e muscolari e per la terapia sintomatica di stati febbrili e sindromi influenzali e da raffreddamento.",
+            "key_ref": "Usata per mal di testa, nevralgie, dolori (denti, mestruali, muscolari, reumatici), stati febbrili e sintomi influenzali."
+        }
+    },
+    {
+        "input": "Qual è la dose di Aspirina consigliata per adulti?",
+        "expected_output": {
+            "full_ref": "La dose consigliata per adulti è di 1 o 2 compresse di Aspirina 325 mg come dose singola, ripetendo, se necessario, la dose ad intervalli di 4-8 ore fino a 2-3 volte al giorno. È importante non superare le dosi indicate senza il consiglio del medico e assumere il medicinale a stomaco pieno, preferibilmente dopo i pasti principali. Utilizzare sempre il dosaggio minimo efficace ed aumentarlo solo se non è sufficiente ad alleviare i sintomi (dolore e febbre). I pazienti anziani dovrebbero attenersi ai dosaggi minimi sopraindicati.",
+            "key_ref": "Adulti: 1–2 compresse ogni 4–8 ore, max 2–3 volte al giorno."
+        }
+    },
+    {
+        "input": "Si può usare l'aspirina in gravidanza o durante l’allattamento?",
+        "expected_output": {
+            "full_ref": "Aspirina 325 mg è controindicata nell'ultimo trimestre di gravidanza e nell'allattamento. Nel primo e secondo trimestre di gravidanza, Aspirina deve essere usata solo dopo aver consultato il medico e aver valutato con lui il rapporto rischio/beneficio nel proprio caso. Consultate il medico nel caso sospettiate uno stato di gravidanza o desideriate pianificare una maternità.",
+            "key_ref": "Controindicata in allattamento e ultimo trimestre di gravidanza. Uso solo su parere medico nel primo o secondo trimestre."
+        }
+    },
+    {
+        "input": "L'aspirina è adatta a bambini e ragazzi sotto i 16 anni?",
+        "expected_output": {
+            "full_ref": "Aspirina 325 mg è controindicata nei bambini e ragazzi di età inferiore ai 16 anni.",
+            "key_ref": "Controindicata sotto i 16 anni."
+        }
+    },
+    {
+        "input": "L'aspirina si può assumere con Warfarin o metotrexato ad alte dosi?",
+        "expected_output": {
+            "full_ref": "Aspirina 325 mg non va assunta insieme a terapia di Warfarin o terapia di Metotrexato con dosi maggiori o uguali a 15 mg a settimana, salvo diversa prescrizione medica.",
+            "key_ref": "Controindicata con warfarin o metotrexato ad alto dosaggio (maggiore o uguale a 15 mg/settimana)."
+        }
+    },
+    {
+        "input": "Aspirina e OKI si possono assumere nello stesso periodo?",
+        "expected_output": {
+            "full_ref": "Aspirina 325 mg (acido acetilsalicilico) e Oki 30 mg supposte (ketoprofene) appartengono entrambi alla categoria di FANS: assumerli insieme aumenta il rischio di sanguinamenti e ulcerazioni gastrointestinali, inclusi gli inibitori selettivi delle cicloossigenasi-2. È necessario consultare un medico prima.",
+            "key_ref": "Non assumerli insieme senza parere medico."
+        }
+    },
+    {
+        "input": "OKI si può assumere insieme ad altri FANS?",
+        "expected_output": {
+            "full_ref": "L'uso concomitante di OKi 30 mg supposte con altri FANS deve essere evitato, inclusi gli inibitori selettivi delle cicloossigenasi-2. L'uso concomitante di due o più FANS aumenta il rischio di effetti indesiderati, in particolare sanguinamenti e ulcerazioni gastrointestinali.",
+            "key_ref": "Evitare l'assunzione insieme ad altri FANS."
+        }
+    },
+    {
+        "input": "OKI è controindicato durante la gravidanza?",
+        "expected_output": {
+            "full_ref": "Durante il primo e il secondo trimestre di gravidanza, il OKI 30 mg supposte (ketoprofene) non deve essere somministrato se non in casi strettamente necessari e dopo aver consultato il medico, mandenendo le dosi minime possibili. Durante il terzo trimestre di gravidanza, OKI è controindicato in quanto può esporre sia la madre che il feto a gravi rischi.",
+            "key_ref": "OKI è controindicato in gravidanza, soprattutto durante il terzo trimestre."
+        }
+    }
+]

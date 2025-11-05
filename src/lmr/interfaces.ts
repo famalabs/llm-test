@@ -43,4 +43,7 @@ export interface LmrInput {
 
 export interface LmrOutput {
     agent_message: string;
+    metadata?: {
+        tool_calls: Array<{ toolName: string, input: any, output: any }>;
+    }
 }

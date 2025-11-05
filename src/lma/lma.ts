@@ -189,128 +189,85 @@ export class Lma {
         const { model: requestDetectionModel, mode: requestDetectionMode, provider: requestDetectionProvider, tools } = requestDetection;
         const { model: satisfactionDetectionModel, provider: satisfactionDetectionProvider } = satisfactionDetection;
 
-        if (requestDetectionMode == 'simple' && tools && tools.length > 0) {
-            console.warn("Tools provided in configuration will be ignored in 'simple' detection mode.");
-        }
+        const satisfactionDetectionSchema = USER_SATISFACTION_DETECTION_SCHEMA();
+        const requestSatisfiedPrompt = USER_REQUEST_SATISFIED_PROMPT(this.stringifyHistory(input), input.message);
 
         const includeRequestSatisfiedDetection = input.chat_status == 'request';
-        const inputHistory = this.stringifyHistory(input);
+        const satisfactionDetectionPromise = includeRequestSatisfiedDetection
+            ? this.callLLM({
+                model: satisfactionDetectionModel,
+                provider: satisfactionDetectionProvider,
+                prompt: requestSatisfiedPrompt,
+                schema: satisfactionDetectionSchema
+            })
+            : Promise.resolve({ request_satisfied: undefined });
 
+        // 'simple' mode
         if (requestDetectionMode == 'simple') {
             const requestDetectionSchema = USER_REQUEST_DETECTION_SCHEMA();
-            const satisfactionDetectionSchema = USER_SATISFACTION_DETECTION_SCHEMA();
+            const userRequestPrompt = USER_REQUEST_DETECTION_PROMPT(this.stringifyHistory(input), input.message);
 
-            const userRequestPrompt = USER_REQUEST_DETECTION_PROMPT(inputHistory, input.message);
-            const requestSatisfiedPrompt = USER_REQUEST_SATISFIED_PROMPT(inputHistory, input.message);
+            const promises = [
+                this.callLLM({
+                    model: requestDetectionModel,
+                    provider: requestDetectionProvider,
+                    prompt: userRequestPrompt,
+                    schema: requestDetectionSchema
+                }),
+                satisfactionDetectionPromise
+            ];
 
-            const promises = [];
+            const results = this.config.baseConfig.parallel
+                ? await Promise.all(promises)
+                : await Promise.all(promises.map(p => p)); // stessa cosa per serie, ma più chiaro
 
-            promises.push(this.callLLM({
-                model: requestDetectionModel, provider: requestDetectionProvider,
-                prompt: userRequestPrompt, schema: requestDetectionSchema
-            }));
+            const userRequestResult = results[0] as { user_request?: string }; // Risultato della rilevazione della richiesta
+            const satisfactionResult = results[1] as { request_satisfied?: boolean }; // Risultato della rilevazione della soddisfazione
 
-            if (includeRequestSatisfiedDetection) {
-                promises.push(this.callLLM({
-                    model: satisfactionDetectionModel, provider: satisfactionDetectionProvider,
-                    prompt: requestSatisfiedPrompt, schema: satisfactionDetectionSchema
-                }));
-            }
-            else {
-                promises.push(Promise.resolve({ request_satisfied: undefined }));
-            }
-
-            if (this.config.baseConfig.parallel) {
-                const results = await Promise.all(promises) as [
-                    { user_request?: string },
-                    { request_satisfied?: boolean }
-                ];
-
-                return {
-                    user_request: results[0].user_request,
-                    request_satisfied: results[1].request_satisfied,
-                    useful_tools: undefined
-                };
-            }
-
-            else {
-                const results = [];
-                for (const p of promises) {
-                    results.push(await p as any);
-                }
-
-                return {
-                    user_request: results[0].user_request,
-                    request_satisfied: results[1].request_satisfied,
-                    useful_tools: undefined
-                };
-            }
+            return {
+                user_request: userRequestResult.user_request,
+                request_satisfied: satisfactionResult.request_satisfied,
+                useful_tools: undefined
+            };
         }
 
-        else {
-            if (!tools || tools.length == 0) throw new Error("Tools must be provided in configuration for 'tools' or 'tools-params' detection mode.");
+        // 'tools' or 'tools-params' mode
+        if (!tools || tools.length == 0) throw new Error("Tools must be provided in configuration for 'tools' or 'tools-params' detection mode.");
 
-            // In modalità 'tools' e 'tools-params' la verifica della soddisfazione va fatta con una chiamata separata
-            const includeToolsParams = requestDetectionMode == 'tools-params';
+        const includeToolsParams = requestDetectionMode == 'tools-params';
 
-            // 1) Rilevazione richiesta + strumenti (senza soddisfazione)
-            const userRequestAndToolsSchema = USER_REQUEST_AND_TOOLS_DETECTION_SCHEMA(
-                includeToolsParams, /* includeRequestSatisfiedDetection */ false
-            );
-            const userRequestAndToolsPrompt = USER_REQUEST_AND_TOOLS_DETECTION_PROMPT(
-                inputHistory, input.message,
-                includeToolsParams, this.stringifyTools(tools, includeToolsParams),
-                /* includeUserSatisfiedDetection */ false
-            );
+        const userRequestAndToolsSchema = USER_REQUEST_AND_TOOLS_DETECTION_SCHEMA(includeToolsParams);
+        const userRequestAndToolsPrompt = USER_REQUEST_AND_TOOLS_DETECTION_PROMPT(
+            this.stringifyHistory(input),
+            input.message,
+            includeToolsParams,
+            this.stringifyTools(tools, includeToolsParams)
+        );
 
-            // 2) (Opzionale) Verifica soddisfazione separata
-            const satisfactionDetectionSchema = USER_SATISFACTION_DETECTION_SCHEMA();
-            const requestSatisfiedPrompt = USER_REQUEST_SATISFIED_PROMPT(inputHistory, input.message);
-
-            const promises = [] as Promise<any>[];
-            promises.push(this.callLLM({
+        const promises = [
+            this.callLLM({
                 model: requestDetectionModel,
                 provider: requestDetectionProvider,
                 prompt: userRequestAndToolsPrompt,
                 schema: userRequestAndToolsSchema
-            }));
+            }),
+            satisfactionDetectionPromise
+        ];
 
-            if (includeRequestSatisfiedDetection) {
-                promises.push(this.callLLM({
-                    model: satisfactionDetectionModel,
-                    provider: satisfactionDetectionProvider,
-                    prompt: requestSatisfiedPrompt,
-                    schema: satisfactionDetectionSchema
-                }));
-            }
-            else {
-                promises.push(Promise.resolve({ request_satisfied: undefined }));
-            }
+        const results = this.config.baseConfig.parallel
+            ? await Promise.all(promises)
+            : await Promise.all(promises.map(p => p));
 
-            if (this.config.baseConfig.parallel) {
-                const [reqToolsRes, satisfiedRes] = await Promise.all(promises) as [
-                    { user_request?: string; useful_tools?: any },
-                    { request_satisfied?: boolean }
-                ];
+        const userRequestAndToolsResult = results[0] as { user_request?: string, useful_tools?: any }; // Risultato della richiesta e strumenti
+        const satisfactionResult = results[1] as { request_satisfied?: boolean }; // Risultato della soddisfazione
 
-                return {
-                    user_request: reqToolsRes.user_request,
-                    request_satisfied: satisfiedRes.request_satisfied,
-                    useful_tools: reqToolsRes.useful_tools
-                };
-            }
-            else {
-                const results = [] as any[];
-                for (const p of promises) results.push(await p);
-
-                return {
-                    user_request: results[0].user_request,
-                    request_satisfied: results[1].request_satisfied,
-                    useful_tools: results[0].useful_tools
-                };
-            }
-        }
+        return {
+            user_request: userRequestAndToolsResult.user_request,
+            request_satisfied: satisfactionResult.request_satisfied,
+            useful_tools: userRequestAndToolsResult.useful_tools
+        };
     }
+
 
     // --------------------------------
     // SUMMARIZATION

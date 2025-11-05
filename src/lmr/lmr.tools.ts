@@ -20,9 +20,9 @@ const rag = new Rag({
         provider: 'mistral',
         model: 'mistral-small-latest',
     },
-    numResults: 10,
+    numResults: 20,
     reasoningEnabled: true,
-    includeCitations: false,
+    includeCitations: true,
     fewShotsEnabled: false,
     verbose: true,
     docStore,
@@ -49,15 +49,15 @@ export const ragFromDocs = tool({
     async execute({ query }) {
         await initRag();
         const lang = await detectLanguage(query, true);
-        const { answer } = await rag.search(query, true, lang);
-        return { answer };
+        const { answer, citations, } = await rag.search(query, true, lang);
+        return { answer, citations };
     },
 });
 
 export const therapy = tool({
     description: "Retrieve the user's current therapy plan and dosages.",
     inputSchema: z.object({
-        date: z.string().optional().describe("Optional date (YYYY-MM-DD) to view historical therapy"),
+        date: z.string().nullish().describe("Optional date (YYYY-MM-DD) to view historical therapy"),
     }),
     async execute({ date }) {
         return {
@@ -128,7 +128,7 @@ export const doctors = tool({
     },
 });
 
-export const exampleLmrTools = {
+export const lmrToolbox = {
     "rag-from-docs": ragFromDocs,
     therapy,
     logs,

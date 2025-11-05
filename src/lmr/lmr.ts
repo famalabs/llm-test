@@ -2,7 +2,7 @@ import { OPENER_PROMPT, CLOSER_PROMPT, FIRST_TIME_TASK_REQUEST_PROMPT, PRECEDENT
 import { LmrConfig, LmrInput, LmrOutput } from "./interfaces";
 import { getLLMProvider, LLMConfigProvider } from "../llm";
 import { generateObject, generateText, stepCountIs } from "ai";
-import { exampleLmrTools } from "./lmr.tools";
+import { lmrToolbox } from "./lmr.tools";
 import { resolveConfig } from "./lmr.config";
 import { z } from "zod/v4";
 
@@ -68,24 +68,33 @@ export class Lmr {
 
             const userInfo = this.stringifyUserInfo(input.user_info);
             const history = this.stringifyHistory(input);
-            // Prefer caller-provided tools (filtered), fallback to the default toolbox
-            const tools = input.tools ?? exampleLmrTools;
 
+            // Prefer caller-provided tools (filtered), fallback to the default toolbox
+            const tools = input.tools ?? lmrToolbox;
+
+            const metadata = { tool_calls: [] as Array<{ toolName: string, input: any, output: any }> };
             const { text } = await generateText({
                 model: llmModel,
                 tools: tools,
                 system: LMR_SYSTEM_PROMPT(),
                 prompt: ANSWER_USER_REQUEST_PROMPT(
                     history,
-                    input.user_request,
+                    input.user_request!,
                     userInfo,
                     input.user_info?.language ?? 'italian'
                 ),
+                onStepFinish: ({ toolResults }) => {
+                    if (toolResults.length == 0) return;
+                    for (const { toolName, input, output } of toolResults) {
+                        metadata.tool_calls.push({ toolName, input, output });
+                    }
+                },
                 stopWhen: stepCountIs(5)
             });
 
             return {
                 agent_message: text,
+                metadata
             };
         }
 

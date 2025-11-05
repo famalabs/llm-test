@@ -9,7 +9,7 @@ import { readFile, writeFile } from "fs/promises"
 import { Chunk, Citation } from "../lib/chunks";
 import { tqdm } from "node-console-progress-bar-tqdm";
 import { hideBin } from "yargs/helpers";
-import { Rag } from '../rag';
+import { Rag } from '.';
 import { glob } from "glob";
 import Redis from "ioredis";
 import yargs from "yargs"
@@ -32,8 +32,8 @@ async function runSingleTest(testFile: string, configFile: string, parallel: boo
 
     const normalizedTestPath = path.normalize(testFile!);
     const normalizedConfigPath = path.normalize(configFile!);
-    const test: { questions: { question: string; fullRef: string, keyRef: string }[] } = await JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
-    const joinedConfig = await JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
+    const tests: { input: string; expected_output: { key_ref: string, full_ref: string } }[] = JSON.parse(await readFile(normalizedTestPath, 'utf-8'));
+    const joinedConfig = JSON.parse(await readFile(normalizedConfigPath, 'utf-8'));
     const { rag: ragConfig, docStore: docStoreConfig, language } = joinedConfig;
 
     if (!ragConfig || !docStoreConfig) {
@@ -66,24 +66,29 @@ async function runSingleTest(testFile: string, configFile: string, parallel: boo
     await rag.init();
 
     const output: {
-        results: { question: string; keyRef: string; fullRef: string; candidate: string, citations: Citation[], chunks: Chunk[], timeMs: number }[],
-        ragConfig: object,
-        docStoreConfig: object,
-        language?: string
+        results: { input: string; expected_output: { key_ref: string; full_ref: string }, candidate: string, metadata: { citations: Citation[], chunks: Chunk[], time_ms: number } }[],
+        config: {
+            ragConfig: object,
+            docStoreConfig: object,
+            language?: string
+        }
     } = {
         results: [],
-        ragConfig,
-        docStoreConfig,
-        ...(language != undefined ? { language: language } : {})
+        config: {
+            ragConfig,
+            docStoreConfig,
+            ...(language != undefined ? { language: language } : {})
+        }
     }
 
-    const promises = test.questions.map(({ question, keyRef, fullRef }) => async () => {      
-        const detectedLang: LanguageLabel = language == 'detect' ? await detectLanguage(question, true) : (language as LanguageLabel);
+    const promises = tests.map(({ input, expected_output }) => async () => {
+        const { key_ref, full_ref } = expected_output;
+        const detectedLang: LanguageLabel = language == 'detect' ? await detectLanguage(input, true) : (language as LanguageLabel);
         const start = performance.now();
-        const { answer: candidate, citations, chunks } = await rag.search(question, true, detectedLang);
+        const { answer: candidate, citations, chunks } = await rag.search(input, true, detectedLang);
         const end = performance.now();
-        const timeMs = end - start;
-        return { question, keyRef, fullRef, candidate, citations: citations ?? [], chunks, timeMs };
+        const time_ms = end - start;
+        return { input, expected_output: { key_ref, full_ref }, candidate, metadata: { citations: citations ?? [], chunks, time_ms } };
     });
 
     if (parallel) {

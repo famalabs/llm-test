@@ -74,7 +74,7 @@ user: ${message}
 """
 `.trim();
 
-export const USER_REQUEST_AND_TOOLS_DETECTION_PROMPT = (history: string, message: string, includeToolsParams: boolean, toolsJson: string, includeUserSatisfiedDetection: boolean) => {
+export const USER_REQUEST_AND_TOOLS_DETECTION_PROMPT = (history: string, message: string, includeToolsParams: boolean, toolsJson: string) => {
 
   const parameterGoal = includeToolsParams ? '4) Respect parameter names and expected types from the tool definitions. If a value is unknown, omit the "parameters" object entirely.' : '';
 
@@ -98,7 +98,6 @@ GOALS
 2) Select ONLY tools from the provided "AVAILABLE_TOOLS". Do NOT invent tools.
 3) For each selected tool, include ONLY parameters that are explicitly present or inferable from the conversation.
 ${parameterGoal}
-${includeUserSatisfiedDetection ? '5) Additionally, determine if the previous user\'s request or question has been adequately addressed by the AI assistant.' : ''}
 
 -----------------------------
 STRICT OUTPUT
@@ -112,13 +111,11 @@ Return a single JSON object with exactly these keys:
       "name": string,            // MUST match exactly a name from AVAILABLE_TOOLS
       ${parameters}
     }
-  ] | undefined,
-  ${includeUserSatisfiedDetection ? `"request_satisfied": <boolean | undefined>` : ''}
+  ] | undefined
 }
 
 Notes:
 - If no clear request, set "user_request" to undefined and omit "useful_tools" (set it to null).
-${includeUserSatisfiedDetection ? '- If unable to determine if the request is satisfied, set "request_satisfied" to false.' : ''}
 - Do not include comments or extra fields.
 
 -----------------------------

@@ -1,0 +1,18 @@
+[
+    {
+        "input": "Qual era il FEV1 a Maggio 2025?",
+        "expected_output": "Il FEV1 a Maggio 2025 era di 1,02"
+    },
+    {
+        "input": "Puoi sommare i valori di FEV1 da Gennaio 2025 a Maggio 2025?",
+        "expected_output": "La somma dei valori di FEV1 da Gennaio 2025 a Maggio 2025 è 3.13"
+    },
+    {
+        "input": "Qual era il valore dell'DLCO a Agosto 2023?",
+        "expected_output": "Dalla tabella non risulta alcun valore di DLCO per Agosto 2023."
+    },
+    {
+        "input": "Quali sono i mesi con pCO2 compreso tra 2^(2.5*(1+1))-1 e (3*(2+2^3)^1)+3?",
+        "expected_output": "I mesi con pCO2 compreso tra 31 e 33 sono Agosto 2023, con un valore di 32 e Dicembre 2023 con un valore di 31.7."
+    }
+]

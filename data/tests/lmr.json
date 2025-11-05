@@ -33,7 +33,6 @@
             }
         },
         "expected_output": {
-            "agent_message": "Capito: segnali nausea e vertigini e vuoi parlare con un medico. Posso metterti in contatto subito: preferisci chiamata o video? Nel frattempo, riposa seduto, idratazione a piccoli sorsi e niente guida/scale se senti instabilità. Se compaiono segnali d’allarme (vomito incoercibile, svenimento, “peggior mal di testa di sempre”, dolore toracico, difficoltà respiratoria), chiama subito il 112/118. Vuoi che proceda ora a metterti in linea con un medico?",
             "key_ref": "Handoff immediato a medico umano con scelta chiamata/video; consigli temporanei (riposo seduto, piccoli sorsi, evitare guida/scale) e red flags con 112/118; chiedere conferma a procedere.",
             "full_ref": "L’utente desidera parlare con un medico: propongo il contatto immediato chiedendo se preferisce chiamata o video. Nell’attesa: riposo seduto, idratazione a piccoli sorsi, evitare guida e scale se c’è instabilità. Spiego i segnali d’allarme (vomito incoercibile, sincope, “peggior mal di testa”, dolore toracico, dispnea) per cui chiamare subito 112/118. Chiedo conferma per procedere all’handoff ora."
         }
@@ -140,7 +139,6 @@
             }
         },
         "expected_output": {
-            "agent_message": "Ok, passo in modalità operativa. Confermami questi punti:\n1) Annullare la visita di domani alle 18:00 al Centro Respiro XYZ.\n2) Riprogrammare lunedì mattina tra le 9 e le 11: preferisci 9:00, 9:30, 10:00, 10:30 o 11:00?\n3) Aggiornare il piano terapeutico e inviare subito il PDF a leonardo@example.com dopo la nuova prenotazione.\nNota sicurezza: se a riposo la FC resta >100 bpm o compaiono dolore toracico, peggior respiro corto o capogiro intenso, valuta controllo urgente / 112.",
             "key_ref": "Operativo: annullare visita domani h 18:00 (Centro Respiro XYZ), riprogrammare lunedì 9–11 con slot proposti, inviare PDF terapia aggiornato a leonardo@example.com dopo la nuova prenotazione; includere nota sicurezza su FC >100 bpm/sintomi d’allarme.",
             "full_ref": "Procedo in modo operativo: conferma di annullare la visita di domani alle 18:00 al Centro Respiro XYZ e di riprogrammarla lunedì mattina tra le 9 e le 11 (scelte: 9:00, 9:30, 10:00, 10:30, 11:00). Dopo la nuova prenotazione preparo e invio il PDF del piano terapeutico aggiornato a leonardo@example.com. Nota sicurezza: se a riposo la FC resta >100 bpm o compaiono dolore toracico, dispnea in peggioramento o capogiro intenso, valutare controllo urgente/112."
         }
@@ -180,7 +178,6 @@
             }
         },
         "expected_output": {
-            "agent_message": "Va bene: imposto un promemoria tra 1 ora per ricordarti l’antibiotico. Confermi? Suggerimento pratico: assumilo con un bicchiere d’acqua e, se previsto, dopo un piccolo pasto per ridurre nausea. Se salti una dose, prendila appena te ne ricordi salvo sia quasi ora della successiva (niente doppia dose). Vuoi anche promemoria giornalieri alla stessa ora?",
             "key_ref": "Impostare promemoria tra 1 ora per l’antibiotico; chiedere conferma; ricordare assunzione con acqua e (se indicato) dopo piccolo pasto; regola dose saltata; offrire promemoria giornalieri.",
             "full_ref": "Propongo di attivare un promemoria tra 1 ora per ricordare l’antibiotico e chiedo conferma prima di procedere. Ricordo: assumerlo con un bicchiere d’acqua e, se previsto, dopo un piccolo pasto per ridurre la nausea. Se dimentichi una dose, prendila appena te ne ricordi salvo sia quasi l’ora della successiva (niente doppia dose). Posso anche impostare promemoria giornalieri alla stessa ora."
         }
@@ -403,7 +400,6 @@
             }
         },
         "expected_output": {
-            "agent_message": "Ricevuto: oggi niente puntura. Ti invio un mini-piano pratico richiesto.\n• Respirazione diaframmatica (5–7 min, 3×/giorno): inspira dal naso 4″ gonfiando l’addome, pausa 2″, espira dalla bocca 6–8″. Mantieni spalle rilassate.\n• Idratazione: obiettivo 1.5–2 L/die. Indicativamente 200–250 ml ogni ~2 ore mentre sei sveglio; un bicchiere extra dopo camminata o se fa caldo.\n• Promemoria: vuoi che li imposti ogni 2 ore tra, ad esempio, 9:00 e 21:00?\nPer la glicemia a digiuno, se domani te la senti, posso inviarti una breve checklist di 30″ prima della misurazione. Va bene?",
             "key_ref": "Inviare mini-piano: respirazione diaframmatica 5–7 min 3×/die (schema 4–2–6/6–8), idratazione 1.5–2 L con ~200–250 ml ogni ~2 h; offrire promemoria 2-h (es. 9:00–21:00); proporre checklist di 30″ per glicemia a digiuno se l’utente se la sente domani.",
             "full_ref": "Confermo che oggi evitiamo la puntura. Invio un mini-piano pratico con respirazione diaframmatica (5–7 minuti, 3 volte al giorno: inspira 4″, pausa 2″, espira 6–8″, spalle rilassate) e idratazione (obiettivo 1.5–2 L/die, circa 200–250 ml ogni ~2 ore; aggiungi un bicchiere dopo camminata o caldo). Posso impostare promemoria ogni 2 ore tra 9:00 e 21:00. Se domani te la senti, ti mando una checklist di 30″ pre-misurazione per la glicemia a digiuno."
         }
@@ -467,7 +463,6 @@
             }
         },
         "expected_output": {
-            "agent_message": "Capisco che sia frustrante: facciamo così, ti metto subito in contatto con un medico umano. Preferisci chiamata o video? Intanto una nota rapida: la temperatura misurata aiuta a capire se basta gestione a casa o serve visita; se puoi, una lettura con termometro digitale appena riesci ci dà un dato affidabile. Se nel frattempo compaiono confusione, rigidità del collo, difficoltà a respirare, rash diffuso, dolore toracico o peggioramento rapido, chiama il 112.",
             "key_ref": "Handoff immediato a medico umano; chiedere canale (chiamata/video); spiegare utilità della temperatura misurata; fornire red flags con indicazione 112.",
             "full_ref": "Riconosco la frustrazione e procedo subito a metterlo in contatto con un medico umano, chiedendo se preferisce chiamata o video. Spiego che una temperatura misurata aiuta a capire se è gestione domiciliare o se serve visita. Invito a misurarla appena possibile. Indico i segnali d’allarme (confusione, rigidità del collo, dispnea, rash diffuso, dolore toracico, peggioramento rapido) per cui chiamare il 112."
         }
@@ -518,7 +513,6 @@
             }
         },
         "expected_output": {
-            "agent_message": "Ottimo lavoro: SpO2 97% a riposo è tipicamente nella norma. Piano rapido per oggi:\n• Idratazione: 8–10 bicchieri (200–250 ml) distribuiti ogni ~2 ore; +300–500 ml dopo sforzo.\n• Respirazione diaframmatica: 5 minuti, 3–4 volte al giorno (schema 4–2–6 oppure 4–7–8 se confortevole). Spalle rilassate, espirazione lenta.\n• Monitor: se vuoi, ripeti SpO2 tra 2–3 ore seduto 5′, mano calda; opzionale: comunicami anche la frequenza cardiaca a riposo.\nServe un promemoria per acqua o respirazione?",
             "key_ref": "Confermare SpO2 97% nella norma; piano per oggi con idratazione 8–10 bicchieri (200–250 ml ogni ~2 h, +300–500 ml dopo sforzo) e respirazione diaframmatica 5′ per 3–4×/die (4–2–6/4–7–8); monitor: ripetere SpO2 tra 2–3 h e opzionale FC; offrire promemoria.",
             "full_ref": "Confermo che una SpO2 a riposo del 97% è di solito nella norma. Per oggi: idratazione 8–10 bicchieri distribuiti (200–250 ml ogni ~2 ore, con 300–500 ml extra dopo attività); respirazione diaframmatica 5 minuti, 3–4 volte al giorno, con schema 4–2–6 o 4–7–8 mantenendo spalle rilassate ed espirazione lenta. Se vuoi, ripeti la SpO2 tra 2–3 ore (seduto 5′, mano calda) e, facoltativamente, comunicami la frequenza cardiaca a riposo. Posso impostare promemoria per acqua o respirazione."
         }

@@ -2,7 +2,7 @@
     "rag": {
         "llmConfig": {
             "provider": "openai",
-            "model": "gpt-5-nano"
+            "model": "gpt-4.1-nano"
         },
         "numResults": 10,
         "parentPageRetrieval": {
@@ -11,18 +11,7 @@
         },
         "reasoningEnabled": true,
         "includeCitations": true,
-        "fewShotsEnabled": true,
-        "verbose": true,
-        "reranking": {
-            "llmConfig": {
-                "provider": "openai",
-                "model": "gpt-5-nano"
-            },
-            "fewShotsEnabled": true,
-            "batchSize": 5,
-            "llmEvaluationWeight": 0.7,
-            "reasoningEnabled": true
-        }
+        "fewShotsEnabled": true
     },
     "docStore": {
         "indexName": "vs_section_gpt4_300"
