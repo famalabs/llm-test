@@ -41,7 +41,7 @@ const main = async () => {
     };
 
     if (parallel) {
-        console.log('Running Therapy tests in parallel...');
+        console.log('Running Therapy tests in parallel...(direct=', direct, ')');
         const results = await Promise.all(testsData.map((tc: any) => runOne(tc)));
         for (const r of results) {
             tests.push({
@@ -53,7 +53,7 @@ const main = async () => {
     }
 
     else {
-        console.log('Running Therapy tests sequentially...');
+        console.log('Running Therapy tests sequentially...(direct=', direct, ')');
         for (const tc of tqdm(testsData)) {
             const r = await runOne(tc as { prompt: string, expected_therapies: any });
             tests.push({
@@ -65,7 +65,7 @@ const main = async () => {
     }
     const normalizedTestFile = normalizedTestPath.replaceAll(path.sep, PATH_NORMALIZATION_MARK);
     const outDir = createOutputFolderIfNeeded('output', 'therapy', 'candidates');
-    const outPath = path.join(outDir, `${normalizedTestFile}.json`);
+    const outPath = path.join(outDir, `${normalizedTestFile}_direct=${direct}.json`);
 
     await writeFile(outPath, JSON.stringify(tests, null, 2), 'utf-8');
     console.log('Therapy output written to', outPath);
