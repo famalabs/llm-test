@@ -195,6 +195,43 @@ function compareTherapyDrug(
     return c;
 }
 
+function reduceTherapy(therapy: TherapyDrug): TherapyDrug {
+    if (therapy.optional === false) {
+        delete therapy.optional;
+    }
+    if (therapy.schedule.period_duration === 1) {
+        delete therapy.schedule.period_duration;
+    }
+    if (therapy.schedule.period_days && therapy.schedule.timetable == undefined) {
+        // if all timetables of period_days are equal, lift to main timetable
+        const pds = therapy.schedule.period_days!;
+        const first = pds[0]?.timetable;
+
+        const timetablesEqual = (a?: TimetableEntry[], b?: TimetableEntry[]): boolean => {
+            if (a === undefined && b === undefined) return true;
+            if (a === undefined || b === undefined) return false;
+            if (a.length !== b.length) return false;
+            for (let i = 0; i < a.length; i++) {
+                const x = a[i];
+                const y = b[i];
+                if (x.dose !== y.dose) return false;
+                if ((x.hour ?? undefined) !== (y.hour ?? undefined)) return false;
+                if ((x.hour_text ?? undefined) !== (y.hour_text ?? undefined)) return false;
+            }
+            return true;
+        };
+
+        if (pds.every((pd) => timetablesEqual(first, pd.timetable))) {
+            therapy.schedule.timetable = first;
+            // remove timetables from period_days
+            for (const pd of therapy.schedule.period_days) {
+                delete pd.timetable;
+            }
+        }
+    }
+    return therapy;
+}
+
 export const evaluate = async ({
     results,
 }: {
@@ -225,7 +262,7 @@ export const evaluate = async ({
 
         const minLen = Math.min(test.expected_output.length, test.candidate.length);
         for (let j = 0; j < minLen; j++) {
-            const r = compareTherapyDrug(test.expected_output[j], test.candidate[j]);
+            const r = compareTherapyDrug(test.expected_output[j], reduceTherapy(test.candidate[j]));
             missing += r.missing;
             incorrect += r.incorrect;
             extra += r.extra;
