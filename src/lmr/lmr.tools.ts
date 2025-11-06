@@ -24,7 +24,7 @@ const rag = new Rag({
     reasoningEnabled: true,
     includeCitations: true,
     fewShotsEnabled: false,
-    verbose: true,
+    verbose: false,
     docStore,
     parentPageRetrieval: {
         type: 'lines',

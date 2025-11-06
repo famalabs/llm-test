@@ -33,7 +33,9 @@ export class Lma {
     private async callLLM<Schema extends z.ZodTypeAny>(params: { model: string, provider: LLMConfigProvider, prompt: string, schema: Schema }): Promise<z.infer<Schema>> {
         const { model, provider, prompt, schema } = params;
         const llmModel = (await getLLMProvider(provider))(model);
-        const { object: response } = await generateObject({ model: llmModel, prompt: prompt, schema: schema });
+        const { object: response } = await generateObject({
+            model: llmModel, prompt: prompt, schema: schema, providerOptions: { openai: { reasoningEffort: 'minimal' } }
+        });
         return response as z.infer<Schema>;
     }
 
@@ -66,7 +68,12 @@ export class Lma {
         return `[${this.config.sentimentAnalysisConfig.scoreSet.join(', ')}]`;
     }
 
-    public async mainCall(input: LmaInput): Promise<LmaOutput> {
+    public async mainCall(input: LmaInput, options?: {
+        skipSummarization?: boolean,
+        skipSentimentAnalysis?: boolean,
+        skipUserRequestDetection?: boolean,
+        skipTaskAnalysis?: boolean
+    }): Promise<LmaOutput> {
 
         const output: LmaOutput = {
             user_request: null,
@@ -80,11 +87,11 @@ export class Lma {
             useful_tools: null
         };
 
-        const summarizationPromise = this.summarizeChatHistory(input);
-        const sentimentSinglePromise = this.getSingleMessageSentiment(input);
-        const sentimentCumulativePromise = this.getCumulativeSentiment(input);
-        const requestPromise = this.detectUserRequest(input);
-        const taskPromise = this.analyzeTask(input);
+        const summarizationPromise = options?.skipSummarization ? Promise.resolve(undefined) : this.summarizeChatHistory(input);
+        const sentimentSinglePromise = options?.skipSentimentAnalysis ? Promise.resolve({} as SentimentScores) : this.getSingleMessageSentiment(input);
+        const sentimentCumulativePromise = options?.skipSentimentAnalysis ? Promise.resolve({} as SentimentScores) : this.getCumulativeSentiment(input);
+        const requestPromise = options?.skipUserRequestDetection ? Promise.resolve({ user_request: null, request_satisfied: null, useful_tools: null }) : this.detectUserRequest(input);
+        const taskPromise = options?.skipTaskAnalysis ? Promise.resolve(null) : this.analyzeTask(input);
 
         if (this.config.baseConfig.parallel) {
             const [

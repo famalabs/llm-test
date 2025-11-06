@@ -31,7 +31,7 @@ Requirements:
 - Style: ${style}
 - Length: 1–3 sentences. No emojis. No Markdown headers. Avoid lists.
 - Personalization: ${personalization}.
-- Acknowledge the user's progress/completed tasks if evident from the conversation.
+- First thing to say: Acknowledge the user's progress/completed tasks if evident from the conversation.
 - Thank the user and offer future availability (e.g., "If you need anything else, I'm here"), without opening a new thread of questions.
 - Do NOT ask for new inputs or introduce new tasks.
 
@@ -42,5 +42,6 @@ User profile (if available):
 ${JSON.stringify({ name, surname, gender }, null, 2)}
 
 [!] IMPORTANT: Respond in: "${language.toUpperCase()}"
+[!] Important: First aknowledge the user's progress if applicable, then provide a concise and friendly closing message, congratulating them on their efforts.
 `.trim();
 }

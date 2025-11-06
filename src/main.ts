@@ -5,10 +5,12 @@ import { Lmr, LmrOutput } from './lmr';
 import { Lma, LmaInput, LmaOutput, InputTask } from './lma';
 import { lmrToolbox } from './lmr/lmr.tools';
 import { TaskDue, LmrInput } from './lmr/interfaces';
+import { hideBin } from 'yargs/helpers';
 import path from 'path';
+import yargs from 'yargs';
 
 const MODEL_PROVIDER = {
-    model: 'gpt-4.1-mini',
+    model: 'gpt-5-nano',
     provider: 'openai' as LLMConfigProvider,
 }
 const LMR_STYLE = 'Joyful';
@@ -28,12 +30,12 @@ class SessionRec {
             'session-' + Date.now() + '.json'
         );
         this.data = {
-            config: { 
-                llmConfig: MODEL_PROVIDER, 
-                lmrStyle: LMR_STYLE, 
+            config: {
+                llmConfig: MODEL_PROVIDER,
+                lmrStyle: LMR_STYLE,
                 lmrTasks: LMR_TASKS
-            }, 
-            session :[]
+            },
+            session: []
         }
     }
     async registerStep({ lmrOutput, lmaOutput, userInput, lmaInput, lmrInput, lmrLatencyMs, lmaLatencyMs }: SessionEntry) {
@@ -42,6 +44,18 @@ class SessionRec {
         this.data.session.push({ lmrOutput, lmaOutput, userInput, lmaInput, lmrInput: internalLmrInput, lmrLatencyMs, lmaLatencyMs });
         await writeFile(this.logFilePath, JSON.stringify(this.data, null, 2), 'utf-8');
     }
+    getLogFilePath() {
+        return this.logFilePath;
+    }
+}
+
+const logAgentMessage = (lmrOutput: LmrOutput) => {
+    const toolCalls = lmrOutput.metadata?.tool_calls || [];
+    const source = toolCalls.length > 0
+        ? toolCalls.map(tc => tc.toolName).join(', ')
+        : 'Agent';
+
+    console.log(`\nAGENT [ Source = ${source} ]: ${lmrOutput.agent_message}\n`);
 }
 
 const lma = new Lma({ baseConfig: { ...MODEL_PROVIDER, parallel: true } });
@@ -49,7 +63,19 @@ const lmr = new Lmr({ baseConfig: { ...MODEL_PROVIDER } });
 
 const main = async () => {
 
+    const { skipSentimentAnalysis } = await yargs(hideBin(process.argv))
+        .option('skip-sentiment-analysis', {
+            alias: 'ssa',
+            type: 'boolean',
+            description: 'Skip sentiment analysis in LMA processing',
+            default: false
+        })
+        .help()
+        .parse() as { skipSentimentAnalysis: boolean };
+
     const session = new SessionRec();
+
+    console.log('--- Saving session to', session.getLogFilePath(), '---');
 
     let currentTaskIndex = 0;
     const taskFlags: Record<number, { ignored?: boolean; waited?: boolean }> = {};
@@ -82,7 +108,7 @@ const main = async () => {
         { sender: 'agent', message: openingMessage.agent_message }
     ];
 
-    console.log('AGENT:', openingMessage.agent_message, '\n');
+    logAgentMessage(openingMessage);
 
     const requestDetectionMode = lma.getConfig().userRequestConfig.requestDetection.mode;
 
@@ -94,16 +120,22 @@ const main = async () => {
             ? 'request'
             : hasPendingTasks() ? 'normal' : 'close';
 
+        const currentFlags = taskFlags[currentTaskIndex] || {};
+        const shouldIncludeTaskInLma = hasPendingTasks() && (
+            chatStatusForLma != 'request' ||
+            !!(currentFlags.ignored || currentFlags.waited)
+        );
+
         const lmaInput: LmaInput = {
             message: userMsg,
             chat_status: chatStatusForLma,
             history: [...messages],
             summary: summary ?? undefined,
-            task: hasPendingTasks() ? LMR_TASKS[currentTaskIndex] : undefined,
+            task: shouldIncludeTaskInLma ? LMR_TASKS[currentTaskIndex] : undefined,
         };
 
         const lmaStartTime = performance.now();
-        const lmaOutput = await lma.mainCall(lmaInput);
+        const lmaOutput = await lma.mainCall(lmaInput, { skipSentimentAnalysis });
         const lmaEndTime = performance.now();
 
         if (lmaOutput.summary) {
@@ -122,16 +154,14 @@ const main = async () => {
                 currentTaskIndex += 1;
             }
             else if (status == 'ignored') {
-                taskFlags[currentTaskIndex] = { ...(taskFlags[currentTaskIndex] || {}), ignored: true };
+                taskFlags[currentTaskIndex] = { ignored: true };
             }
             else if (status == 'wait') {
-                taskFlags[currentTaskIndex] = { ...(taskFlags[currentTaskIndex] || {}), waited: true };
+                taskFlags[currentTaskIndex] = { waited: true };
             }
         }
 
-        const hasUserReq = !!(lmaOutput.user_request);
-        const reqSatisfied = lmaOutput.request_satisfied == true;
-        pendingRequest = hasUserReq && !reqSatisfied;
+        pendingRequest = !!(lmaOutput.user_request);
 
         const chatStatusForLmr: LmrInput['chat_status'] = pendingRequest
             ? 'request'
@@ -184,7 +214,7 @@ const main = async () => {
         const lmrEndTime = performance.now();
 
         messages.push({ sender: 'agent', message: lmrOutput.agent_message });
-        console.log('AGENT:', lmrOutput.agent_message, '\n');
+        logAgentMessage(lmrOutput);
 
         await session.registerStep({
             userInput: userMsg,
@@ -198,6 +228,8 @@ const main = async () => {
 
         if (chatStatusForLmr == 'close') break;
     }
+
+    console.log('\n\n Session saved to', session.getLogFilePath());
 }
 
 main().catch(console.error).then(() => process.exit());

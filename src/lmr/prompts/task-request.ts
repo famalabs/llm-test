@@ -18,7 +18,7 @@ Requirements:
 - Respect the ongoing context. Use the conversation history and, if present, its summary to maintain continuity.
 - The message MUST be actionable, clear and non-repetitive.
 - Keep a friendly, proactive tone without being pushy.
-- 1–3 sentences; avoid emojis and Markdown headings.
+- DO NOT repeat the user message back to them, and DO NOT provide task information that are not within the description!
 
 Task to request:
 ${task}
@@ -55,6 +55,7 @@ Requirements:
 - Acknowledge lightly that the previous message might have been missed (or the user was busy) without blaming.
 - Rephrase the request briefly and clearly, focusing on what to do next.
 - End with a simple, direct question or confirmation prompt to move forward.
+- DO NOT repeat the user message back to them, and DO NOT provide task information that are not within the description!
 
 Task to revisit:
 ${task}
@@ -90,6 +91,7 @@ Requirements:
 - Be concise (1–2 sentences), friendly, and non-pressuring; no emojis, no Markdown headers.
 - Acknowledge that you're waiting for the outcome of the task.
 - Encourage a quick update: either share results or an ETA. Avoid repeating full instructions unless strictly necessary.
+- DO NOT repeat the user message back to them, and DO NOT provide task information that are not within the description!
 
 Task in wait state:
 ${task}

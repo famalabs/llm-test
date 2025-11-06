@@ -167,15 +167,13 @@ for (const t of tests) {
     */
     test.concurrent(`LMR Test - focus_on: ${t.focus_on}`, async () => {
         const input = t.input as LmrInput;
-        const expected = t.expected_output;
-        const prediction = await lmr.mainCall(input);
+        const expected_output = t.expected_output;
+        const candidate = await lmr.mainCall(input);
         const score = await evaluate({
-            lmrInputs: [input],
-            expectedOutputs: [expected],
-            generatedOutputs: [prediction],
+            results: [{ expected_output, candidate, input }],
             model: "mistral-small-latest",
             provider: "mistral"
         });
-        expect(score.mean).toBeGreaterThanOrEqual(0.7);
+        expect(score.tests[0].metrics.agentMessageScore).toBeGreaterThanOrEqual(0.7);
     });
 }

@@ -49,7 +49,9 @@ export class Lmr {
         const llmModel = (await getLLMProvider(provider))(model);
         const { object: response } = await generateObject({
             system: LMR_SYSTEM_PROMPT(),
-            model: llmModel, prompt: prompt, schema: schema
+            model: llmModel, prompt: prompt, schema: schema,
+            temperature: 0.2,
+            providerOptions: { openai: { reasoningEffort: 'minimal' } }
         });
         return response as z.infer<Schema>;
     }
@@ -77,6 +79,7 @@ export class Lmr {
                 model: llmModel,
                 tools: tools,
                 system: LMR_SYSTEM_PROMPT(),
+                providerOptions: { openai: { reasoningEffort: 'minimal' } }, 
                 prompt: ANSWER_USER_REQUEST_PROMPT(
                     history,
                     input.user_request!,

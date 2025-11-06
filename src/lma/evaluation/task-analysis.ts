@@ -89,8 +89,7 @@ export const evaluateTaskAnalysis = async ({
                 console.error('Error evaluating notes:', error);
             }
         }
-    }
-    else console.warn('{{ NO TASK }}', expected, generated)
+    };
 
     return {
         correctTaskAnswer,

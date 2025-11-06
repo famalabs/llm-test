@@ -63,7 +63,7 @@ async function testPrompt(idx: number) {
         query: testData[idx].question,
         keyRef: testData[idx].keyRef,
         fullRef: testData[idx].fullRef,
-        prediction: answer,
+        candidate: answer,
         ...MODEL_PROVIDER
     });
 

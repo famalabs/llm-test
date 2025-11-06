@@ -1,48 +1,70 @@
 export const USER_REQUEST_DETECTION_PROMPT = (history: string, message: string) => `
-You are a precise assistant that extracts and summarizes user requests from conversations.
-Given the user's latest message, identify if there is a clear request or question directed at the AI assistant.
+You are an assistant that detects whether the user's latest message contains a **request related to medical or therapy topics**.
 
 -----------------------------
-TASK
+DEFINITION OF REQUEST
 -----------------------------
-1. Analyze the user's message carefully.
-2. If the user is asking for information, help, or action, extract and *summarize* that request concisely.
-3. If there is no clear request, leave the output empty.
+A request is present **only if** both conditions hold:
+1. The message **asks for something** (help, advice, clarification, action, explanation, suggestion, recommendation, etc.)
+2. The content is **related to a medical or therapy context**.
+
+If the user is simply:
+- stating something,
+- reporting a situation,
+- describing symptoms without asking,
+- expressing feelings,
+- asking rhetorical or non-actionable questions,
+
+then **no request is present**.
 
 -----------------------------
-OUTPUT:
+WHAT TO RETURN
 -----------------------------
-- If a request is found, return it as a brief summary (one sentence). The sentence should be put in third person: e.g. "The user wants to have a consultation with a doctor." . IMPORTANTLY, the sentence should use the same language as the user message.
-- If no request is present, leave the output empty.
+If a request is present:
+- Return a short **third-person summary** of the request in the **same language** used by the user.
+
+If no request is present:
+- Return \`"user_request": undefined\`.
 
 -----------------------------
-OUTPUT FORMAT:
+OUTPUT FORMAT (STRICT)
 -----------------------------
 {
-  "user_request": <string | undefined>
+  "user_request": string | undefined
 }
 
 -----------------------------
 EXAMPLES
 -----------------------------
+Message: "Puoi aiutarmi a prenotare una visita dal medico?"
+→ { "user_request": "L'utente chiede aiuto per prenotare una visita dal medico." }
 
-Input Message: "Puoi aiutarmi a prenotare una visita dal medico?"
-Output:
-{
-  "user_request": "L'utente vuole prenotare una visita dal medico."
-}
+Message: "Mi fa male la schiena da ieri."
+→ { "user_request": undefined } // no request, only a report
 
+Message: "Cosa significa la dose che mi ha dato il dottore?"
+→ { "user_request": "L'utente chiede una spiegazione sulla dose prescritta." }
+
+Message: "It's 33 degrees."
+→ { "user_request": undefined }
 
 -----------------------------
 INPUT
 -----------------------------
-
-CONVERSATION:"""
+CONVERSATION:
+"""
 ${history}
 ==============
 user: ${message}
 """
+
+-----------------------------
+REMINDER
+-----------------------------
+- Return ONLY the JSON object, no explanations.
+- If there is no request, set "user_request" to undefined.
 `.trim();
+
 
 export const USER_REQUEST_SATISFIED_PROMPT = (history: string, message: string) => `
 You are a precise assistant that determines if a user's request has been satisfied in a conversation with an AI assistant.
