@@ -4,8 +4,7 @@
 
 import { exec } from "child_process";
 
-import { experimental_generateSpeech as generateSpeech } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { generateVoice } from "./lib";
 import { hideBin } from "yargs/helpers";
 import os from "os";
 import fs from "fs/promises";
@@ -26,7 +25,7 @@ const main = async () => {
         .option("tone", {
             alias: "n",
             type: "string",
-            choices: ["joyful", "professional", "friendly", "empathetic", "enthusiastic"],
+            // choices: ["joyful", "professional", "friendly", "empathetic", "enthusiastic"],
             description: "Tone of the speech",
             default: "joyful"
         })
@@ -44,13 +43,7 @@ const main = async () => {
         };
 
     const start = performance.now();
-    const result = await generateSpeech({
-        model: openai.speech("gpt-4o-mini-tts"),
-        text,
-        voice: "sage",
-        outputFormat: "mp3",
-        instructions: `You're talking as a professional medical AI assistant. Be ${tone}.`,
-    });
+    const result = await generateVoice(text, "sage", `You're talking as a professional medical AI assistant. Be ${tone}.`);
     const end = performance.now();
 
     const { uint8Array, format } = result.audio;

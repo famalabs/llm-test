@@ -1,5 +1,4 @@
-import { experimental_transcribe as transcribe } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { transcribe } from './lib';
 import { readFile } from 'fs/promises';
 import 'dotenv/config';
 import yargs from 'yargs';
@@ -16,18 +15,10 @@ const main = async () => {
     const audioBuffer = await readFile(input);
 
     const start = performance.now();
-    const result = await transcribe({
-        model: openai.transcription('whisper-1'),
-        audio: audioBuffer,
-        providerOptions: {
-            openai: {
-                language: 'it',
-            },
-        },
-    });
+    const text = await transcribe(audioBuffer);
     const end = performance.now();
 
-    console.log('Text:', result.text);
+    console.log('Text:', text);
     console.log(`Transcription took ${end - start} milliseconds`);
 }
 
