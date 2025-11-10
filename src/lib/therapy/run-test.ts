@@ -1,4 +1,4 @@
-import { createOutputFolderIfNeeded, PATH_NORMALIZATION_MARK } from '../../utils';
+import { createOutputFolderIfNeeded } from '../../utils';
 import { readFile, writeFile } from 'fs/promises';
 import { hideBin } from 'yargs/helpers';
 import yargs from "yargs";
@@ -8,21 +8,24 @@ import { extractStructuredTherapy, extractTherapyAsMarkdownTable } from './core'
 import { LLMConfigProvider } from '../../llm';
 import { tqdm } from 'node-console-progress-bar-tqdm';
 import { TherapyDrug } from './interfaces';
+import { detectLanguage } from '../nlp';
 
 const main = async () => {
-    const { test: testFile, parallel, model, provider, augment } = await yargs(hideBin(process.argv))
+    const { test: testFile, parallel, model, provider, augment, language } = await yargs(hideBin(process.argv))
         .option('test', { alias: 't', type: 'string', demandOption: true, description: 'Path to LMA evaluation test JSON' })
         .option('parallel', { alias: 'p', type: 'boolean', default: false, description: 'Run test cases in parallel (default: false)' })
         .option('model', { alias: 'm', type: 'string', description: 'LLM model id, e.g., mistral-small-latest', demandOption: true })
         .option('provider', { alias: 'l', type: 'string', description: 'LLM provider, e.g., mistral', demandOption: true, choices: ['mistral', 'openai', 'google'] })
         .option('augment', { alias: 'a', type: 'boolean', default: false, description: 'Whether to augment the input with model knowledge with a middle step' })
+        .option('language', { alias: 'lang', type: 'string', description: 'Language of the input text or "auto" for automatic detection' })
         .help()
         .parse() as {
             test: string,
             parallel: boolean,
             model: string,
             provider: LLMConfigProvider
-            augment: boolean
+            augment: boolean,
+            language?: string,
         };
 
     const normalizedTestPath = path.normalize(testFile);
@@ -38,12 +41,18 @@ const main = async () => {
         input: string,
         expected_output: any
     }) => {
+
+        let lang = language;
+        if (lang == 'auto') {
+            lang = await detectLanguage(input, true);
+        }
+
         const start = performance.now();
         let text = input;
         if (augment) {
-            text = await extractTherapyAsMarkdownTable(input, model, provider);
+            text = await extractTherapyAsMarkdownTable(input, model, provider, lang);
         }
-        const candidate = await extractStructuredTherapy(text, model, provider);
+        const candidate = await extractStructuredTherapy(text, model, provider, lang);
         const elapsed = performance.now() - start;
 
         return { candidate, expected_output, input, metadata: { time_ms: elapsed } };

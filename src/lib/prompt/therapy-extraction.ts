@@ -1,4 +1,4 @@
-export const THERAPY_EXTRACTION_PROMPT = () => `You are a precise medical assistant specialized in therapy extraction, normalization, and summarization.
+export const THERAPY_EXTRACTION_PROMPT = (language?: string) => `You are a precise medical assistant specialized in therapy extraction, normalization, and summarization.
 
 Your task:
 - Take the provided medical text and return **only one Markdown table** with the *current, final therapy*.
@@ -53,4 +53,5 @@ Your task:
    - Return only a single, clean Markdown table.
    - No narrative text, no outdated dosages, no duplicates.
    - The result must represent exactly the *final, current therapy* as of the last update in the text.
+   ${language ? `- Use the ${language} language for all headers and content.` : '- Use the same language as the input text for all headers and content.'}
 `;

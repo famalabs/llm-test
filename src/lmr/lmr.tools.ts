@@ -20,15 +20,14 @@ const rag = new Rag({
         provider: 'mistral',
         model: 'mistral-small-latest',
     },
-    numResults: 20,
+    numResults: 5,
     reasoningEnabled: true,
     includeCitations: true,
     fewShotsEnabled: false,
     verbose: false,
     docStore,
     parentPageRetrieval: {
-        type: 'lines',
-        offset: 5,
+        type: 'full-section'
     }
 });
 
@@ -49,7 +48,7 @@ export const ragFromDocs = tool({
     async execute({ query }) {
         await initRag();
         const lang = await detectLanguage(query, true);
-        const { answer, citations, } = await rag.search(query, true, lang);
+        const { answer, citations } = await rag.search(query, true, lang);
         return { answer, citations };
     },
 });
@@ -135,4 +134,8 @@ export const lmrToolbox = {
     chats,
     user_profile: userProfile,
     doctors,
+};
+
+export const disconnectRedis = async () => {
+    await docStoreRedisClient.quit();
 };

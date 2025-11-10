@@ -347,6 +347,7 @@ export class Rag {
 
         start = performance.now();
         const answer = await this.generateAnswer(query, chunks, detectedLanguage);
+        ragPerformance.performance!.generateAnswer = { timeMs: performance.now() - start };
         await this.storeToCache(queryEmbedding, answer);
 
         return { ...answer, ...ragPerformance };

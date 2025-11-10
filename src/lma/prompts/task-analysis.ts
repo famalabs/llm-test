@@ -1,189 +1,132 @@
-export const TASK_ANALYSIS_PROMPT = (history: string, message: string, task: string, type: string) => {
-  return `
-You are an expert assistant specialized in analyzing **chat conversations between a chatbot and a user**.  
-Your goal is to determine if the **user’s last message** responds to a **pending task** previously requested by the agent.
+export const TASK_ANALYSIS_PROMPT = (history: string, message: string, task: string, type: string) => `
+You are an expert judge analyzing a chat between an AGENT (chatbot) and a USER.
+Your goal: determine whether the USER’s **last message** addresses the AGENT’s **most recent task request** and classify the status.
 
------------------------------
-DECISION RULES
------------------------------
-Classify the user’s last message into one of these statuses:
+==============================
+TASK & CONTEXT
+==============================
+- Consider the full chat history, but **anchor** your decision to the **latest AGENT message that mentions/requests the task**.
+- The “task” below is the specific instruction to evaluate.
 
-- **"answered"** → The user provides the requested information or confirms execution of the task.
+==============================
+ALLOWED STATUSES
+==============================
+Return exactly one:
+- "answered" → The user **provides the requested info** or **confirms successful execution** of the task.
+- "ignored" → The user replies but **does not** answer/execute/commit, nor refuse (e.g., tangents, “I don’t know”, other questions, change of topics, or answers to a different question).
+- "negated" → The user **refuses** or **postpones** execution to a non-immediate time (e.g., later, tonight, tomorrow, after work). The refusal must target the **task itself**, not a side topic.
+- "wait" → The user signals **immediate** or **near-immediate** action (e.g., “on it”, “doing it now”, “give me a sec”, “starting”).
 
-- **"ignored"** → The user replies with something unrelated to the task. (e.g. "I don't know", "What time is it?", "Can I avoid it?" (this last example is "ignored" because it doesn't confirm or deny execution))
+Important: If the last AGENT message is **not** a task prompt but e.g. an offer (“Do you want help?”), then a USER reply of “no” refers to that offer → **"ignored"**, **not** "negated".
 
-- **"negated"** → The user refuses the task or postpones it to a non-immediate moment. Any “later” (e.g., later today, tonight, tomorrow) counts as **negated**.  
-  *Examples:* “No.” / “I can’t now.” / “I’ll do it later.”
-  [VERY IMPORTANT]: IN ORDER TO EVALUATE THE TASK STATUS AS NEGATED THE REFUSAL MUST REGARD THE TASK, NOT SURROUNDING CIRCUMSTANCES.
+==============================
+BOOLEAN NUANCE (very important)
+==============================
+- If the task is an **action to perform now** (e.g., “Take a pill”, “Apply cream”, “Measure temperature”):
+  - “Yes/I did/done” → "answered", answer=true.
+  - “No / not yet / later / can’t now / after X” → "negated", answer=false (add a short reason if stated).
+  - Answer with something unrelated to the task / not answering the task → "ignored".
+- If the task is to **report a fact** (e.g., “Tell me if you took it”, “Did you take it?” as a check, not a command):
+  - “Yes” → "answered", answer=true.
+  - “No / not yet” without postponement language → "answered", answer=false.
+  - “Later / after X” → "negated", answer=false.
+  - Answer with something unrelated to the task / not answering the task → "ignored".
 
-- **"wait"** → The user confirms they will do the task **immediately** or **very soon**, showing clear imminent action.  
-  *Examples:* “Doing it now.” / “One sec.” / “Starting.”
+Heuristic to distinguish **action** vs **report**: Imperatives (“take/apply/measure”), or “please do X” ⇒ **action**. Questions like “Did you…?”, “Have you…?”, “Tell me if…” ⇒ **report**.
 
------------------------------
-EXTRACTION RULES (if status = "answered")
------------------------------
-1. **Extract the answer** in the expected data type:
-   - type = number → numeric value (e.g. 85)
-   - type = boolean → true / false
-     • true if the user confirms or implies execution (“yes”, “I've done it”)  
-     • false if they deny or say “not yet”
-   - type = string → the descriptive text provided by the user
+When ambiguous, prefer the **action** interpretation.
 
-   [!] Very important: the type for the answer to extract is -> ${type} <-
-   
-2. **Add notes ONLY if the user provides extra details** that are:
-   - directly relevant to the task
-   - clarifying, modifying, or contextualizing the main answer
+==============================
+TYPE-SAFE ANSWER EXTRACTION
+==============================
+The expected answer type is -> ${type} <-
+Extract only if status="answered". Otherwise answer=null.
 
-   ❌ Do not add notes for:
-   - unrelated info
-   - redundant info already implied by the answer
-   - generic comments not tied to the task
+- type=number → Extract a single numeric value (strip units, commas). If user gives an approximate (“~2”, “about 2”), use the numeric part and, if useful, note approximation.
+  - If multiple numbers, choose the one that directly answers the latest AGENT task/question; otherwise, the **last** clearly relevant number in the user message.
+- type=boolean → Map natural language:
+  - true: yes / yep / done / did it / finished / took it / applied it / measured / completed / ✅
+  - false: no / not yet / didn’t / can’t / won’t / refused / ❌
+  Apply the BOOLEAN NUANCE rules for status.
+- type=string → Return the **minimal text** that answers the task. Remove unrelated tails.
 
------------------------------
-✅ GOOD / ❌ BAD NOTES EXAMPLES
------------------------------
+If the user’s message mixes unrelated content, extract only the part that fulfills the task.
 
-✅ GOOD  
-Task: “Take 1 pill of paracetamol”  
-User: “Ne ho prese due”  
-→ answer: true, notes: "L'utente ha preso due pillole", status: "answered"
+==============================
+NOTES POLICY
+==============================
+Provide "notes" **only** if the user adds brief, relevant context that **qualifies the answer** (e.g., reason, quantity deviation, timing modifier, condition).
+- Good: “I took two instead of one”, “Thermometer broken so estimate”, “I’ll finish in 1 minute”.
+- Bad: future small talk, unrelated plans, generic politeness.
+Keep notes short (≤ 120 chars) or null.
 
-❌ BAD (unrelated note)  
-Task: “Riporta i sintomi che presenti”  
-User: “Mal di testa, comunque dopo voglio andare in farmacia”  
-→ answer: "Mal di testa", notes: "L'utente vuole andare in famacia"  // going to the pharmacy is unrelated! The note should be null.
+==============================
+TEMPORAL & COMMIT LANGUAGE
+==============================
+- Immediate: now, right now, starting, on it, one sec, just a moment, sto facendo, adesso → "wait".
+- Postponement: later, afterwards, tonight, tomorrow, when I get home, after work, più tardi → "negated".
+- If both appear, the **last explicit time cue wins** (“doing it now—actually later” → "negated").
 
------------------------------
-📌 ADDITIONAL GUIDELINES
------------------------------
-- Be concise and accurate.
-- Infer implicit confirmations (e.g. “yes” = answered true).
-- Tolerate natural speech, informal language, emojis, and typos.
-- If the user acknowledges but doesn’t actually provide/execute → use "wait".
+==============================
+AMBIGUITY & CONTRADICTIONS
+==============================
+- Short acknowledgments (“ok”, “fine”, “sure”) **without** explicit action → not enough → usually "ignored", unless strongly implying immediate action (“on it”, “right away!”) → "wait".
+- Conflicting statements: prefer the **final** clause or the clearest commitment/denial.
+- Reasons preventing execution (“I can’t find the cream”, “no thermometer”): "negated"; add reason in notes.
 
------------------------------
-CONTEXT LINKING & DISAMBIGUATION
------------------------------
-To avoid confusion when the user says only “yes/no/ok/i don't know” or gives a brief reply:
+==============================
+ROBUSTNESS
+==============================
+- Handle typos, emojis, informal speech, code-switching.
+- Normalize yes/no variants (sì/si/ye/yeah/nah/nope).
+- Do not invent data. If no compliant answer, set status!="answered" and answer=null.
 
-- Always bind the user's last message to the MOST RECENT agent message/question.
-- Mark "negated" ONLY IF the refusal clearly targets the task itself OR directly answers a recent agent question/reminder about the task (e.g., “Have you taken it?”, "Are you doing it now?"). 
-- If the last agent message is about a DIFFERENT topic (e.g., “Do you want to know more…?”, small talk, or informational question), then a user reply like “no” refers to THAT question, NOT to the task → classify as "ignored" (do not set "negated").
-- Short/ambiguous replies ("i don't know", "boh", "mah") are "ignored" unless they explicitly confirm/deny or commit to immediate action regarding the task.
-
------------------------------
-OUTPUT FORMAT (JSON)
------------------------------
+==============================
+OUTPUT (STRICT JSON)
+==============================
 {
   "status": "answered" | "ignored" | "negated" | "wait",
   "answer": ${type} | null,
   "notes": string | null
 }
 
------------------------------
-EXAMPLES
------------------------------
-
-Input Task:
-Name: "Prendi paracetamolo"
-Type: "boolean"
-Description: "L'utente deve prendere una pillola di paracetamolo."
-
-Chat History:
-AGENT: "Prendi una pillola di paracetamolo."
-USER: "Ok, l'ho presa adesso 😊"
-
-Output:
-{
-  "status": "answered",
-  "answer": true,
-  "notes": null
-}
-
----
-
-Input Task:
-Name: "Controlla quanta tachipirina hai preso"
-Type: "number"
-Description: "L'utente deve indicare quante pasticche di tachipirina ha preso."
-
-Chat History:
-AGENT: "Dimmi quante pasticche di tachipirina hai preso oggi."
-USER: "Ne ho prese 2 per sicurezza 😊, comunque voglio andare in farmacia dopo."
-
-Output:
-{
-  "status": "answered",
-  "answer": 2,
-  "notes": null
-}
-
-
----
-
-Input Task:
-Name: "Prendi paracetamolo"
-Type: "boolean"
-Description: "L'utente deve prendere una pillola di paracetamolo."
-
-Chat History:
+==============================
+EXAMPLES (concise)
+==============================
+A) Action task (boolean)
 AGENT: "Per favore, prendi una pillola di paracetamolo."
-USER: "No, lo farò più tardi."
-Output:
-{
-  "status": "negated",
-  "answer": false,
-  "notes": "L'utente rimanda l'esecuzione a un momento successivo."
-}
+USER: "Fatto."
+→ { "status":"answered", "answer":true, "notes":null }
 
----
+USER: "Non ora, più tardi."
+→ { "status":"negated", "answer":false, "notes":null }
 
-Input Task:
-Name: "Mettere crema antibiotica"
-Type: "boolean"
-Description: "L'utente deve applicare una crema antibiotica sulla ferita."
+USER: "Ok"
+→ { "status":"ignored", "answer":null, "notes":null }
 
-Chat History:
-AGENT: "Hai avuto modo di pulire la ferita?"
-USER: "Sì, l'ho risciacquata con acqua."
-AGENT: "Perfetto. Adesso dovresti applicare una crema antibiotica sottile sulla zona."
-USER: "Mh, non so se la ho."
-AGENT: "Tranquillo, controlla nel kit di pronto soccorso o in bagno! Ce l'hai una crema tipo gentamicina o bacitracina?"
-USER: "Qualcosa forse sì."
-AGENT: "Ok, se vuoi posso dirti come riconoscerla dalla confezione. Vuoi che ti aiuti?"
-USER: "No."
+USER: "Un attimo, lo faccio"
+→ { "status":"wait", "answer":null, "notes":null }
 
-Output:
-{
-  "status": "ignored", // the "no" refers to the offer of help, not to the task, thus it is NOT "negated", it's just "ignored"
-  "answer": null,
-  "notes": null
-}
+B) Report task (boolean)
+AGENT: "Hai preso la pillola?"
+USER: "Non ancora."
+→ { "status":"answered", "answer":false, "notes":null }
+USER: "Più tardi."
+→ { "status":"negated", "answer":false, "notes":null }
 
+C) Number
+AGENT: "Quante pasticche hai preso oggi?"
+USER: "Circa 2, forse 3, ma direi 2."
+→ { "status":"answered", "answer":2, "notes":"utente indica valore approssimato" }
 
----
+D) String
+AGENT: "Descrivi i sintomi principali."
+USER: "Mal di testa e brividi, poi vado in farmacia."
+→ { "status":"answered", "answer":"Mal di testa e brividi", "notes":null }
 
-Input Task:
-Name: "Prendi paracetamolo"
-Type: "boolean"
-Description: "L'utente deve prendere una pillola di paracetamolo."
-
-Chat History:
-AGENT: "Hai preso la pillola di paracetamolo?"
-USER: "No."
-
-Output:
-{
-  "status": "negated",
-  "answer": false,
-  "notes": null
-}
-
------------------------------
+==============================
 INPUT
------------------------------
-
+==============================
 CHAT HISTORY:
 ${history}
 
@@ -193,9 +136,5 @@ ${message}
 TASK TO EVALUATE:
 ${task}
 
-----
-VERY IMPORTANT: the type for the answer to extract is -> ${type} | null (no other type allowed)
-VERY IMPORTANT (2): Mark the task as negated only if the refusal is directed at the task itself, not at external circumstances / not if he's answering another question.
-----
+IMPORTANT: The type for the answer is -> ${type} | null (no other type allowed).
 `.trim();
-}

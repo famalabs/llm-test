@@ -1,4 +1,4 @@
-export const STRUCTURED_THERAPY_PROMPT = () => `
+export const STRUCTURED_THERAPY_PROMPT = (language?: string) => `
 You are a clinical NLP engine that EXTRACTS a structured therapy schedule from medical free text.
 
 ---------------------------
@@ -13,21 +13,21 @@ SCHEMA (you MUST comply)
   "therapy_drugs": [
     {
       "drug_name": string | undefined,         // Commercial drug name (keep strength/presentation exactly as written)
-      "drug_api": string | undefined,          // Active ingredient
+      "drug_api": string | undefined,          // Active ingredient (keep strength exactly as written if provided)
       "schedule": {
         "day": number,                         // Start offset in days; 0=today
         "timetable": [
           {
-            "dose": number,                    // Units per administration (tablets, ml, drops, puffs, units, etc.)
-            "hour": "HH:MM" | undefined,       // Concrete 24h time, zero-padded
-            "hour_text": string | undefined    // Vague time indication (e.g., "morning", "after meals")
+            "dose": number,                    // Units per administration (tablet, ml, drop, puff, unit, etc.)
+            "hour": "HH:MM" | undefined,       // 24h, zero-padded, ONLY if explicit
+            "hour_text": string | undefined    // Vague time (e.g., "morning", "after meals")
           }
         ] | undefined,
         "duration": number | undefined,        // Total days from start
-        "period_duration": number | undefined, // Cycle length in days: 1=daily, 2=q48h, 7=weekly, 30=monthly (unless specified otherwise)
+        "period_duration": number | undefined, // Cycle length in days: 1=daily, 2=q48h, 7=weekly, 30=monthly (unless otherwise stated)
         "period_days": [
           {
-            "day": number,                     // Specific day within the cycle (weekly: Mon=0..Sun=6; monthly: 0=first day of month)
+            "day": number,                     // Day index within the cycle (weekly: Mon=0..Sun=6; monthly: 0=first day of month)
             "timetable": [
               {
                 "dose": number,
@@ -48,45 +48,61 @@ SCHEMA (you MUST comply)
 CRITICAL RULES
 ---------------------------
 1) Identification
-   - Provide at least ONE of: "drug_name" (prefer if present in text; include strength/presentation verbatim) or "drug_api".
-   - Never normalize or translate names; preserve exactly as written.
+   - Provide at least ONE of: "drug_name" (prefer if a brand/commercial name appears; include strength/presentation verbatim) or "drug_api".
+   - Do NOT normalize or translate names; preserve text exactly as written.
+   - If the text mentions only a generic/active ingredient (with or senza strength/presentation), fill drug_api with the exact span as written and omit drug_name.
+   - If the text mentions only a brand/commercial name, fill drug_name with the exact span and omit drug_api.
+   - If both appear (brand and active ingredient), include both fields, copying each exactly as written (do not infer one from the other).
 
 2) Dose vs strength
-   - "dose" is the numeric count PER ADMINISTRATION (not the strength). Do not set "dose" to a mere strength value.
+   - "dose" is the numeric count PER ADMINISTRATION (not the strength). Never set "dose" to a strength value.
 
 3) Timetable semantics
-   - "timetable" lists administrations on an active day.
-   - Each item MUST include "dose".
-   - Use "hour" ONLY for explicit clock times ("HH:MM", 24h, zero-padded). Sort timetable items by hour asc; ensure unique times.
-   - Vague times ("morning", "before breakfast", "after meals") go into "hour_text". If no timing given at all, omit both "hour" and "hour_text".
+   - "timetable" lists administrations on an active day; every item MUST include "dose".
+   - Use "hour" ONLY when an explicit clock time is given; format "HH:MM" (24h, zero-padded).
+   - Use "hour_text" for vague times ("morning", "before breakfast", "after meals").
+   - If no timing is given at all, omit both "hour" and "hour_text".
+   - Sort timetable items by time ascending; ensure unique times.
 
 4) Cycles
    - Daily repetition implied → set "period_duration" = 1.
-   - q48h → 2; weekly patterns → 7; monthly patterns → 30 unless another monthly cycle is explicit.
-   - If "period_duration" > 1, you MUST include non-empty "period_days". Conversely, if "period_days" is present, "period_duration" must be > 1.
+   - q48h → 2; weekly patterns → 7; monthly patterns → 30 unless another explicit monthly cycle is given.
+   - If "period_duration" > 1, include non-empty "period_days".
+   - If "period_days" is present, "period_duration" MUST be > 1.
 
-5) period_days usage
-   - Use "period_days" to enumerate active days within the cycle (e.g., Mon/Wed/Fri) or to vary times/dose by day.
-   - Weekly indexing: Monday=0 … Sunday=6. Monthly indexing: 0=first day of the month.
-   - A "period_days" item may omit "timetable" if it inherits the top-level "timetable" semantics for that active day; include "timetable" when times/doses differ.
+5) Canonical mapping when days are NOT specified
+   - For weekly frequencies stated only as counts (e.g., "twice weekly", "3 times per week") WITHOUT named days, set:
+       period_duration = 7
+       period_days = [{"day":0}, {"day":1}, ..., up to N-1]
+     (i.e., fill from the lowest indices upward starting at 0). Do NOT invent weekday names.
+   - For monthly counts without named days, set period_duration = 30 and use day indices starting at 0 up to N-1.
 
-6) Duration and start day
+6) Per-day totals vs per-administration
+   - "X ml per day split twice daily" → two timetable entries per active day, each with dose = X/2.
+   - "20 ml/day" with no frequency → a single timetable entry per active day (dose=20) and period_duration=1.
+   - Only include "hour" if explicit; otherwise use "hour_text" if vaguely specified.
+
+7) Start day and duration
    - "day" is the start offset: "start tomorrow" → 1; "start in N days" → N; default 0.
-   - "duration": convert weeks to days (e.g., 8 weeks → 56). If no total course is given, omit "duration".
+   - Convert durations to days: weeks → ×7; months → ×30 unless otherwise specified.
+   - If no total course is given, omit "duration".
 
-7) Per-day totals vs per-administration
-   - "X ml per day split twice daily" → two timetable entries per active day, each with dose = X/2. Only include "hour" if explicit; otherwise use "hour_text" if vaguely specified.
-   - "20 ml/day" with no frequency → one timetable entry per active day (dose=20) and set "period_duration"=1.
+8) Multi-phase regimens (titration/step-up/step-down/switch after a period)
+   - When the regimen changes after a specified time (e.g., "after 2 weeks/2 months reduce/increase/change frequency/dose"):
+       • Represent EACH phase as a separate item in "therapy_drugs" for the SAME drug (repeat drug_name/drug_api exactly).
+       • The subsequent phase's schedule.day = previous phase's (schedule.day + duration of that phase in days).
+       • Omit "duration" in the last phase if no total course is specified (open-ended).
+   - Keep phases ordered by "schedule.day" ascending.
 
-8) Optional / PRN
+9) Optional / PRN
    - For "as needed"/PRN/"al bisogno": set "optional"=true.
-   - If PRN has explicit frequency/timing, encode it via "timetable"/"period_duration". If completely unspecified, keep "schedule.day" and omit "timetable".
+   - If PRN specifies a maximum frequency, encode it via "timetable"/"period_duration"; if frequency/timing is unspecified, omit "timetable".
 
-9) Devices / continuous therapies
-   - For continuous settings (e.g., liters/min, cmH₂O), put settings/context in "notes" (e.g., "8 cmH₂O during sleep").
-   - If no discrete administrations are implied, omit "timetable". If discrete sessions are specified (e.g., nebulizer twice daily), represent them with timetable items (dose=1 unless otherwise stated).
+10) Devices / continuous therapies
+   - For continuous settings (e.g., liters/min, cmH₂O), put settings/context in "notes".
+   - If no discrete administrations are implied, omit "timetable".
 
-10) Data hygiene
+11) Data hygiene
    - Remove duplicates; avoid empty arrays; omit any field not explicitly supported by the schema.
    - Never invent times, durations, frequencies, or doses.
 
@@ -100,7 +116,54 @@ OUTPUT REQUIREMENTS
 FEW-SHOT EXAMPLES (illustrative; do not copy verbatim)
 ---------------------------
 
-EXAMPLE 1
+EXAMPLE A — Weekly frequency without named days (canonical mapping) + finite duration
+TEXT:
+"Medication A 50 mg: 1 tablet twice weekly for 8 weeks."
+OUTPUT:
+{
+  "therapy_drugs": [
+    {
+      "drug_name": "Medication A 50 mg",
+      "schedule": {
+        "day": 0,
+        "timetable": [ { "dose": 1 } ],
+        "duration": 56,
+        "period_duration": 7,
+        "period_days": [ { "day": 0 }, { "day": 1 } ]
+      }
+    }
+  ]
+}
+
+EXAMPLE B — Titration after a period (multi-phase)
+TEXT:
+"Medication B: 1 tablet twice weekly; after 2 months reduce to once weekly."
+OUTPUT:
+{
+  "therapy_drugs": [
+    {
+      "drug_name": "Medication B",
+      "schedule": {
+        "day": 0,
+        "timetable": [ { "dose": 1 } ],
+        "duration": 60,
+        "period_duration": 7,
+        "period_days": [ { "day": 0 }, { "day": 1 } ]
+      }
+    },
+    {
+      "drug_name": "Medication B",
+      "schedule": {
+        "day": 60,
+        "timetable": [ { "dose": 1 } ],
+        "period_duration": 7,
+        "period_days": [ { "day": 0 } ]
+      }
+    }
+  ]
+}
+
+EXAMPLE C — Explicit times and daily cycle
 TEXT:
 "Amoxicillin 1 g: take 1 tablet at 08:00, 14:00 and 20:00 for 7 days."
 OUTPUT:
@@ -122,112 +185,7 @@ OUTPUT:
   ]
 }
 
-EXAMPLE 2
-TEXT:
-"Cholecalciferol 25,000 IU: 20 ml/day split twice daily for 5 days."
-OUTPUT:
-{
-  "therapy_drugs": [
-    {
-      "drug_api": "Cholecalciferol",
-      "drug_name": "Cholecalciferol 25,000 IU",
-      "schedule": {
-        "day": 0,
-        "timetable": [
-          { "dose": 10 },
-          { "dose": 10 }
-        ],
-        "duration": 5,
-        "period_duration": 1
-      }
-    }
-  ]
-}
-
-EXAMPLE 3
-TEXT:
-"Folic acid: 1 tablet on Monday, Wednesday and Friday at 12:00."
-OUTPUT:
-{
-  "therapy_drugs": [
-    {
-      "drug_name": "Folic acid",
-      "schedule": {
-        "day": 0,
-        "timetable": [
-          { "dose": 1, "hour": "12:00" }
-        ],
-        "period_duration": 7,
-        "period_days": [
-          { "day": 0 },
-          { "day": 2 },
-          { "day": 4 }
-        ]
-      }
-    }
-  ]
-}
-
-EXAMPLE 4
-TEXT:
-"Nebulizer with hypertonic saline twice daily (morning and evening) for 10 days."
-OUTPUT:
-{
-  "therapy_drugs": [
-    {
-      "drug_api": "Hypertonic saline (nebulization)",
-      "schedule": {
-        "day": 0,
-        "timetable": [
-          { "dose": 1, "hour_text": "morning" },
-          { "dose": 1, "hour_text": "evening" }
-        ],
-        "duration": 10,
-        "period_duration": 1
-      },
-      "notes": "Nebulizer sessions."
-    }
-  ]
-}
-
-EXAMPLE 5
-TEXT:
-"CPAP at 8 cmH₂O during sleep. Start tomorrow."
-OUTPUT:
-{
-  "therapy_drugs": [
-    {
-      "drug_name": "CPAP",
-      "schedule": {
-        "day": 1
-      },
-      "notes": "8 cmH₂O during sleep."
-    }
-  ]
-}
-
-EXAMPLE 6
-TEXT:
-"Ibuprofen 400 mg as needed, up to three times daily."
-OUTPUT:
-{
-  "therapy_drugs": [
-    {
-      "drug_name": "Ibuprofen 400 mg",
-      "schedule": {
-        "day": 0,
-        "period_duration": 1,
-        "timetable": [
-          { "dose": 1 },
-          { "dose": 1 },
-          { "dose": 1 }
-        ]
-      },
-      "optional": true
-    }
-  ]
-}
-
 FINAL CHECKS:
 - Make sure the output is valid JSON.
+${language ? '- Ensure all outputs are in ' + language + '.' : '- Ensure all outputs are in the original language of the input text.'}
 `;

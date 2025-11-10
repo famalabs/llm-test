@@ -1,5 +1,4 @@
 export const FIRST_TIME_TASK_REQUEST_PROMPT = (
-    style: string,
     task: string,
     conversationHistory: string,
     language?: string,
@@ -14,7 +13,6 @@ You are composing the next assistant message asking the user to carry out a task
 ${openerSection ? `Indications for opening the conversation: """\n${openerSection}\n"""` : ''}
 
 Requirements:
-- Style: ${style}
 - Respect the ongoing context. Use the conversation history and, if present, its summary to maintain continuity.
 - The message MUST be actionable, clear and non-repetitive.
 - Keep a friendly, proactive tone without being pushy.
@@ -38,7 +36,6 @@ Output:
 
 
 export const PRECEDENTLY_IGNORED_TASK_REQUEST_PROMPT = (
-    style: string,
     task: string,
     conversationHistory: string,
     language?: string
@@ -50,7 +47,6 @@ IGNORED TASK – POLITE REMINDER
 You are composing the next assistant message to gently revisit a task that was previously ignored (no response received). Avoid sounding repetitive or scolding.
 
 Requirements:
-- Style: ${style}
 - Keep it concise (1–3 sentences), friendly and tactful; no emojis, no Markdown headers.
 - Acknowledge lightly that the previous message might have been missed (or the user was busy) without blaming.
 - Rephrase the request briefly and clearly, focusing on what to do next.
@@ -74,7 +70,6 @@ Output:
 }
 
 export const WAITED_TASK_REQUEST_PROMPT = (
-    style: string,
     task: string,
     conversationHistory: string, 
     language?: string
@@ -87,7 +82,6 @@ WAITED TASK – ACK & NUDGE
 You are composing the next assistant message for a task currently in a WAIT state: we already asked and we're waiting for the user's results/feedback.
 
 Requirements:
-- Style: ${style}
 - Be concise (1–2 sentences), friendly, and non-pressuring; no emojis, no Markdown headers.
 - Acknowledge that you're waiting for the outcome of the task.
 - Encourage a quick update: either share results or an ETA. Avoid repeating full instructions unless strictly necessary.

@@ -44,14 +44,12 @@ export class Lmr {
         });
     }
 
-    private async callLLM<Schema extends z.ZodTypeAny>(params: { model: string, provider: LLMConfigProvider, prompt: string, schema: Schema }): Promise<z.infer<Schema>> {
-        const { model, provider, prompt, schema } = params;
+    private async callLLM<Schema extends z.ZodTypeAny>(params: { model: string, provider: LLMConfigProvider, prompt: string, schema: Schema, style: string }): Promise<z.infer<Schema>> {
+        const { model, provider, prompt, schema, style } = params;
         const llmModel = (await getLLMProvider(provider))(model);
         const { object: response } = await generateObject({
-            system: LMR_SYSTEM_PROMPT(),
+            system: LMR_SYSTEM_PROMPT(style),
             model: llmModel, prompt: prompt, schema: schema,
-            temperature: 0.2,
-            providerOptions: { openai: { reasoningEffort: 'minimal' } }
         });
         return response as z.infer<Schema>;
     }
@@ -78,8 +76,7 @@ export class Lmr {
             const { text } = await generateText({
                 model: llmModel,
                 tools: tools,
-                system: LMR_SYSTEM_PROMPT(),
-                providerOptions: { openai: { reasoningEffort: 'minimal' } }, 
+                system: LMR_SYSTEM_PROMPT(input.style),
                 prompt: ANSWER_USER_REQUEST_PROMPT(
                     history,
                     input.user_request!,
@@ -108,7 +105,6 @@ export class Lmr {
             // 1) Closer has priority if we're closing the conversation
             if (input.chat_status == 'close') {
                 prompt = CLOSER_PROMPT(
-                    input.style,
                     input.user_info,
                     this.stringifyHistory(input)
                 );
@@ -117,7 +113,6 @@ export class Lmr {
             // 2) Task in wait state: acknowledge and nudge
             else if (input.task_due && input.task_due.waited) {
                 prompt = WAITED_TASK_REQUEST_PROMPT(
-                    input.style,
                     this.stringifyTask(input.task_due),
                     this.stringifyHistory(input),
                     input.user_info?.language
@@ -127,7 +122,6 @@ export class Lmr {
             // 3) Previously ignored task: gentle reminder
             else if (input.task_due && input.task_due.ignored && !input.task_due.waited) {
                 prompt = PRECEDENTLY_IGNORED_TASK_REQUEST_PROMPT(
-                    input.style,
                     this.stringifyTask(input.task_due),
                     this.stringifyHistory(input),
                     input.user_info?.language
@@ -136,9 +130,8 @@ export class Lmr {
 
             // 4) First-time task request: task_due present with neither ignored nor waited
             else if (input.task_due && !input.task_due.ignored && !input.task_due.waited) {
-                const opener = input.chat_status == 'open' ? OPENER_PROMPT(input.style, input.user_info) : undefined;
+                const opener = input.chat_status == 'open' ? OPENER_PROMPT(input.user_info) : undefined;
                 prompt = FIRST_TIME_TASK_REQUEST_PROMPT(
-                    input.style,
                     this.stringifyTask(input.task_due),
                     this.stringifyHistory(input),
                     opener,
@@ -149,13 +142,13 @@ export class Lmr {
             // 5) We just open the chat with the user
             else if (input.chat_status == 'open') {
                 prompt = OPENER_PROMPT(
-                    input.style,
                     input.user_info,
                 );
             }
 
             return this.callLLM({
                 schema: this.getSchema(),
+                style: input.style, 
                 model: this.config.baseConfig.model,
                 provider: this.config.baseConfig.provider,
                 prompt: prompt

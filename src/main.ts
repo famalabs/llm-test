@@ -9,18 +9,21 @@ import { hideBin } from 'yargs/helpers';
 import path from 'path';
 import yargs from 'yargs';
 
+global.AI_SDK_LOG_WARNINGS = false;
+
 const MODEL_PROVIDER = {
-    model: 'gpt-5-nano',
+    model: 'gpt-4.1-mini',
     provider: 'openai' as LLMConfigProvider,
 }
-const LMR_STYLE = 'Joyful';
+const LMR_STYLE = 'Joyful (talk as you\'re happy)';
 const LMR_TASKS: InputTask[] = [
     { name: "heart-rate", type: "number", description: "The heart rate of the patient, measured in beats per minute." },
     { name: "paracetamol", type: "boolean", description: "The patient must assume 500 mg of paracetamol." },
     { name: "strange-feelings", type: "string", description: "The patient must tell whether they are experiencing any strange feelings." }
 ];
 
-type SessionEntry = { lmrOutput?: LmrOutput, lmaOutput?: LmaOutput, userInput?: string, lmrInput?: LmrInput, lmaInput?: LmaInput, lmrLatencyMs?: number, lmaLatencyMs?: number };
+type AugmentedLmaOutput = LmaOutput & ({ aPrioriGate?: { task_interaction: boolean, user_request: boolean } });
+type SessionEntry = { lmrOutput?: LmrOutput, lmaOutput?: AugmentedLmaOutput, userInput?: string, lmrInput?: LmrInput, lmaInput?: LmaInput, lmrLatencyMs?: number, lmaLatencyMs?: number };
 class SessionRec {
     private logFilePath: string;
     private data: { config: { llmConfig: LLMConfig, lmrTasks: InputTask[], lmrStyle: string }, session: SessionEntry[] };
@@ -58,20 +61,33 @@ const logAgentMessage = (lmrOutput: LmrOutput) => {
     console.log(`\nAGENT [ Source = ${source} ]: ${lmrOutput.agent_message}\n`);
 }
 
+const logLmaOutput = (lmaOutput: AugmentedLmaOutput) => {
+    let str = '\n\t[ Lma Output ]\n';
+    if (lmaOutput.aPrioriGate) {
+        str += '\t\t { A priori Gate }\n';
+        str += '\t\t\t task_interaction = ' + lmaOutput.aPrioriGate.task_interaction + '\n';
+        str += '\t\t\t user_request = ' + lmaOutput.aPrioriGate.user_request + '\n';
+    }
+    str += '\t\t user_request = ' + lmaOutput.user_request + '\n';
+    str += '\t\t task = ' + (lmaOutput.task ? `(status = ${lmaOutput.task?.status}, answer = ${lmaOutput.task?.answer})` : 'null') + '\n';
+    console.log(str + '\n');
+}
+
 const lma = new Lma({ baseConfig: { ...MODEL_PROVIDER, parallel: true } });
 const lmr = new Lmr({ baseConfig: { ...MODEL_PROVIDER } });
 
 const main = async () => {
 
-    const { skipSentimentAnalysis } = await yargs(hideBin(process.argv))
+    const { skipSentimentAnalysis, debug } = await yargs(hideBin(process.argv))
         .option('skip-sentiment-analysis', {
             alias: 'ssa',
             type: 'boolean',
             description: 'Skip sentiment analysis in LMA processing',
             default: false
         })
+        .option('debug', { alias: 'd', type: 'boolean', description: 'If true, you see LMA output during conversation', default: false })
         .help()
-        .parse() as { skipSentimentAnalysis: boolean };
+        .parse() as { skipSentimentAnalysis: boolean, debug: boolean };
 
     const session = new SessionRec();
 
@@ -135,15 +151,25 @@ const main = async () => {
         };
 
         const lmaStartTime = performance.now();
-        const lmaOutput = await lma.mainCall(lmaInput, { skipSentimentAnalysis });
+        const aPrioriGate = await lma.aPrioriClassification(lmaInput);
+
+        if (hasPendingTasks() && !aPrioriGate.task_interaction) {
+            taskFlags[currentTaskIndex] = { ignored: true };
+        }
+
+        const skipTaskAnalysis = !aPrioriGate.task_interaction;
+        const skipUserRequestDetection = !aPrioriGate.user_request;
+
+        const lmaOutput = await lma.mainCall(lmaInput, { skipSentimentAnalysis, skipTaskAnalysis, skipUserRequestDetection });
         const lmaEndTime = performance.now();
+
+        if (debug) { logLmaOutput({...lmaOutput, aPrioriGate }); }
 
         if (lmaOutput.summary) {
             summary = lmaOutput.summary;
         }
 
-
-        if (lmaOutput.task && hasPendingTasks()) {
+        if (aPrioriGate.task_interaction && lmaOutput.task && hasPendingTasks()) {
             const status = lmaOutput.task.status;
 
             if (status == 'answered') { // we can move on
@@ -161,7 +187,7 @@ const main = async () => {
             }
         }
 
-        pendingRequest = !!(lmaOutput.user_request);
+        pendingRequest = aPrioriGate.user_request; 
 
         const chatStatusForLmr: LmrInput['chat_status'] = pendingRequest
             ? 'request'
@@ -219,7 +245,7 @@ const main = async () => {
         await session.registerStep({
             userInput: userMsg,
             lmaInput,
-            lmaOutput,
+            lmaOutput: { ...lmaOutput, aPrioriGate },
             lmrInput,
             lmrOutput,
             lmrLatencyMs: lmrEndTime - lmrStartTime,

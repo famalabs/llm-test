@@ -1,4 +1,5 @@
 import {
+    A_PRIORI_CLASSIFICATION_PROMPT,
     SINGLE_USER_MESSAGE_PROMPT, WHOLE_CONVERSATION_PROMPT,
     TASK_ANALYSIS_PROMPT,
     USER_REQUEST_SATISFIED_PROMPT, USER_REQUEST_DETECTION_PROMPT, USER_REQUEST_AND_TOOLS_DETECTION_PROMPT,
@@ -6,6 +7,7 @@ import {
     CHAT_HISTORY_SUMMARIZATION_PROMPT
 } from './prompts';
 import {
+    A_PRIORI_CLASSIFICATION_SCHEMA,
     SENTIMENT_ANALYSIS_SCHEMA,
     SUMMARIZATION_SCHEMA,
     USER_REQUEST_AND_TOOLS_DETECTION_SCHEMA,
@@ -34,7 +36,7 @@ export class Lma {
         const { model, provider, prompt, schema } = params;
         const llmModel = (await getLLMProvider(provider))(model);
         const { object: response } = await generateObject({
-            model: llmModel, prompt: prompt, schema: schema, providerOptions: { openai: { reasoningEffort: 'minimal' } }
+            model: llmModel, prompt: prompt, schema: schema
         });
         return response as z.infer<Schema>;
     }
@@ -124,6 +126,20 @@ export class Lma {
         return output;
     }
 
+    // --------------------------------
+    // A PRIORI CLASSIFICATION
+    // --------------------------------
+
+    public aPrioriClassification(input: LmaInput) {
+        const { provider, model } = this.config.baseConfig;
+
+        const inputHistory = this.stringifyHistory(input);
+        const inputTask = this.stringifyTask(input.task);
+        const prompt = A_PRIORI_CLASSIFICATION_PROMPT(inputHistory, input.message, inputTask);
+        const schema = A_PRIORI_CLASSIFICATION_SCHEMA;
+
+        return this.callLLM({ model, provider, prompt, schema });
+    }
 
     // --------------------------------
     // SENTIMENT ANALYSIS

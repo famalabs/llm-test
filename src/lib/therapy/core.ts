@@ -3,7 +3,7 @@ import { getLLMProvider, LLMConfigProvider } from "../../llm";
 import { STRUCTURED_THERAPY_PROMPT, THERAPY_EXTRACTION_PROMPT } from "../prompt";
 import { TherapySchema, MarkdownTableTherapySchema } from "./schema";
 
-export const extractStructuredTherapy = async (text: string, model: string, provider: LLMConfigProvider) => {
+export const extractStructuredTherapy = async (text: string, model: string, provider: LLMConfigProvider, language?: string) => {
 
     const llm = (await getLLMProvider(provider))(model);
 
@@ -13,7 +13,7 @@ export const extractStructuredTherapy = async (text: string, model: string, prov
         temperature: 0,
         seed: 42,
         messages: [
-            { role: "system", content: STRUCTURED_THERAPY_PROMPT() },
+            { role: "system", content: STRUCTURED_THERAPY_PROMPT(language) },
             { role: "user", content: `Extract the structure of the therapy from the following medical text:\n\n TEXT:"""${text}"""` }
         ]
     });
@@ -22,7 +22,7 @@ export const extractStructuredTherapy = async (text: string, model: string, prov
 };
 
 
-export const extractTherapyAsMarkdownTable = async (text: string, model: string, provider: LLMConfigProvider) => {
+export const extractTherapyAsMarkdownTable = async (text: string, model: string, provider: LLMConfigProvider, language?: string) => {
 
     const llm = (await getLLMProvider(provider))(model);
 
@@ -32,7 +32,7 @@ export const extractTherapyAsMarkdownTable = async (text: string, model: string,
         temperature: 0,
         seed: 42,
         messages: [
-            { role: "system", content: THERAPY_EXTRACTION_PROMPT() },
+            { role: "system", content: THERAPY_EXTRACTION_PROMPT(language) },
             { role: "user", content: `Extract the current therapy from the following medical text:\n\n TEXT:"""${text}"""` }
         ] as ModelMessage[]
     });

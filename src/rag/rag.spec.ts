@@ -7,11 +7,13 @@ import { generateObject } from "ai";
 import z from "zod";
 import 'dotenv/config';
 
+global.AI_SDK_LOG_WARNINGS = false;
+
 jest.setTimeout(60 * 1000);
 
 const MODEL_PROVIDER = {
-    model: "mistral-small-latest",
-    provider: "mistral" as LLMConfigProvider,
+    model: "gpt-4.1-mini",
+    provider: "openai" as LLMConfigProvider,
 }
 
 const testData = [
@@ -64,7 +66,8 @@ async function testPrompt(idx: number) {
         keyRef: testData[idx].keyRef,
         fullRef: testData[idx].fullRef,
         candidate: answer,
-        ...MODEL_PROVIDER
+        model : 'mistral-small-latest',
+        provider : 'mistral',
     });
 
     expect(score).toBeGreaterThanOrEqual(0.8);

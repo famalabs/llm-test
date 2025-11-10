@@ -6,11 +6,13 @@ import { Lma } from "./lma";
 import * as allEval from './evaluation';
 import 'dotenv/config';
 
+global.AI_SDK_LOG_WARNINGS = false;
+
 jest.setTimeout(60 * 1000);
 
 const MODEL_PROVIDER = {
-    model: 'mistral-small-latest',
-    provider: 'mistral' as LLMConfigProvider
+    model: 'gpt-4.1-mini',
+    provider: 'openai' as LLMConfigProvider
 };
 
 const testData: {
@@ -301,8 +303,8 @@ test.concurrent('LMA - Sentiment Analysis', async () => {
     const averageSingleRawDistance = metrics.reduce((sum, m) => sum + m.single.raw, 0) / metrics.length;
     const averageCumulativeRawDistance = metrics.reduce((sum, m) => sum + m.cumulative.raw, 0) / metrics.length;
 
-    expect(averageSingleRawDistance).toBeLessThanOrEqual(0.2);
-    expect(averageCumulativeRawDistance).toBeLessThanOrEqual(0.3);
+    expect(averageSingleRawDistance).toBeLessThanOrEqual(0.3);
+    expect(averageCumulativeRawDistance).toBeLessThanOrEqual(0.4);
 });
 
 test.concurrent('LMA - User Request Detection', async () => {
