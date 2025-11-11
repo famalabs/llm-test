@@ -1,0 +1,1 @@
+export type OcrEngine = (inputBuffer: Buffer, moreOptions?: Record<string, any>) => Promise<string>;
