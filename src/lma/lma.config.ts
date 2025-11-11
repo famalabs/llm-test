@@ -69,6 +69,7 @@ export const resolveConfig = (lmaConfig: Partial<LmaConfig>): LmaConfig => {
 const LLMConfigSchema = z.object({
     provider: z.enum(["mistral", "google", "openai"]),
     model: z.string().min(1),
+    debug: z.boolean().optional(),
 });
 
 const ToolParamSchema = z.object({

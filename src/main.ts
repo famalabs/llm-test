@@ -22,7 +22,7 @@ const LMR_TASKS: InputTask[] = [
     { name: "strange-feelings", type: "string", description: "The patient must tell whether they are experiencing any strange feelings." }
 ];
 
-type AugmentedLmaOutput = LmaOutput & ({ aPrioriGate?: { task_interaction: boolean, user_request: boolean } });
+type AugmentedLmaOutput = LmaOutput & ({ debugInfo?: { aPrioriGate: { task_interaction: boolean, user_request: boolean } } });
 type SessionEntry = { lmrOutput?: LmrOutput, lmaOutput?: AugmentedLmaOutput, userInput?: string, lmrInput?: LmrInput, lmaInput?: LmaInput, lmrLatencyMs?: number, lmaLatencyMs?: number };
 class SessionRec {
     private logFilePath: string;
@@ -63,17 +63,17 @@ const logAgentMessage = (lmrOutput: LmrOutput) => {
 
 const logLmaOutput = (lmaOutput: AugmentedLmaOutput) => {
     let str = '\n\t[ Lma Output ]\n';
-    if (lmaOutput.aPrioriGate) {
+    if (lmaOutput.debugInfo?.aPrioriGate) {
         str += '\t\t { A priori Gate }\n';
-        str += '\t\t\t task_interaction = ' + lmaOutput.aPrioriGate.task_interaction + '\n';
-        str += '\t\t\t user_request = ' + lmaOutput.aPrioriGate.user_request + '\n';
+        str += '\t\t\t task_interaction = ' + lmaOutput.debugInfo.aPrioriGate.task_interaction + '\n';
+        str += '\t\t\t user_request = ' + lmaOutput.debugInfo.aPrioriGate.user_request + '\n';
     }
     str += '\t\t user_request = ' + lmaOutput.user_request + '\n';
     str += '\t\t task = ' + (lmaOutput.task ? `(status = ${lmaOutput.task?.status}, answer = ${lmaOutput.task?.answer})` : 'null') + '\n';
     console.log(str + '\n');
 }
 
-const lma = new Lma({ baseConfig: { ...MODEL_PROVIDER, parallel: true } });
+const lma = new Lma({ baseConfig: { ...MODEL_PROVIDER, parallel: true, debug: true } });
 const lmr = new Lmr({ baseConfig: { ...MODEL_PROVIDER } });
 
 const main = async () => {
@@ -130,7 +130,6 @@ const main = async () => {
 
     while (true) {
         const userMsg = await getUserInput('USER: ');
-        messages.push({ sender: 'user', message: userMsg });
 
         const chatStatusForLma: LmaInput['chat_status'] = pendingRequest
             ? 'request'
@@ -139,7 +138,7 @@ const main = async () => {
         const currentFlags = taskFlags[currentTaskIndex] || {};
         const shouldIncludeTaskInLma = hasPendingTasks() && (
             chatStatusForLma != 'request' ||
-            !!(currentFlags.ignored || currentFlags.waited)
+            (currentFlags.ignored || currentFlags.waited)
         );
 
         const lmaInput: LmaInput = {
@@ -151,25 +150,16 @@ const main = async () => {
         };
 
         const lmaStartTime = performance.now();
-        const aPrioriGate = await lma.aPrioriClassification(lmaInput);
-
-        if (hasPendingTasks() && !aPrioriGate.task_interaction) {
-            taskFlags[currentTaskIndex] = { ignored: true };
-        }
-
-        const skipTaskAnalysis = !aPrioriGate.task_interaction;
-        const skipUserRequestDetection = !aPrioriGate.user_request;
-
-        const lmaOutput = await lma.mainCall(lmaInput, { skipSentimentAnalysis, skipTaskAnalysis, skipUserRequestDetection });
+        const { output: lmaOutput, debugInfo } = await lma.mainCall(lmaInput, { skipSentimentAnalysis });
         const lmaEndTime = performance.now();
 
-        if (debug) { logLmaOutput({...lmaOutput, aPrioriGate }); }
+        if (debug) { logLmaOutput({ ...lmaOutput, debugInfo }); }
 
         if (lmaOutput.summary) {
             summary = lmaOutput.summary;
         }
 
-        if (aPrioriGate.task_interaction && lmaOutput.task && hasPendingTasks()) {
+        if (lmaOutput.task) {
             const status = lmaOutput.task.status;
 
             if (status == 'answered') { // we can move on
@@ -187,7 +177,7 @@ const main = async () => {
             }
         }
 
-        pendingRequest = aPrioriGate.user_request; 
+        pendingRequest = !!(lmaOutput.user_request);
 
         const chatStatusForLmr: LmrInput['chat_status'] = pendingRequest
             ? 'request'
@@ -222,6 +212,8 @@ const main = async () => {
             }
         }
 
+        messages.push({ sender: 'user', message: userMsg });
+
         const lmrInput: LmrInput = {
             chat_status: chatStatusForLmr,
             style: LMR_STYLE,
@@ -245,7 +237,7 @@ const main = async () => {
         await session.registerStep({
             userInput: userMsg,
             lmaInput,
-            lmaOutput: { ...lmaOutput, aPrioriGate },
+            lmaOutput: ({ ...lmaOutput, debugInfo }),
             lmrInput,
             lmrOutput,
             lmrLatencyMs: lmrEndTime - lmrStartTime,

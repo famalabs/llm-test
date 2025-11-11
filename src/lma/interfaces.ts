@@ -58,6 +58,7 @@ export interface LmaOutput {
 export interface LmaConfig {
     baseConfig: LLMConfig & {
         parallel: boolean;
+        debug?: boolean;
     },
     sentimentAnalysisConfig: LLMConfig & {
         scoreSet: number[];

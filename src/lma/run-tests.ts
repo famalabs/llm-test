@@ -87,7 +87,8 @@ const main = async () => {
         let candidate = {} as LmaOutput & { sentiment: { lastMessageLookingAtHistory?: SentimentScores } };
 
         if (runAllTests) {
-            candidate = await lma.mainCall(input);
+            const { output } = await lma.mainCall(input);
+            candidate = output;
             candidate.sentiment.lastMessageLookingAtHistory = await lma.getLastMessageSentimentLookingAtHistory(input);
         }
 

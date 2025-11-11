@@ -75,8 +75,7 @@ export class Lma {
         skipSentimentAnalysis?: boolean,
         skipUserRequestDetection?: boolean,
         skipTaskAnalysis?: boolean
-    }): Promise<LmaOutput> {
-
+    }): Promise<{ output: LmaOutput, debugInfo?: { aPrioriGate: { task_interaction: boolean, user_request: boolean } } }> {
         const output: LmaOutput = {
             user_request: null,
             request_satisfied: null,
@@ -89,11 +88,20 @@ export class Lma {
             useful_tools: null
         };
 
+        const aPrioriGate = await this.aPrioriClassification(input);
+
+        if (input.task != undefined/* è shouldIncludeTaskInLma*/ && !aPrioriGate.task_interaction) {
+            output.task = { status: 'ignored' };
+        }
+
+        const skipTaskAnalysis = !aPrioriGate.task_interaction;
+        const skipUserRequestDetection = !aPrioriGate.user_request;
+
         const summarizationPromise = options?.skipSummarization ? Promise.resolve(undefined) : this.summarizeChatHistory(input);
         const sentimentSinglePromise = options?.skipSentimentAnalysis ? Promise.resolve({} as SentimentScores) : this.getSingleMessageSentiment(input);
         const sentimentCumulativePromise = options?.skipSentimentAnalysis ? Promise.resolve({} as SentimentScores) : this.getCumulativeSentiment(input);
-        const requestPromise = options?.skipUserRequestDetection ? Promise.resolve({ user_request: null, request_satisfied: null, useful_tools: null }) : this.detectUserRequest(input);
-        const taskPromise = options?.skipTaskAnalysis ? Promise.resolve(null) : this.analyzeTask(input);
+        const requestPromise = (options?.skipUserRequestDetection || skipUserRequestDetection) ? Promise.resolve({ user_request: null, request_satisfied: null, useful_tools: null }) : this.detectUserRequest(input);
+        const taskPromise = (options?.skipTaskAnalysis || skipTaskAnalysis) ? Promise.resolve(null) : this.analyzeTask(input);
 
         if (this.config.baseConfig.parallel) {
             const [
@@ -123,7 +131,7 @@ export class Lma {
             output.task = await taskPromise;
         }
 
-        return output;
+        return { output, debugInfo: this.config.baseConfig.debug ? { aPrioriGate } : undefined };
     }
 
     // --------------------------------
